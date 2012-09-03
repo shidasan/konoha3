@@ -100,24 +100,24 @@ static kbool_t subtype_setupPackage(KonohaContext *kctx, kNameSpace *ns, isFirst
 //	}
 //}
 //
-//static KMETHOD ExprTyCheck_As(KonohaContext *kctx, KonohaStack *sfp)
-//{
-//	VAR_ExprTyCheck(stmt, expr, gma, reqty);
-//	kExpr *targetExpr = SUGAR kStmt_tyCheckExprAt(kctx, stmt, expr, 2, gma, TY_var, 0);
-//	kExpr *selfExpr   = SUGAR kStmt_tyCheckExprAt(kctx, stmt, expr, 1, gma, targetExpr->ty, 0);
-//	if(selfExpr != K_NULLEXPR && targetExpr != K_NULLEXPR) {
-//		KonohaClass *selfClass = CT_(selfExpr->ty), *targetClass = CT_(targetExpr->ty);
-//		if(selfExpr->ty == targetExpr->ty || selfClass->isSubType(kctx, selfClass, targetClass)) {
-//			RETURN_(selfExpr);
-//		}
-//		kNameSpace *ns = Stmt_nameSpace(stmt);
-//		kMethod *mtd = KLIB kNameSpace_getMethodNULL(kctx, ns, TY_Object, MN_("as"), 0, 0);
-//		DBG_ASSERT(mtd != NULL);
-//		KSETv(expr->cons, expr->cons->methodItems[0], mtd);
-//		KSETv(expr->cons, expr->cons->exprItems[2], SUGAR kExpr_setConstValue(kctx, expr, targetExpr->ty, KLIB Knull(kctx, targetClass)));
-//		RETURN_(SUGAR kStmt_tyCheckCallParamExpr(kctx, stmt, expr, mtd, gma, targetClass->typeId));
-//	}
-//}
+static KMETHOD ExprTyCheck_As(KonohaContext *kctx, KonohaStack *sfp)
+{
+	VAR_ExprTyCheck(stmt, expr, gma, reqty);
+	kExpr *targetExpr = SUGAR kStmt_tyCheckExprAt(kctx, stmt, expr, 2, gma, TY_var, 0);
+	kExpr *selfExpr   = SUGAR kStmt_tyCheckExprAt(kctx, stmt, expr, 1, gma, targetExpr->ty, 0);
+	if(selfExpr != K_NULLEXPR && targetExpr != K_NULLEXPR) {
+		KonohaClass *selfClass = CT_(selfExpr->ty), *targetClass = CT_(targetExpr->ty);
+		if(selfExpr->ty == targetExpr->ty || selfClass->isSubType(kctx, selfClass, targetClass)) {
+			RETURN_(selfExpr);
+		}
+		kNameSpace *ns = Stmt_nameSpace(stmt);
+		kMethod *mtd = KLIB kNameSpace_getMethodNULL(kctx, ns, TY_Object, MN_("as"), 0, 0);
+		DBG_ASSERT(mtd != NULL);
+		KSETv(expr->cons, expr->cons->methodItems[0], mtd);
+		KSETv(expr->cons, expr->cons->exprItems[2], SUGAR kExpr_setConstValue(kctx, expr, targetExpr->ty, KLIB Knull(kctx, targetClass)));
+		RETURN_(SUGAR kStmt_tyCheckCallParamExpr(kctx, stmt, expr, mtd, gma, targetClass->typeId));
+	}
+}
 
 // ----------------------------------------------------------------------------
 
@@ -125,7 +125,7 @@ static kbool_t subtype_initNameSpace(KonohaContext *kctx,  kNameSpace *ns, kfile
 {
 	KDEFINE_SYNTAX SYNTAX[] = {
 		{ .keyword = SYM_("<:"), .precedence_op2 = C_PRECEDENCE_MUL },
-		{ .keyword = SYM_("as"), .precedence_op2 = C_PRECEDENCE_MUL },
+		{ .keyword = SYM_("as"), ExprTyCheck_(As), .precedence_op2 = -1 },
 		{ .keyword = KW_END, },
 	};
 	SUGAR kNameSpace_defineSyntax(kctx, ns, SYNTAX);
