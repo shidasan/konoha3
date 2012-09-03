@@ -22,8 +22,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***************************************************************************/
 
-#ifndef KONOHA2_H_
-#define KONOHA2_H_
+#ifndef MINIKONOHA_H_
+#define MINIKONOHA_H_
 
 #ifdef K_USING_TOPPERS
 #include <t_services.h>
@@ -1570,6 +1570,6 @@ typedef struct DEFINE_TESTFUNC {
 } DEFINE_TESTFUNC ;
 #endif
 
-#include "logger.h"
+#include "../../include/minikonoha/logger.h"
 
-#endif /* KONOHA2_H_ */
+#endif /* MINIKONOHA_H_ */
