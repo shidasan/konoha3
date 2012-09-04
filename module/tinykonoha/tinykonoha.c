@@ -30,7 +30,7 @@
 #endif
 
 #include "tinykonoha.h"
-#include "../../include/konoha2/konoha2.h"
+//#include "../../include/konoha2/konoha2.h"
 #include "allocate.h"
 #include "../tinyvm/tinyvm_gen.h"
 #include "bytecode.h"
