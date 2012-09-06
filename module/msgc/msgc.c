@@ -406,8 +406,6 @@ static kGCObject0 *new_ObjectArena0(KonohaContext *kctx, size_t arenasize)
 		memshare->capacityObjectArenaTBL[0] = newsize;
 	}
 	memshare->sizeObjectArenaTBL[0] += 1;
-	printf("sizeof kObjectVar %zd\n", sizeof(kObjectVar));
-	printf("assert %zd, %zd\n", sizeof(objpage0_t), K_PAGESIZE);
 	DBG_ASSERT(sizeof(objpage0_t) == K_PAGESIZE);
 	oat = &memshare->ObjectArenaTBL[0][pageindex];
 	ObjectArenaTBL_init0(kctx, oat, arenasize);
@@ -858,7 +856,6 @@ static void MSGC_free(KonohaContext *kctx, struct KonohaModule *baseh)
 void MODGC_init(KonohaContext *kctx, KonohaContextVar *ctx)
 {
 	assert(sizeof(kGCObject0) == sizeof(kObjectVar));
-	printf("pageobjectsize %zd\n", K_PAGEOBJECTSIZE(0));
 	if(IS_RootKonohaContext(ctx)) {
 		kmemshare_t *base = (kmemshare_t*) do_malloc(sizeof(kmemshare_t));
 		base->h.name     = "msgc";

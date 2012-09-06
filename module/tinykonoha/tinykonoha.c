@@ -27,6 +27,8 @@
 #include "ecrobot_base.h"
 #include "ecrobot_interface.h"
 #include "balancer.h"
+#else
+#include "stdio.h"
 #endif
 
 #include "tinykonoha.h"
@@ -57,7 +59,7 @@ static void KRUNTIME_reftrace(KonohaContext *kctx, KonohaContext *ctx)
 static void kshare_reftrace(KonohaContext *kctx, KonohaContext *ctx)
 {
 	KonohaRuntime *share = ctx->share;
-	ktype_t **cts = (ktype_t**)kctx->share->classTable.classItems;
+	KonohaClass **cts = (KonohaClass**)kctx->share->classTable.classItems;
 	size_t i, size = kctx->share->classTable.bytesize/sizeof(struct _kclass*);
 	for(i = 0; i < size; i++) {
 		KonohaClass *ct = cts[i];
@@ -152,7 +154,7 @@ kObjectVar** KONOHA_reftail(KonohaContext *kctx, size_t size)
 		KLIB Karray_expand(kctx, &stack->ref, (size + ref_size) * sizeof(kObject*));
 		stack->reftail = stack->ref.refhead + ref_size;
 	}
-	struct _kObject **reftail = stack->reftail;
+	kObjectVar **reftail = stack->reftail;
 	stack->reftail = NULL;
 	return reftail;
 }
@@ -172,7 +174,7 @@ static void Kreport(KonohaContext *kctx, int level, const char *msg)
 	/* TODO */
 }
 
-static void Kreportf(KonohaContext *kctx, int level, kfileline_t pline, const char *fmt, ...)
+static void Kreportf(KonohaContext *kctx, kinfotag_t level, kfileline_t pline, const char *fmt, ...)
 {
 	/* TODO */
 	printf("hi\n");
@@ -211,7 +213,7 @@ static void kNameSpace_loadMethodData(KonohaContext *kctx, kNameSpace *ks, intpt
 		kMethod *mtd = KLIB new_kMethod(kctx, flag, cid, mn, f);
 		//kMethod_setParam(mtd, rtype, psize, p);
 		if(ks == NULL || Method_isPublic(mtd)) {
-			CT_addMethod(kctx, CT_(cid), mtd);
+			CT_addMethod(kctx, (KonohaClassVar*)CT_(cid), mtd);
 		} else {
 			KonohaSpace_addMethod(kctx, ks, mtd);
 		}
@@ -330,9 +332,9 @@ static void loadByteCode(KonohaContext *kctx)
 		kmethoddecl_t *def = decls[i];
 		kconstdata_t *data = def->constdata;
 		while (data[j].cid != CLASS_Tvoid) {
-			ktype_t *ct = CT_(data[j].cid);
+			KonohaClass *ct = CT_(data[j].cid);
 			if (ct) {
-				KLIB kArray_add(kctx, kctx->share->constData, KLIB new_kObject(kctx, ct, data->conf));
+				KLIB kArray_add(kctx, kctx->share->constData, KLIB new_kObject(kctx, ct, (uintptr_t)data->conf));
 			} else {
 				KLIB kArray_add(kctx, kctx->share->constData, kctx->share->constNull);
 			}
@@ -341,7 +343,7 @@ static void loadByteCode(KonohaContext *kctx)
 		if (def->cid != 0 && def->mn != 0) {
 			uintptr_t flag = 0;
 			kMethod *mtd = KLIB new_kMethod(kctx, flag, def->cid, def->mn, (MethodFunc)def->opline);
-			CT_addMethod(kctx, CT_(def->cid), mtd);
+			CT_addMethod(kctx, (KonohaClassVar*)CT_(def->cid), mtd);
 		}
 	}
 	for (i = 0; i < declsize; i++) {
@@ -502,9 +504,6 @@ void TaskDisp(VP_INT exinf)
 #else
 int main(int argc, char **args)
 {
-	printf("kObjectVar  %zd\n", sizeof(kObjectVar));
-	printf("header %zd\n", sizeof(KonohaObjectHeader));
-	printf("short %zd\n", sizeof(ktype_t));
 	opcode_check();
 	KonohaContext *kctx = NULL;
 	kctx = new_context(K_STACK_SIZE);

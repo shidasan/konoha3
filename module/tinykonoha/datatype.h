@@ -53,7 +53,7 @@ static kObject *new_Object(KonohaContext *kctx, KonohaClass *ct, uintptr_t conf)
 	o->h.magicflag = ct->magicflag;
 	o->h.cid = ct->typeId;
 	//o->h.kvproto = kvproto_null();
-	ct->init(kctx, (kObject*)o, conf);
+	ct->init(kctx, (kObject*)o, (void*)conf);
 	return (kObject*)o;
 }
 
@@ -241,7 +241,7 @@ static void Param_init(KonohaContext *kctx, kObject *o, void *conf)
 
 static KonohaClassVar *new_KonohaClass(KonohaContext *kctx, KonohaClass *bct, KDEFINE_CLASS *s, kfileline_t pline)
 {
-	KonohaRuntimeVar *share = kctx->share;
+	KonohaRuntimeVar *share = (KonohaRuntimeVar*)kctx->share;
 	ktype_t newid = share->classTable.bytesize / sizeof(KonohaClassVar*);
 	if (share->classTable.bytesize == share->classTable.bytemax) {
 		KLIB Karray_expand(kctx, &share->classTable, share->classTable.bytemax * 2);
@@ -309,7 +309,7 @@ static kParam *new_Param(KonohaContext *kctx, ktype_t rtype, int psize, kparamty
 {
 	KonohaClass *ct = CT_(CLASS_Param);
 	ct = CT_body(kctx, ct, sizeof(void*), psize * sizeof(kparamtype_t));
-	kParamVar *pa = (kParamVar*)new_Object(kctx, ct, (void*)0);
+	kParamVar *pa = (kParamVar*)new_Object(kctx, ct, 0);
 	pa->rtype = rtype;
 	pa->psize = psize;
 	if(psize > 0) {
@@ -375,7 +375,6 @@ static void Array_reftrace(KonohaContext *kctx, kObject *o)
 		size_t i;
 		BEGIN_REFTRACE(kArray_size(a));
 		for(i = 0; i < kArray_size(a); i++) {
-			printf("size size%zd\n", kArray_size(a));
 			KREFTRACEv(a->objectItems[i]);
 		}
 		END_REFTRACE();
@@ -558,7 +557,7 @@ static void Array_ensureMinimumSize(KonohaContext *kctx, struct _kAbstractArray 
 //	}
 //}
 
-static void Array_add(KonohaContext *kctx, kArray *o, kObject *value)
+static void Array_add(KonohaContext *kctx, kArray *o, kAbstractObject *value)
 {
 	size_t asize = kArray_size(o);
 	struct _kAbstractArray *a = (struct _kAbstractArray*)o;

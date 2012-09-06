@@ -132,7 +132,6 @@ void *tiny_malloc(size_t size)
 
 void tiny_free(void* ptr)
 {
-	printf("free %p\n", ptr);
 	heap_free(ptr_to_header(ptr), &header_global);
 }
 
@@ -145,7 +144,6 @@ void *tiny_malloc(size_t size)
 	//}
 	void *mem;
 	mem = heap_alloc(size, &header_global);
-	printf("malloc %p, size: %zd\n", mem, size);
 	//TDBG_s("malloc end");
 	if (mem == NULL) {
 		//TDBG_abort("NULL");
