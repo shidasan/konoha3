@@ -513,3 +513,12 @@ $(UTASK_ASMOBJS:.o=.d): %.d: %.S
 %.o: %.S
 	@echo "*** Default compile rules should not be used."
 	$(CC) -c $(CFLAGS) $<
+
+DEBUG_CC = gcc
+DEBUG_CFLAGS = -g2 -I../../include -I.
+
+#
+# for debugging on linux
+#
+debug :
+	$(DEBUG_CC) $(UNAME).c -o $(UNAME) $(DEBUG_CFLAGS) -DK_USING_TINYVM=1
