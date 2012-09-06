@@ -29,7 +29,7 @@
 #else
 #define HEAP_SIZE (1024 * 1024 * 32)
 #endif
-#define MINIMUM_ALLOCATE_SIZE 4
+#define MINIMUM_ALLOCATE_SIZE 0
 
 typedef struct heap_free_area
 {
@@ -49,6 +49,7 @@ static void *heap_alloc(size_t size, heap_header **header)
 	while (mem == NULL) {
 		if (_header->size > size + sizeof(heap_header)) {
 			int newsize = _header->size - (sizeof(heap_header) + size);
+			_header->size = size;
 			ptr = (char*)_header;
 			mem = (void*)(ptr + sizeof(heap_header));
 			if (newsize < MINIMUM_ALLOCATE_SIZE) {
@@ -82,25 +83,8 @@ static heap_header *ptr_to_header(void *ptr)
 static void heap_init()
 {
 	header_global = (heap_header*)space;
-	header_global->size = HEAP_SIZE;
+	header_global->size = HEAP_SIZE - sizeof(heap_header);
 	header_global->next = NULL;
-}
-
-static int total_malloced = 0;
-void *malloc(size_t size)
-{
-	size = size + ((4 - size % 4) % 4);
-	total_malloced+=size + sizeof(heap_header);
-	//if (total_malloced > HEAP_SIZE / 10 * 9) {
-	//	TDBG_i("total mallocked", total_malloced);
-	//}
-	void *mem;
-	mem = heap_alloc(size, &header_global);
-	//TDBG_s("malloc end");
-	if (mem == NULL) {
-		//TDBG_abort("NULL");
-	}
-	return mem;
 }
 
 static void heap_free(heap_header *free_header, heap_header **header)
@@ -131,7 +115,41 @@ static void heap_free(heap_header *free_header, heap_header **header)
 	}
 }
 
-void free(void* ptr)
+static int total_malloced = 0;
+//#define MALLOC_DEBUG 1
+#ifdef MALLOC_DEBUG
+void tiny_free(void *ptr)
 {
+	free(ptr);
+}
+void *tiny_malloc(size_t size)
+{
+	void *ptr =  malloc(size);
+	return ptr;
+}
+
+#else
+
+void tiny_free(void* ptr)
+{
+	printf("free %p\n", ptr);
 	heap_free(ptr_to_header(ptr), &header_global);
 }
+
+void *tiny_malloc(size_t size)
+{
+	size = size + ((4 - size % 4) % 4);
+	total_malloced+=size + sizeof(heap_header);
+	//if (total_malloced > HEAP_SIZE / 10 * 9) {
+	//	TDBG_i("total mallocked", total_malloced);
+	//}
+	void *mem;
+	mem = heap_alloc(size, &header_global);
+	printf("malloc %p, size: %zd\n", mem, size);
+	//TDBG_s("malloc end");
+	if (mem == NULL) {
+		//TDBG_abort("NULL");
+	}
+	return mem;
+}
+#endif
