@@ -42,7 +42,7 @@ extern "C" {
 #endif
 
 #define K_TYTABLE_INIT 64
-#define K_PAGESIZE        4096
+#define K_PAGESIZE        2048
 
 #define K_VERSION   "0.1"
 #define K_MAJOR_VERSION 0

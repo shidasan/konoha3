@@ -67,8 +67,8 @@ extern "C" {
 #endif
 #endif
 
-#define K_TYTABLE_INIT 64
-#define K_PAGESIZE        1024
+#define K_TYTABLE_INIT 16
+#define K_PAGESIZE        4096
 
 #define K_VERSION   "0.1"
 #define K_MAJOR_VERSION 0
@@ -758,7 +758,7 @@ typedef struct KDEFINE_CLASS {
 	.cstruct_size = sizeof(k##C)\
 
 //KonohaClassVar;
-typedef uintptr_t kmagicflag_t;
+typedef kshort_t kmagicflag_t;
 
 struct KonohaClassVar {
 	CLASSAPI;
@@ -1020,7 +1020,7 @@ struct _kBytes {
 struct kStringVar /* extends _Bytes */ {
 	KonohaObjectHeader h;
 	COMMON_BYTEARRAY;
-	const char inline_text[SIZEOF_INLINETEXT];
+	//const char inline_text[SIZEOF_INLINETEXT];
 };
 
 #define SPOL_TEXT          (1<<0)

@@ -192,17 +192,18 @@ static kString* new_String(KonohaContext *kctx, const char *text, size_t len, in
 		s->bytesize = len;
 		S_setTextSgm(s, 1);
 	}
-	else if(len + 1 < sizeof(void*) * 2) {
-		s = (kStringVar*)new_Object(kctx, ct, 0);
-		s->text = s->inline_text;
-		s->bytesize = len;
-		S_setTextSgm(s, 1);
-		if(text != NULL) {
-			DBG_ASSERT(!TFLAG_is(int, spol, SPOL_NOCOPY));
-			memcpy(s->ubuf, text, len);
-		}
-		s->buf[len] = '\0';
-	}
+	/* not allowed to use inline_text area */
+	//else if(len + 1 < sizeof(void*) * 2) {
+	//	s = (kStringVar*)new_Object(kctx, ct, 0);
+	//	s->text = s->inline_text;
+	//	s->bytesize = len;
+	//	S_setTextSgm(s, 1);
+	//	if(text != NULL) {
+	//		DBG_ASSERT(!TFLAG_is(int, spol, SPOL_NOCOPY));
+	//		memcpy(s->ubuf, text, len);
+	//	}
+	//	s->buf[len] = '\0';
+	//}
 	else {
 		s = (kStringVar*)new_Object(kctx, ct, 0);
 		s->bytesize = len;
@@ -351,7 +352,7 @@ struct _kAbstractArray {
 	KUtilsGrowingArray a;
 } ;
 
-static void Array_init(KonohaContext *kctx, kObject *o, void *conf)
+static void Array_init(KonohaContext *kctx, kObject *o, void* conf)
 {
 	struct _kAbstractArray *a = (struct _kAbstractArray*)o;
 	a->a.bytebuf     = NULL;
@@ -374,6 +375,7 @@ static void Array_reftrace(KonohaContext *kctx, kObject *o)
 		size_t i;
 		BEGIN_REFTRACE(kArray_size(a));
 		for(i = 0; i < kArray_size(a); i++) {
+			printf("size size%zd\n", kArray_size(a));
 			KREFTRACEv(a->objectItems[i]);
 		}
 		END_REFTRACE();
@@ -542,11 +544,19 @@ static void Method_setFunc(KonohaContext *kctx, kMethod *mtd, MethodFunc func)
 
 static void Array_ensureMinimumSize(KonohaContext *kctx, struct _kAbstractArray *a, size_t min)
 {
-	if(!((min * sizeof(void*)) < a->a.bytemax)) {
-		if(min < sizeof(kObject)) min = sizeof(kObject);
-		KLIB Karray_expand(kctx, &a->a, min);
+	size_t minbyte = min * sizeof(void*);
+	if(!(minbyte < a->a.bytemax)) {
+		if(minbyte < sizeof(kObject)) minbyte = sizeof(kObject);
+		KLIB Karray_expand(kctx, &a->a, minbyte);
 	}
 }
+//static void Array_ensureMinimumSize(KonohaContext *kctx, struct _kAbstractArray *a, size_t min)
+//{
+//	if(!((min * sizeof(void*)) < a->a.bytemax)) {
+//		if(min < sizeof(kObject)) min = sizeof(kObject);
+//		KLIB Karray_expand(kctx, &a->a, min);
+//	}
+//}
 
 static void Array_add(KonohaContext *kctx, kArray *o, kObject *value)
 {

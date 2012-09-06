@@ -47,10 +47,10 @@ int verbose_gc = 0;
 
 #define K_PAGEOBJECTSIZE(i) (K_PAGESIZE / sizeof(kGCObject##i))
 
-#define K_ARENATBL_INITSIZE     32
 
 #ifdef K_USING_TINYVM
 
+#define K_ARENATBL_INITSIZE     1
 #define Object_ClearCT(o)       ((o)->h.cid = 0)
 #define Object_Marked           (kObject_Local6)
 #define Object_unsetMark(o) TFLAG_set(kmagicflag_t,((kObjectVar*)o)->h.magicflag,Object_Marked,0)
@@ -59,6 +59,7 @@ int verbose_gc = 0;
 
 #else
 
+#define K_ARENATBL_INITSIZE     32
 #define Object_ClearCT(o)       ((o)->h.ct = NULL)
 #define Object_unsetMark(o) TFLAG_set0(uintptr_t,(o)->h.magicflag,kObject_GCFlag)
 #define Object_setMark(o)   TFLAG_set1(uintptr_t,(o)->h.magicflag,kObject_GCFlag)
@@ -71,8 +72,8 @@ typedef struct kGCObject0 {
 	KonohaObjectHeader h;
 	struct kGCObject0 *ref;
 	void *ref2_unused;
-	void *ref3_unused;
 #ifndef K_USING_TINYVM
+	void *ref3_unused;
 	void *ref4_unused;
 #endif
 	struct kGCObject0 *ref5_tail;
@@ -82,8 +83,8 @@ typedef struct kGCObject1 {
 	KonohaObjectHeader h;
 	struct kGCObject1 *ref;
 	void *ref2_unused;
-	void *ref3_unused;
 #ifndef K_USING_TINYVM
+	void *ref3_unused;
 	void *ref4_unused;
 #endif
 	struct kGCObject1 *ref5_tail;
@@ -94,8 +95,8 @@ typedef struct kGCObject2 {
 	KonohaObjectHeader h;
 	struct kGCObject2 *ref;
 	void *ref2_unused;
-	void *ref3_unused;
 #ifndef K_USING_TINYVM
+	void *ref3_unused;
 	void *ref4_unused;
 #endif
 	struct kGCObject2 *ref5_tail;
@@ -203,7 +204,11 @@ static inline void do_bzero(void *ptr, size_t size)
 
 static inline void *do_malloc(size_t size)
 {
+#ifdef K_USING_TINYVM
+	void *ptr = tiny_malloc(size);
+#else
 	void *ptr = malloc(size);
+#endif
 	do_bzero(ptr, size);
 	return ptr;
 }
@@ -222,7 +227,11 @@ static inline void *do_realloc(void *ptr, size_t oldSize, size_t newSize)
 
 static inline void do_free(void *ptr, size_t size)
 {
+#ifdef K_USING_TINYVM
+	tiny_free(ptr);
+#else
 	free(ptr);
+#endif
 }
 
 #ifdef K_USING_TINYVM
@@ -233,6 +242,11 @@ static ssize_t kklib_malloced = 0;
 
 static void* Kmalloc(KonohaContext *kctx, size_t s)
 {
+#ifdef K_USING_TINYVM
+	size_t *p = (size_t*)do_malloc(s);
+	kklib_malloced += s;
+	return p;
+#else
 	size_t *p = (size_t*)do_malloc(s + sizeof(size_t));
 	if(unlikely(p == NULL)) {
 		ktrace(_ScriptFault|_SystemFault,
@@ -245,22 +259,33 @@ static void* Kmalloc(KonohaContext *kctx, size_t s)
 	p[0] = s;
 	kklib_malloced += s;
 	return (void*)(p+1);
+#endif
 }
 
 static void* Kzmalloc(KonohaContext *kctx, size_t s)
 {
+#ifdef K_USING_TINYVM
+	void *p = Kmalloc(kctx, s);
+	do_bzero(p, s);
+	return p;
+#else
 	kklib_malloced += s;
 	size_t *p = (size_t*)do_malloc(s + sizeof(size_t));
 	p[0] = s;
 	do_bzero(p+1, s);
 	return (void*)(p+1);
+#endif
 }
 
 static void Kfree(KonohaContext *kctx, void *p, size_t s)
 {
 	size_t *pp = (size_t*)p;
+#ifdef K_USING_TINYVM
+	do_free(pp, s);
+#else
 	DBG_ASSERT(pp[-1] == s);
 	do_free(pp - 1, s + sizeof(size_t));
+#endif
 	kklib_malloced -= s;
 }
 
@@ -381,6 +406,8 @@ static kGCObject0 *new_ObjectArena0(KonohaContext *kctx, size_t arenasize)
 		memshare->capacityObjectArenaTBL[0] = newsize;
 	}
 	memshare->sizeObjectArenaTBL[0] += 1;
+	printf("sizeof kObjectVar %zd\n", sizeof(kObjectVar));
+	printf("assert %zd, %zd\n", sizeof(objpage0_t), K_PAGESIZE);
 	DBG_ASSERT(sizeof(objpage0_t) == K_PAGESIZE);
 	oat = &memshare->ObjectArenaTBL[0][pageindex];
 	ObjectArenaTBL_init0(kctx, oat, arenasize);
@@ -830,6 +857,8 @@ static void MSGC_free(KonohaContext *kctx, struct KonohaModule *baseh)
 
 void MODGC_init(KonohaContext *kctx, KonohaContextVar *ctx)
 {
+	assert(sizeof(kGCObject0) == sizeof(kObjectVar));
+	printf("pageobjectsize %zd\n", K_PAGEOBJECTSIZE(0));
 	if(IS_RootKonohaContext(ctx)) {
 		kmemshare_t *base = (kmemshare_t*) do_malloc(sizeof(kmemshare_t));
 		base->h.name     = "msgc";
@@ -842,6 +871,16 @@ void MODGC_init(KonohaContext *kctx, KonohaContextVar *ctx)
 		KSET_KLIB(Kwrite_barrier, 0);
 		KLIB Konoha_setModule(kctx, MOD_gc, &base->h, 0);
 	}
+	//int i = 10;
+	//for (; i < 100; i++) {
+	//	void *ptr = KLIB Kmalloc(kctx, i);
+	//	int j;
+	//	for (j = 10; j < 15; j++) {
+	//		void *_ptr = KLIB Kmalloc(kctx, j);
+	//		KLIB Kfree(kctx, _ptr, j);
+	//	}
+	//	KLIB Kfree(kctx, ptr, i);
+	//}
 	MSGC_setup(ctx, (KonohaModule*) memshare(kctx), 1);
 }
 
@@ -856,10 +895,16 @@ void MODGC_free(KonohaContext *kctx, KonohaContextVar *ctx)
 
 #define OBJECT_INIT(o, size) do_bzero(o, size)
 
+static int gc_count = 0;
 kObject *MODGC_omalloc(KonohaContext *kctx, size_t size)
 {
+	gc_count++;
 	int page_size = (size / sizeof(kGCObject0)) >> 1;
+#ifdef K_USING_TINYVM
+	DBG_ASSERT(page_size == 0);
+#else
 	DBG_ASSERT(page_size <= 4);
+#endif
 	kGCObject *o = NULL;
 	FREELIST_POP(o,page_size);
 	memlocal(kctx)->freeObjectListSize[page_size] -= 1;

@@ -175,6 +175,7 @@ static void Kreport(KonohaContext *kctx, int level, const char *msg)
 static void Kreportf(KonohaContext *kctx, int level, kfileline_t pline, const char *fmt, ...)
 {
 	/* TODO */
+	printf("hi\n");
 }
 
 static void CT_addMethod(KonohaContext *kctx, KonohaClassVar *ct, kMethod *mtd)
@@ -270,7 +271,7 @@ static void klib2_init(KonohaLibVar *l)
 	l->Karray_free       = karray_free;
 	l->Konoha_setModule        = KRUNTIME_setModule;
 	//l->Kreport           = Kreport;
-	//l->Kreportf          = Kreportf;
+	l->Kreportf          = Kreportf;
 	l->kNameSpace_loadMethodData = kNameSpace_loadMethodData;
 }
 
@@ -501,6 +502,9 @@ void TaskDisp(VP_INT exinf)
 #else
 int main(int argc, char **args)
 {
+	printf("kObjectVar  %zd\n", sizeof(kObjectVar));
+	printf("header %zd\n", sizeof(KonohaObjectHeader));
+	printf("short %zd\n", sizeof(ktype_t));
 	opcode_check();
 	KonohaContext *kctx = NULL;
 	kctx = new_context(K_STACK_SIZE);
