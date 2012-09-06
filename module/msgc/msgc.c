@@ -26,9 +26,9 @@
 #include "../tinykonoha/tinykonoha.h"
 #else
 #include "minikonoha/minikonoha.h"
+#endif
 #include "minikonoha/gc.h"
 #include "minikonoha/local.h"
-#endif
 
 #ifdef __cplusplus
 extern "C" {

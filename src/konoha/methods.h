@@ -241,6 +241,8 @@ static KMETHOD System_gc(KonohaContext *kctx, KonohaStack *sfp)
 }
 
 // --------------------------------------------------------------------------
+#ifndef K_USING_TINYVM
+
 #define _Public    kMethod_Public
 #define _Const     kMethod_Const
 #define _Static    kMethod_Static
@@ -288,7 +290,7 @@ static void Konoha_loadDefaultMethod(KonohaContext *kctx)
 	KLIB kNameSpace_loadMethodData(kctx, NULL, MethodData);
 }
 
-
+#endif
 
 #ifdef __cplusplus
 }

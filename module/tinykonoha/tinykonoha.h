@@ -573,6 +573,7 @@ struct KonohaRuntimeVar {
 	kBoolean                 *constFalse;
 	kString                  *emptyString;
 	kArray                   *emptyArray;
+	kArray                   *constData;
 
 	kmutex_t          *filepackMutex;
 	kArray                   *fileidList;    // file, http://
@@ -630,6 +631,7 @@ struct KonohaStackRuntimeVar {
 //#define MOD_IO      14
 //#define MOD_llvm    15
 //#define MOD_REGEXP   16
+#define MOD_sugar      -1 /*never be loaded*/
 #else
 #define KonohaModule_MAXSIZE    32
 #define MOD_logger     0
@@ -915,19 +917,18 @@ struct KonohaClassField {
 
 typedef struct KonohaObjectHeader {
 	kmagicflag_t magicflag;
-	KonohaClass *ct;
-	KUtilsGrowingArray *kvproto;
+	ktype_t cid;
 } KonohaObjectHeader ;
 
 struct kObjectVar {
 	KonohaObjectHeader h;
 	union {
-		kObject  *fieldObjectItems[5];
-		uintptr_t fieldUnboxItems[5];
+		kObject  *fieldObjectItems[3];
+		uintptr_t fieldUnboxItems[3];
 	};
 };
 
-#define O_ct(o)             ((o)->h.ct)
+#define O_ct(o)             (CT_((o)->h.cid))
 #define O_typeId(o)         (O_ct(o)->typeId)
 #define O_baseTypeId(o)     (O_ct(o)->baseTypeId)
 #define O_unbox(o)          (O_ct(o)->unbox(kctx, o))
@@ -1034,6 +1035,7 @@ struct kStringVar /* extends _Bytes */ {
 #define new_S(T, L)         (KLIB new_kString(kctx, T, L, SPOL_ASCII|SPOL_POOL))
 #define S_text(s)           ((const char*) (O_ct(s)->unbox(kctx, (kObject*)s)))
 #define S_size(s)           ((s)->bytesize)
+#define CT_t(X)             "null"
 
 //#define S_equals(s, b)        knh_bytes_equals(S_tobytes(s), b)
 //#define S_startsWith(s, b)    knh_bytes_startsWith_(S_tobytes(s), b)
@@ -1287,7 +1289,6 @@ struct KonohaLibVar {
 	void  (*Karray_expand)(KonohaContext*, KUtilsGrowingArray *, size_t);
 	void  (*Karray_free)(KonohaContext*, KUtilsGrowingArray *);
 
-#ifndef K_USING_TINYVM
 	void                (*Kwb_init)(KUtilsGrowingArray *, KUtilsWriteBuffer *);
 	void                (*Kwb_write)(KonohaContext*, KUtilsWriteBuffer *, const char *, size_t);
 	void                (*Kwb_putc)(KonohaContext*, KUtilsWriteBuffer *, ...);
@@ -1295,7 +1296,6 @@ struct KonohaLibVar {
 	void                (*Kwb_printf)(KonohaContext*, KUtilsWriteBuffer *, const char *fmt, ...);
 	const char*         (*Kwb_top)(KonohaContext*, KUtilsWriteBuffer *, int);
 	void                (*Kwb_free)(KUtilsWriteBuffer *);
-#endif
 
 	KUtilsHashMap*      (*Kmap_init)(KonohaContext*, size_t);
 	KUtilsHashMapEntry* (*Kmap_newEntry)(KonohaContext*, KUtilsHashMap *, uintptr_t);
@@ -1391,7 +1391,7 @@ struct KonohaLibVar {
 #define ksymbolA(T, L, DEF)       0
 #define ksymbolSPOL(T, L, DEF)    0
 #define SYM_(T)                   0
-#define EXPR_(T)                  0
+#define EXPT_(T)                  0
 #define FN_(T)                    0
 #define MN_(T)                    (MN_##T)
 #define MN_box                    0
@@ -1626,8 +1626,8 @@ typedef struct DEFINE_TESTFUNC {
 } /* extern "C" */
 #endif
 
+#include "../../include/minikonoha/logger.h"
 #ifndef K_USING_TINYVM
-#include "logger.h"
 #include "gc.h"
 #endif
 

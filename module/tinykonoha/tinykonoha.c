@@ -36,16 +36,16 @@
 #include "bytecode.h"
 #include "../msgc/msgc.c"
 #include "../../src/konoha/methods.h"
-#include "../../include/konoha2/sugar.h"
+#include "../../include/minikonoha/sugar.h"
 #include "datatype.h"
 
 #define K_STACK_SIZE 65
 
-static void KRUNTIME_reftrace(CTX, kcontext_t *ctx)
+static void KRUNTIME_reftrace(KonohaContext *kctx, KonohaContext *ctx)
 {
 	//TDBG_abort("runtime trace");
-	//ksfp_t *sp = ctx->stack->stack;
-	//BEGIN_REFTRACE((_ctx->esp - sp)+1);
+	//KonohaStack *sp = ctx->stack->stack;
+	//BEGIN_REFTRACE((kctx->esp - sp)+1);
 	//while(sp < ctx->esp) {
 	//	KREFTRACEv(sp[0].o);
 	//	sp++;
@@ -54,17 +54,17 @@ static void KRUNTIME_reftrace(CTX, kcontext_t *ctx)
 	//END_REFTRACE();
 }
 
-static void kshare_reftrace(CTX, kcontext_t *ctx)
+static void kshare_reftrace(KonohaContext *kctx, KonohaContext *ctx)
 {
-	kshare_t *share = ctx->share;
-	kclass_t **cts = (kclass_t**)_ctx->share->ca.cts;
-	size_t i, size = _ctx->share->ca.bytesize/sizeof(struct _kclass*);
+	KonohaRuntime *share = ctx->share;
+	ktype_t **cts = (ktype_t**)kctx->share->classTable.classItems;
+	size_t i, size = kctx->share->classTable.bytesize/sizeof(struct _kclass*);
 	for(i = 0; i < size; i++) {
-		kclass_t *ct = cts[i];
+		KonohaClass *ct = cts[i];
 		{
 			BEGIN_REFTRACE(1);
 			//KREFTRACEv(ct->cparam);
-			KREFTRACEn(ct->methods);
+			KREFTRACEn(ct->methodList);
 			//KREFTRACEn(ct->shortNameNULL);
 			//KREFTRACEn(ct->nulvalNUL);
 			END_REFTRACE();
@@ -90,47 +90,45 @@ static void kshare_reftrace(CTX, kcontext_t *ctx)
 	END_REFTRACE();
 }
 
-static void kcontext_reftrace(CTX, kcontext_t *ctx)
+static void KonohaContext_reftrace(KonohaContext *kctx, KonohaContext *ctx)
 {
 	size_t i;
-	if(IS_ROOTCTX(_ctx)) {
-		kshare_reftrace(_ctx, ctx);
-		for(i = 0; i < MOD_MAX; i++) {
-			kmodshare_t *p = ctx->modshare[i];
-			if(p != NULL && p->reftrace != NULL) {
-				p->reftrace(_ctx, p);
-			}
-		}
-	}
-	KRUNTIME_reftrace(_ctx, ctx);
-	for(i = 0; i < MOD_MAX; i++) {
-		kmodlocal_t *p = ctx->modlocal[i];
+	kshare_reftrace(kctx, ctx);
+	for(i = 0; i < KonohaModule_MAXSIZE; i++) {
+		KonohaModule *p = ctx->modshare[i];
 		if(p != NULL && p->reftrace != NULL) {
-			p->reftrace(_ctx, p);
+			p->reftrace(kctx, p);
+		}
+	}
+	KRUNTIME_reftrace(kctx, ctx);
+	for(i = 0; i < KonohaModule_MAXSIZE; i++) {
+		KonohaModuleContext *p = ctx->modlocal[i];
+		if(p != NULL && p->reftrace != NULL) {
+			p->reftrace(kctx, p);
 		}
 	}
 }
 
-void KRUNTIME_reftraceAll(CTX)
+void KonohaContext_reftraceAll(KonohaContext *kctx)
 {
-	kcontext_reftrace(_ctx, (kcontext_t*)_ctx);
+	KonohaContext_reftrace(kctx, (KonohaContext*)kctx);
 }
 
-void KONOHA_freeObjectField(CTX, struct _kObject *o)
+void KONOHA_freeObjectField(KonohaContext *kctx, kObjectVar *o)
 {
-	kclass_t *ct = O_ct(o);
+	KonohaClass *ct = O_ct(o);
 	//if(o->h.kvproto->bytemax > 0) {
-	//	karray_t *p = o->h.kvproto;
+	//	KUtilsGrowingArray *p = o->h.kvproto;
 	//	KFREE(p->bytebuf, p->bytemax);
-	//	KFREE(p, sizeof(karray_t));
+	//	KFREE(p, sizeof(KUtilsGrowingArray));
 	//	o->h.kvproto = kvproto_null();
 	//}
-	ct->free(_ctx, o);
+	ct->free(kctx, o);
 }
 
-void KONOHA_reftraceObject(CTX, kObject *o)
+void KONOHA_reftraceObject(KonohaContext *kctx, kObject *o)
 {
-	kclass_t *ct = O_ct(o);
+	KonohaClass *ct = O_ct(o);
 	//if(o->h.kvproto->bytemax > 0) {
 	//	size_t i, pmax = o->h.kvproto->bytemax / sizeof(kvs_t);
 	//	kvs_t *d = o->h.kvproto->kvs;
@@ -143,15 +141,15 @@ void KONOHA_reftraceObject(CTX, kObject *o)
 	//	}
 	//	END_REFTRACE();
 	//}
-	ct->reftrace(_ctx, o);
+	ct->reftrace(kctx, o);
 }
 
-struct _kObject** KONOHA_reftail(CTX, size_t size)
+kObjectVar** KONOHA_reftail(KonohaContext *kctx, size_t size)
 {
-	kstack_t *stack = _ctx->stack;
+	KonohaStackRuntimeVar *stack = kctx->stack;
 	size_t ref_size = stack->reftail - stack->ref.refhead;
 	if(stack->ref.bytemax/sizeof(void*) < size + ref_size) {
-		KARRAY_EXPAND(&stack->ref, (size + ref_size) * sizeof(kObject*));
+		KLIB Karray_expand(kctx, &stack->ref, (size + ref_size) * sizeof(kObject*));
 		stack->reftail = stack->ref.refhead + ref_size;
 	}
 	struct _kObject **reftail = stack->reftail;
@@ -159,74 +157,74 @@ struct _kObject** KONOHA_reftail(CTX, size_t size)
 	return reftail;
 }
 
-static kbool_t KRUNTIME_setModule(CTX, int x, kmodshare_t *d, kline_t pline)
+static kbool_t KRUNTIME_setModule(KonohaContext *kctx, int x, KonohaModule *d, kfileline_t pline)
 {
-	if (_ctx->modshare[x] == NULL) {
-		_ctx->modshare[x] = d;
+	if (kctx->modshare[x] == NULL) {
+		kctx->modshare[x] = d;
 		return 1;
 	} else {
 		return 0;
 	}
 }
 
-static void Kreport(CTX, int level, const char *msg)
+static void Kreport(KonohaContext *kctx, int level, const char *msg)
 {
 	/* TODO */
 }
 
-static void Kreportf(CTX, int level, kline_t pline, const char *fmt, ...)
+static void Kreportf(KonohaContext *kctx, int level, kfileline_t pline, const char *fmt, ...)
 {
 	/* TODO */
 }
 
-static void CT_addMethod(CTX, kclass_t *ct, kMethod *mtd)
+static void CT_addMethod(KonohaContext *kctx, KonohaClassVar *ct, kMethod *mtd)
 {
-	if(ct->methods == K_EMPTYARRAY) {
-		KINITv(((struct _kclass*)ct)->methods, new_(MethodArray, 8));
+	if(ct->methodList == K_EMPTYARRAY) {
+		KINITv(((KonohaClassVar*)ct)->methodList, new_(MethodArray, 8));
 	}
-	kArray_add(ct->methods, mtd);
+	KLIB kArray_add(kctx, ct->methodList, mtd);
 }
 
-static void KonohaSpace_addMethod(CTX, kKonohaSpace *ks, kMethod *mtd)
+static void KonohaSpace_addMethod(KonohaContext *kctx, kNameSpace *ks, kMethod *mtd)
 {
-	if(ks->methods == K_EMPTYARRAY) {
-		KINITv(((struct _kKonohaSpace*)ks)->methods, new_(MethodArray, 8));
+	if(ks->methodList == K_EMPTYARRAY) {
+		KINITv(((kNameSpaceVar*)ks)->methodList, new_(MethodArray, 8));
 	}
-	kArray_add(ks->methods, mtd);
+	KLIB kArray_add(kctx, ks->methodList, mtd);
 }
 
-static void KonohaSpace_loadMethodData(CTX, kKonohaSpace *ks, intptr_t *data)
+static void kNameSpace_loadMethodData(KonohaContext *kctx, kNameSpace *ks, intptr_t *data)
 {
 	static int mn_count = 0;
 	intptr_t *d = data;
 	while(d[0] != -1) {
 		uintptr_t flag = kMethod_Static|kMethod_Public;
-		knh_Fmethod f = (knh_Fmethod)d[0];
+		MethodFunc f = (MethodFunc)d[0];
 		ktype_t rtype = 0;
-		kcid_t cid = (kcid_t)d[1];
+		ktype_t cid = (ktype_t)d[1];
 		mn_count++;
 		kmethodn_t mn = (kmethodn_t)d[2];
 		size_t psize = 0;
 		//kparam_t p[1];
 		d += 3;
-		kMethod *mtd = new_kMethod(flag, cid, mn, f);
+		kMethod *mtd = KLIB new_kMethod(kctx, flag, cid, mn, f);
 		//kMethod_setParam(mtd, rtype, psize, p);
-		if(ks == NULL || kMethod_isPublic(mtd)) {
-			CT_addMethod(_ctx, CT_(cid), mtd);
+		if(ks == NULL || Method_isPublic(mtd)) {
+			CT_addMethod(kctx, CT_(cid), mtd);
 		} else {
-			KonohaSpace_addMethod(_ctx, ks, mtd);
+			KonohaSpace_addMethod(kctx, ks, mtd);
 		}
 	}
 }
 
-static void karray_init(CTX, karray_t *m, size_t bytemax)
+static void karray_init(KonohaContext *kctx, KUtilsGrowingArray *m, size_t bytemax)
 {
 	m->bytesize = 0;
 	m->bytemax  = bytemax;
 	m->bytebuf = (char*)KCALLOC(bytemax, 1);
 }
 
-static void karray_resize(CTX, karray_t *m, size_t newsize)
+static void karray_resize(KonohaContext *kctx, KUtilsGrowingArray *m, size_t newsize)
 {
 	size_t oldsize = m->bytemax;
 	char *newbody = (char*)KMALLOC(newsize);
@@ -242,19 +240,19 @@ static void karray_resize(CTX, karray_t *m, size_t newsize)
 	m->bytemax = newsize;
 }
 
-static void karray_expand(CTX, karray_t *m, size_t minsize)
+static void karray_expand(KonohaContext *kctx, KUtilsGrowingArray *m, size_t minsize)
 {
 	if(m->bytemax == 0) {
-		if(minsize > 0) karray_init(_ctx, m, minsize);
+		if(minsize > 0) karray_init(kctx, m, minsize);
 	}
 	else {
 		size_t oldsize = m->bytemax, newsize = oldsize * 2;
 		if(minsize > newsize) newsize = minsize;
-		karray_resize(_ctx, m, newsize);
+		karray_resize(kctx, m, newsize);
 	}
 }
 
-static void karray_free(CTX, karray_t *m)
+static void karray_free(KonohaContext *kctx, KUtilsGrowingArray *m)
 {
 	if(m->bytemax > 0) {
 		KFREE(m->bytebuf, m->bytemax);
@@ -264,24 +262,24 @@ static void karray_free(CTX, karray_t *m)
 	}
 }
 
-static void klib2_init(struct _klib2 *l)
+static void klib2_init(KonohaLibVar *l)
 {
 	l->Karray_init       = karray_init;
 	l->Karray_resize     = karray_resize;
 	l->Karray_expand     = karray_expand;
 	l->Karray_free       = karray_free;
-	l->KsetModule        = KRUNTIME_setModule;
+	l->Konoha_setModule        = KRUNTIME_setModule;
 	//l->Kreport           = Kreport;
 	//l->Kreportf          = Kreportf;
-	l->KS_loadMethodData = KonohaSpace_loadMethodData;
+	l->kNameSpace_loadMethodData = kNameSpace_loadMethodData;
 }
 
-static void KRUNTIME_init(CTX, kcontext_t *ctx, size_t stacksize)
+static void KRUNTIME_init(KonohaContextVar *kctx, KonohaContextVar *ctx, size_t stacksize)
 {
 	size_t i;
-	kstack_t *base = (kstack_t*)KCALLOC(sizeof(kstack_t), 1);
+	KonohaStackRuntimeVar *base = (KonohaStackRuntimeVar*)KCALLOC(sizeof(KonohaStackRuntimeVar), 1);
 	base->stacksize = stacksize;
-	base->stack = (ksfp_t*)KCALLOC(sizeof(ksfp_t), stacksize);
+	base->stack = (KonohaStack*)KCALLOC(sizeof(KonohaStack), stacksize);
 	assert(stacksize>64);
 	base->stack_uplimit = base->stack + (stacksize);
 	for(i = 0; i < stacksize; i++) {
@@ -290,40 +288,40 @@ static void KRUNTIME_init(CTX, kcontext_t *ctx, size_t stacksize)
 	//KINITv(base->gcstack, new_(Array, K_PAGESIZE/sizeof(void*)));
 	//KINITv(base->gcstack, new_(Array, 5));
 	//KARRAY_INIT(&base->cwb, K_PAGESIZE * 4);
-	KARRAY_INIT(&base->ref, 128);
+	KLIB Karray_init(kctx, &base->ref, 128);
 	base->reftail = base->ref.refhead;
-	ctx->esp = base->stack + 4;
-	ctx->stack = base;
+	kctx->esp = base->stack + 4;
+	kctx->stack = base;
 }
 
-static void KRUNTIME_free(CTX, kcontext_t *ctx)
+static void KRUNTIME_free(KonohaContext *kctx, KonohaContext *ctx)
 {
-	KARRAY_FREE(&_ctx->stack->cwb);
-	KARRAY_FREE(&_ctx->stack->ref);
-	KFREE(_ctx->stack->stack, sizeof(ksfp_t) * ctx->stack->stacksize);
-	KFREE(_ctx->stack, sizeof(kstack_t));
+	KLIB Karray_free(kctx, &kctx->stack->cwb);
+	KLIB Karray_free(kctx, &kctx->stack->ref);
+	KFREE(kctx->stack->stack, sizeof(KonohaStack) * ctx->stack->stacksize);
+	KFREE(kctx->stack, sizeof(KonohaStackRuntimeVar));
 }
 
-static kcontext_t *new_context(size_t stacksize)
+static KonohaContext *new_context(size_t stacksize)
 {
 	heap_init();
-	static kcontext_t _ctx;
-	static kmodshare_t *modshare[MOD_MAX] = {0};
-	static kmodlocal_t *modlocal[MOD_MAX] = {0};
-	static struct _klib2 klib2 = {0};
-	klib2_init(&klib2);
-	_ctx.modshare = modshare;
-	_ctx.modlocal = modlocal;
-	_ctx.lib2 = &klib2;
-	MODGC_init(&_ctx, &_ctx);
-	KCLASSTABLE_init(&_ctx);
-	FLOAT_init(&_ctx, NULL);
-	KRUNTIME_init(&_ctx, &_ctx, stacksize);
-	KCLASSTABLE_loadMethod(&_ctx);
-	return &_ctx;
+	static KonohaContextVar kctx;
+	static KonohaModule *modshare[KonohaModule_MAXSIZE] = {0};
+	static KonohaModuleContext *modlocal[KonohaModule_MAXSIZE] = {0};
+	static KonohaLibVar lib2 = {0};
+	klib2_init(&lib2);
+	kctx.modshare = modshare;
+	kctx.modlocal = modlocal;
+	kctx.klib = &lib2;
+	MODGC_init(&kctx, &kctx);
+	KCLASSTABLE_init(&kctx);
+	//FLOAT_init(&kctx, NULL);
+	KRUNTIME_init(&kctx, &kctx, stacksize);
+	KCLASSTABLE_loadMethod(&kctx);
+	return &kctx;
 }
 
-static void loadByteCode(CTX)
+static void loadByteCode(KonohaContext *kctx)
 {
 	size_t i, j, declsize = sizeof(decls) / sizeof(decls[0]);
 	for (i = 0; i < declsize; i++) {
@@ -331,29 +329,29 @@ static void loadByteCode(CTX)
 		kmethoddecl_t *def = decls[i];
 		kconstdata_t *data = def->constdata;
 		while (data[j].cid != CLASS_Tvoid) {
-			kclass_t *ct = CT_(data[j].cid);
+			ktype_t *ct = CT_(data[j].cid);
 			if (ct) {
-				kArray_add(_ctx->share->constData, new_kObject(ct, data->conf));
+				KLIB kArray_add(kctx, kctx->share->constData, KLIB new_kObject(kctx, ct, data->conf));
 			} else {
-				kArray_add(_ctx->share->constData, _ctx->share->constNull);
+				KLIB kArray_add(kctx, kctx->share->constData, kctx->share->constNull);
 			}
 			j++;
 		}
 		if (def->cid != 0 && def->mn != 0) {
 			uintptr_t flag = 0;
-			kMethod *mtd = new_kMethod(flag, def->cid, def->mn, (knh_Fmethod)def->opline);
-			CT_addMethod(_ctx, CT_(def->cid), mtd);
+			kMethod *mtd = KLIB new_kMethod(kctx, flag, def->cid, def->mn, (MethodFunc)def->opline);
+			CT_addMethod(kctx, CT_(def->cid), mtd);
 		}
 	}
 	for (i = 0; i < declsize; i++) {
 		kmethoddecl_t *def = decls[i];
-		kopl_t *pc = (kopl_t*)def->opline;
+		VirtualMachineInstruction *pc = (VirtualMachineInstruction*)def->opline;
 		while (pc->opcode != OPCODE_RET) {
 			if (pc->opcode == OPCODE_SCALL) {
 				klr_SCALL_t *_pc = (klr_SCALL_t*)pc;
-				kMethod *mtd = kKonohaSpace_getMethodNULL(NULL, _pc->cid, _pc->mn);
+				kMethod *mtd = KonohaSpace_getMethodNULL(kctx, NULL, _pc->cid, _pc->mn, 0, 0);
 				_pc->mtd = mtd;
-				if (mtd == NULL || (mtd != NULL && !kMethod_isStatic(mtd))) {
+				if (mtd == NULL || (mtd != NULL && !Method_isStatic(mtd))) {
 					_pc->opcode = OPCODE_VCALL;
 				}
 			}
@@ -362,7 +360,7 @@ static void loadByteCode(CTX)
 	}
 }
 
-static void execTopLevelExpression(CTX)
+static void execTopLevelExpression(KonohaContext *kctx)
 {
 	klr_EXIT_t opEXIT = {OPCODE_EXIT};
 	size_t i, declsize = sizeof(decls) / sizeof(decls[0]);
@@ -370,10 +368,10 @@ static void execTopLevelExpression(CTX)
 		kmethoddecl_t *def = decls[i];
 		if (def->cid == 0 && def->mn == 0) {
 			kopl_u *pc = def->opline;
-			krbp_t *rbp = (krbp_t*)_ctx->esp;
-			rbp[K_PCIDX2].pc = (kopl_t*)&opEXIT;
+			krbp_t *rbp = (krbp_t*)kctx->esp;
+			rbp[K_PCIDX2].pc = (VirtualMachineInstruction*)&opEXIT;
 			rbp[K_SHIFTIDX2].shift = 0;
-			VirtualMachine_run(_ctx, _ctx->esp, (kopl_t*)pc);
+			VirtualMachine_run(kctx, kctx->esp, (VirtualMachineInstruction*)pc);
 		}
 	}
 }
@@ -428,8 +426,8 @@ void cyc0(VP_INT exinf)
 
 void TaskMain(VP_INT exinf)
 {
-	struct kcontext_t *_ctx = new_context(K_STACK_SIZE);
-	loadByteCode(_ctx);
+	struct KonohaContext *kctx = new_context(K_STACK_SIZE);
+	loadByteCode(kctx);
 
 	mstate = MWAIT;
 	ecrobot_set_light_sensor_active(NXT_PORT_S3);
@@ -441,7 +439,7 @@ void TaskMain(VP_INT exinf)
 	nxt_motor_set_count(NXT_PORT_C, 0);
 	nxt_motor_set_count(NXT_PORT_B, 0);
 	sta_cyc(CYC0);
-	execTopLevelExpression(_ctx);
+	execTopLevelExpression(kctx);
 	//act_tsk(TASK0);
 }
 
@@ -504,10 +502,10 @@ void TaskDisp(VP_INT exinf)
 int main(int argc, char **args)
 {
 	opcode_check();
-	struct kcontext_t *_ctx = NULL;
-	_ctx = new_context(K_STACK_SIZE);
-	loadByteCode(_ctx);
-	execTopLevelExpression(_ctx);
+	KonohaContext *kctx = NULL;
+	kctx = new_context(K_STACK_SIZE);
+	loadByteCode(kctx);
+	execTopLevelExpression(kctx);
 	return 0;
 }
 #endif

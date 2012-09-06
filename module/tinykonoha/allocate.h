@@ -87,7 +87,7 @@ static void heap_init()
 }
 
 static int total_malloced = 0;
-static void *tiny_malloc(size_t size)
+void *malloc(size_t size)
 {
 	size = size + ((4 - size % 4) % 4);
 	total_malloced+=size + sizeof(heap_header);
@@ -98,7 +98,7 @@ static void *tiny_malloc(size_t size)
 	mem = heap_alloc(size, &header_global);
 	//TDBG_s("malloc end");
 	if (mem == NULL) {
-		TDBG_abort("NULL");
+		//TDBG_abort("NULL");
 	}
 	return mem;
 }
@@ -131,7 +131,7 @@ static void heap_free(heap_header *free_header, heap_header **header)
 	}
 }
 
-static void tiny_free(void* ptr)
+void free(void* ptr)
 {
 	heap_free(ptr_to_header(ptr), &header_global);
 }
