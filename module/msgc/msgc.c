@@ -216,7 +216,7 @@ static inline void *do_malloc(size_t size)
 static inline void *do_realloc(void *ptr, size_t oldSize, size_t newSize)
 {
 #ifdef K_USING_TINYVM
-	char *newptr = (char *) malloc(newSize);
+	char *newptr = (char *) do_malloc(newSize);
 	memcpy(newptr, ptr, oldSize);
 #else
 	char *newptr = (char *) realloc(ptr, newSize);

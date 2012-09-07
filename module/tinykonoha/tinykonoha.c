@@ -23,6 +23,7 @@
  ***************************************************************************/
 
 #ifdef K_USING_TOPPERS
+#include "tinykonoha_config.h"
 #include "kernel_id.h"
 #include "ecrobot_base.h"
 #include "ecrobot_interface.h"
@@ -177,7 +178,7 @@ static void Kreport(KonohaContext *kctx, int level, const char *msg)
 static void Kreportf(KonohaContext *kctx, kinfotag_t level, kfileline_t pline, const char *fmt, ...)
 {
 	/* TODO */
-	printf("hi\n");
+	//printf("hi\n");
 }
 
 static void CT_addMethod(KonohaContext *kctx, KonohaClassVar *ct, kMethod *mtd)

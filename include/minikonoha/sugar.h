@@ -28,7 +28,7 @@
 /* ------------------------------------------------------------------------ */
 /* sugar.h */
 
-#ifndef __KERNEL__
+#if !defined(__KERNEL__) && !defined(K_USING_TINYVM)
 #include <dlfcn.h>
 #endif
 #include "minikonoha.h"

@@ -25,32 +25,6 @@
 #ifndef MINIOKNOHA_H_
 #define MINIOKNOHA_H_
 
-#ifdef K_USING_TOPPERS
-#include <t_services.h>
-#endif
-#define MAX_CT     16
-
-#ifndef _MACRO_ONLY
-
-
-enum {
-	MINIT = 0,
-	MWAIT,
-	MRUNNING,
-	MSTOP1,
-	MSTOP2,
-	MSTOP3,
-	MPREWAIT
-};
-
-#ifdef K_USING_TOPPERS
-extern void TaskMain(VP_INT exinf);
-extern void TaskDisp(VP_INT exinf);
-extern void cyc0(VP_INT exinf);
-#endif
-
-#endif
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -68,7 +42,8 @@ extern "C" {
 #endif
 
 #define K_TYTABLE_INIT 16
-#define K_PAGESIZE        4096
+#define K_PAGESIZE        2048
+#define MAX_CT     16
 
 #define K_VERSION   "0.1"
 #define K_MAJOR_VERSION 0
@@ -92,24 +67,19 @@ extern "C" {
 #define K_USING_UTF8 1
 #define USE_BUILTINTEST  1
 
-#ifndef PLATAPIFORM_KERNEL
+#ifndef K_USING_TOPPERS
 #include <stdlib.h>
 #include <ctype.h>
 #include <assert.h>
 #include <string.h>
-#else
-#include "konoha_lkm.h"
-#endif /* PLATAPIFORM_KERNEL */
+#include <limits.h>
+#include <float.h>
+#endif /* K_USING_TOPPERS*/
 
 #include <stddef.h>
 #include <stdarg.h>
-
-#ifndef __KERNEL__
-#include <limits.h>
-#include <float.h>
 #include <stdbool.h>
 #include <stdint.h>
-#endif
 
 #ifdef __GCC__
 #define __PRINTFMT(idx1, idx2) __attribute__((format(printf, idx1, idx2)))

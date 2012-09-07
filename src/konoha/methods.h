@@ -158,7 +158,9 @@ static KMETHOD Int_box(KonohaContext *kctx, KonohaStack *sfp)
 //## @Const method String String.toInt();
 static KMETHOD String_toInt(KonohaContext *kctx, KonohaStack *sfp)
 {
+#ifndef K_USING_TINYVM
 	RETURNi_((kint_t)strtoll(S_text(sfp[0].s), NULL, 10));
+#endif
 }
 
 //## @Const @Immutable method String String.opAdd(@Coercion String x);
