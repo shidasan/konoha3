@@ -47,7 +47,7 @@
 #define MN_KonohaSpace_import 24
 #define MN_KonohaSpace_load 25
 
-kopl_u opl0[] = {
+static kopl_u opl0[] = {
   /* L_00 */{.opOSET = {OPCODE_OSET, 8/*r*/, 0/*n*/}},
   /* L_01 */{.opOSET = {OPCODE_OSET, 10/*r*/, 1/*n*/}},
   /* L_02 */{.opSCALL = {OPCODE_SCALL, 8/*r*/, 12/*r*/, 14/*cid*/, 24/*mn of import*/, }},
@@ -55,13 +55,13 @@ kopl_u opl0[] = {
   /* L_04 */{.opRET = {OPCODE_RET}},
 };
 
-kconstdata_t data0[] = {
+static kconstdata_t data0[] = {
   {14, NULL /* default constant */},
   {5, (void*)"konoha.nxt"},
   {CLASS_Tvoid, (void*)NULL},/* sentinel */
 };
 
-kmethoddecl_t decl0 = {
+static kmethoddecl_t decl0 = {
 0/*cid*/, 0/*method */,
 data0, opl0
 };
@@ -107,24 +107,24 @@ data0, opl0
 
 
 
-kopl_u opl1[] = {
+static kopl_u opl1[] = {
   /* L_00 */{.opNMOV = {OPCODE_NMOV, 10/*r*/, 0/*r*/, 2/*cid*/, }},
   /* L_01 */{.opOSET = {OPCODE_OSET, 12/*r*/, 2/*n*/}},
   /* L_02 */{.opSCALL = {OPCODE_SCALL, 10/*r*/, 14/*r*/, 10/*cid*/, 19/*mn of p*/, }},
   /* L_03 */{.opRET = {OPCODE_RET}},
 };
 
-kconstdata_t data1[] = {
+static kconstdata_t data1[] = {
   {5, (void*)"hello"},
   {CLASS_Tvoid, (void*)NULL},/* sentinel */
 };
 
-kmethoddecl_t decl1 = {
+static kmethoddecl_t decl1 = {
 0/*cid*/, 0/*method */,
 data1, opl1
 };
 
-kmethoddecl_t *decls[] = {
+static kmethoddecl_t *decls[] = {
   &decl0,
   &decl1,
 };

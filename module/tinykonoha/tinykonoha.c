@@ -306,6 +306,7 @@ static void KRUNTIME_free(KonohaContext *kctx, KonohaContext *ctx)
 	KFREE(kctx->stack, sizeof(KonohaStackRuntimeVar));
 }
 
+extern tinykonoha_floatInit(KonohaContext, kNameSpace);
 static KonohaContext *new_context(size_t stacksize)
 {
 	heap_init();
@@ -320,6 +321,7 @@ static KonohaContext *new_context(size_t stacksize)
 	MODGC_init(&kctx, &kctx);
 	KCLASSTABLE_init(&kctx);
 	//FLOAT_init(&kctx, NULL);
+	tinykonoha_floatMethodInit(&kctx, NULL);
 	KRUNTIME_init(&kctx, &kctx, stacksize);
 	KCLASSTABLE_loadMethod(&kctx);
 	return &kctx;

@@ -1,7 +1,7 @@
 #define KVPROTO_INIT  8
 #define KVPROTO_DELTA 7
 
-//#include<../../include/minikonoha/float.h>
+#include<../../include/minikonoha/float.h>
 #include<../../package/konoha.nxt/nxt_glue.h>
 //#include<../../package/konoha.float/float_glue.c>
 
@@ -305,6 +305,13 @@ static KonohaClass *CT_body(KonohaContext *kctx, KonohaClass *ct, size_t head, s
 	return ct;
 }
 
+static KonohaClass *Konoha_defineClass(KonohaContext *kctx, kpackage_t packageId, kpackage_t packageDomain, kString *name, KDEFINE_CLASS *cdef, kfileline_t pline)
+{
+	KonohaClassVar *ct = new_KonohaClass(kctx, NULL, cdef, pline);
+	KonohaClass_setName(kctx, ct, pline);
+	return (KonohaClass*)ct;
+}
+
 static kParam *new_Param(KonohaContext *kctx, ktype_t rtype, int psize, kparamtype_t *p)
 {
 	KonohaClass *ct = CT_(CLASS_Param);
@@ -521,7 +528,7 @@ static void loadInitStructData(KonohaContext *kctx)
 //	} else {
 //		//ct->nameid = kuname(S_text(name), S_size(name), 0, _NEWID);
 //	}
-//	//CT_setName(kctx, ct, pline);
+//	//KonohaClass_setName(kctx, ct, pline);
 //	return (KonohaClass*)ct;
 //}
 
@@ -608,11 +615,11 @@ static void KCLASSTABLE_initKonohaLib(KonohaLibVar *l)
 	l->new_kMethod   = new_Method;
 	l->kMethod_setFunc = Method_setFunc;
 	l->kArray_add = Array_add;
+	l->Konoha_defineClass = Konoha_defineClass;
 	//l->kNameSpace_getMethodNULL = kNameSpace_getMethodNULL;
-	//l->KaddClassDef = addClassDef;
 }
 
-static void CT_setName(KonohaContext *kctx, KonohaClassVar *ct, kfileline_t pline)
+void KonohaClass_setName(KonohaContext *kctx, KonohaClassVar *ct, kfileline_t pline)
 {
 	//uintptr_t lname = longid(ct->packdom, ct->nameid);
 	//kreportf(DEBUG_, pline, "new class domain=%s, name='%s.%s'", T_PN(ct->packdom), T_PN(ct->packid), T_UN(ct->nameid));
@@ -639,7 +646,7 @@ static void initStructData(KonohaContext *kctx)
 		KonohaClassVar *ct = (KonohaClassVar *)ctt[i];
 		//const char *name = ct->DBG_NAME;
 		//ct->nameid = kuname(name, strlen(name), SPOL_ASCII|SPOL_POOL|SPOL_TEXT, _NEWID);
-		CT_setName(kctx, ct, 0);
+		KonohaClass_setName(kctx, ct, 0);
 	}
 }
 
@@ -728,7 +735,7 @@ static kbool_t nxt_init(KonohaContext *kctx, kNameSpace *ks)
 
 //static	kbool_t FLOAT_init(KonohaContext *kctx, kNameSpace *ks)
 //{
-//	kmodfloat_t *base = (kmodfloat_t*)KCALLOC(sizeof(kmodfloat_t), 1);
+//	KonohaFloatModule *base = (KonohaFloatModule*)KCALLOC(sizeof(KonohaFloatModule), 1);
 //	base->h.name     = "float";
 //	base->h.setup    = kmodfloat_setup;
 //	base->h.reftrace = kmodfloat_reftrace;
@@ -743,26 +750,26 @@ static kbool_t nxt_init(KonohaContext *kctx, kNameSpace *ks)
 //
 //	//base->cFloat = Konoha_addClassDef(0/*ks->packid*/, PN_konoha, NULL, &defFloat, 0);
 //	base->cFloat = new_KonohaClass(kctx, NULL, &defFloat, 0);
-//	CT_setName(kctx, (KonohaClassVar*)base->cFloat, 0);
+//	KonohaClass_setName(kctx, (KonohaClassVar*)base->cFloat, 0);
 //
 //	int FN_x = FN_("x");
 //	intptr_t MethodData[] = {
-//		//_F(Float_opADD), TY_Float, MN_(Float_opADD),
-//		//_F(Float_opSUB), TY_Float, MN_(Float_opSUB),
-//		//_F(Float_opMUL), TY_Float, MN_(Float_opMUL),
-//		//_F(Float_opDIV), TY_Float, MN_(Float_opDIV),
-//		//_F(Float_opEQ),  TY_Float, MN_(Float_opEQ),
-//		//_F(Float_opNEQ), TY_Float, MN_(Float_opNEQ),
-//		//_F(Float_opLT),  TY_Float, MN_(Float_opLT),
-//		//_F(Float_opLTE), TY_Float, MN_(Float_opLTE),
-//		//_F(Float_opGT),  TY_Float, MN_(Float_opGT),
-//		//_F(Float_opGTE), TY_Float, MN_(Float_opGTE),
-//		//_F(Float_toInt), TY_Float, MN_to(Float, Int),
-//		//_F(Int_toFloat), TY_Int, MN_to(Int, Float),
-//		//_F(Float_toString), TY_Float, MN_to(Float, String),
-//		//_F(String_toFloat), TY_String, MN_to(String, Float),
+//		_F(Float_opADD), TY_Float, MN_(Float_opADD),
+//		_F(Float_opSUB), TY_Float, MN_(Float_opSUB),
+//		_F(Float_opMUL), TY_Float, MN_(Float_opMUL),
+//		_F(Float_opDIV), TY_Float, MN_(Float_opDIV),
+//		_F(Float_opEQ),  TY_Float, MN_(Float_opEQ),
+//		_F(Float_opNEQ), TY_Float, MN_(Float_opNEQ),
+//		_F(Float_opLT),  TY_Float, MN_(Float_opLT),
+//		_F(Float_opLTE), TY_Float, MN_(Float_opLTE),
+//		_F(Float_opGT),  TY_Float, MN_(Float_opGT),
+//		_F(Float_opGTE), TY_Float, MN_(Float_opGTE),
+//		_F(Float_toInt), TY_Float, MN_to(Float, Int),
+//		_F(Int_toFloat), TY_Int, MN_to(Int, Float),
+//		_F(Float_toString), TY_Float, MN_to(Float, String),
+//		_F(String_toFloat), TY_String, MN_to(String, Float),
 //		DEND,
 //	};
-//	kNameSpace_loadMethodData(ks, MethodData);
+//	KLIB kNameSpace_loadMethodData(kctx, ks, MethodData);
 //	return true;
 //}

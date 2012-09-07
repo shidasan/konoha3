@@ -22,10 +22,17 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***************************************************************************/
 
+#ifndef K_USING_TINYVM
 #include <minikonoha/minikonoha.h>
 #include <minikonoha/sugar.h>
 #include <minikonoha/float.h>
 #include <math.h> /* for INFINATE, NAN */
+#else
+#include "tinykonoha.h"
+#include "tinyvm_gen.h"
+#include "bytecode.h"
+#include <minikonoha/float.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -224,14 +231,57 @@ static KMETHOD Float_opMINUS(KonohaContext *kctx, KonohaStack *sfp)
 	RETURNf_(-(sfp[0].floatValue));
 }
 
-/* ------------------------------------------------------------------------ */
-
 #define _Public   kMethod_Public
 #define _Const    kMethod_Const
 #define _Im       kMethod_Immutable
 #define _Coercion kMethod_Coercion
 #define _Static   kMethod_Static
 #define _F(F)   (intptr_t)(F)
+
+#ifdef K_USING_TINYVM
+kbool_t tinykonoha_floatMethodInit(KonohaContext *kctx, kNameSpace *ks)
+{
+	KonohaFloatModule *base = (KonohaFloatModule*)KCALLOC(sizeof(KonohaFloatModule), 1);
+	base->h.name     = "float";
+	base->h.setup    = kmodfloat_setup;
+	base->h.reftrace = kmodfloat_reftrace;
+	base->h.free     = kmodfloat_free;
+	KLIB Konoha_setModule(kctx, MOD_float, &base->h, 0);
+
+	KDEFINE_CLASS defFloat = {
+		STRUCTNAME(Float),
+		.cflag = CFLAG_Int,
+		.init = Float_init,
+	};
+
+	base->cFloat = KLIB Konoha_defineClass(kctx, 0, PN_konoha, NULL, &defFloat, 0);
+	//base->cFloat = Konoha_addClassDef(0/*ks->packid*/, PN_konoha, NULL, &defFloat, 0);
+	//base->cFloat = new_KonohaClass(kctx, NULL, &defFloat, 0);
+	KINITv(((KonohaClassVar*)base->cFloat)->methodList, K_EMPTYARRAY);
+	//CT_setName(kctx, (KonohaClassVar*)base->cFloat, 0);
+
+	int FN_x = FN_("x");
+	intptr_t MethodData[] = {
+		_F(Float_opADD), TY_Float, MN_(Float_opADD),
+		_F(Float_opSUB), TY_Float, MN_(Float_opSUB),
+		_F(Float_opMUL), TY_Float, MN_(Float_opMUL),
+		_F(Float_opDIV), TY_Float, MN_(Float_opDIV),
+		_F(Float_opEQ),  TY_Float, MN_(Float_opEQ),
+		_F(Float_opNEQ), TY_Float, MN_(Float_opNEQ),
+		_F(Float_opLT),  TY_Float, MN_(Float_opLT),
+		_F(Float_opLTE), TY_Float, MN_(Float_opLTE),
+		_F(Float_opGT),  TY_Float, MN_(Float_opGT),
+		_F(Float_opGTE), TY_Float, MN_(Float_opGTE),
+		_F(Float_toInt), TY_Float, MN_to(Float, Int),
+		_F(Int_toFloat), TY_Int, MN_to(Int, Float),
+		_F(Float_toString), TY_Float, MN_to(Float, String),
+		DEND,
+	};
+	KLIB kNameSpace_loadMethodData(kctx, ks, MethodData);
+	return true;
+}
+#else
+/* ------------------------------------------------------------------------ */
 
 static kbool_t float_initPackage(KonohaContext *kctx, kNameSpace *ns, int argc, const char**args, kfileline_t pline)
 {
@@ -408,6 +458,8 @@ KDEFINE_PACKAGE* float_init(void)
 	};
 	return &d;
 }
+
+#endif
 
 #ifdef __cplusplus
 }

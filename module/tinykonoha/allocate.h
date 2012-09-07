@@ -109,10 +109,10 @@ static void heap_free(heap_header *free_header, heap_header **header)
 	}
 
 	ptr0 = (char*)free_header; ptr1 = (char*)free_header->next;
-	if (ptr0 + sizeof(heap_header) + free_header->size == ptr1) {
-		free_header->next = free_header->next->next;
-		free_header->size += sizeof(heap_header) + free_header->next->size;
-	}
+	//if (ptr0 + sizeof(heap_header) + free_header->size == ptr1) {
+	//	free_header->next = free_header->next->next;
+	//	free_header->size += sizeof(heap_header) + free_header->next->size;
+	//}
 }
 
 static int total_malloced = 0;
@@ -132,18 +132,20 @@ void *tiny_malloc(size_t size)
 
 void tiny_free(void* ptr)
 {
+	//printf("free %p\n", ptr);
 	heap_free(ptr_to_header(ptr), &header_global);
 }
 
 void *tiny_malloc(size_t size)
 {
-	size = size + ((4 - size % 4) % 4);
+	//size = size + ((4 - size % 4) % 4);
 	total_malloced+=size + sizeof(heap_header);
 	//if (total_malloced > HEAP_SIZE / 10 * 9) {
 	//	TDBG_i("total mallocked", total_malloced);
 	//}
 	void *mem;
 	mem = heap_alloc(size, &header_global);
+	//printf("malloc %p size: %zd\n", mem, size);
 	//TDBG_s("malloc end");
 	if (mem == NULL) {
 		//TDBG_abort("NULL");
