@@ -786,6 +786,8 @@ static kbool_t kNameSpace_importPackage(KonohaContext *kctx, kNameSpace *ns, con
 		if(isContinousLoading && pack->packageHandler != NULL && pack->packageHandler->setupNameSpace != NULL) {
 			isContinousLoading = pack->packageHandler->setupNameSpace(kctx, pack->packageNameSpace, ns, pline);
 		}
+		void dumpCidMn(KonohaContext*);
+		dumpCidMn(kctx);
 		return true;
 	}
 	return false;

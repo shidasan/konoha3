@@ -904,6 +904,208 @@ static kByteCode* new_ByteCode(KonohaContext *kctx, kBasicBlock *beginBlock, kBa
 	return kcode;
 }
 
+#ifdef TINYVM_CODEGEN
+
+#define _TAB "  "
+
+static const char *ct_toText(KonohaContext *kctx, KonohaClass *ct)
+{
+	if (ct->baseTypeId == TY_Func) {
+		return "Func";
+	}
+	return CT_t(ct);
+}
+
+static const char *mn_toText(KonohaContext *kctx, kmethodn_t mn)
+{
+	const char *str = SYM_t(mn);
+	if (MN_isGETTER(mn)) {
+		return "get";
+	}
+	if (MN_isSETTER(mn)) {
+		return "set";
+	}
+	if (strcmp("+", str) == 0) {
+		return "opADD";
+	}
+	if (strcmp("-", str) == 0) {
+		return "opSUB";
+	}
+	if (strcmp("*", str) == 0) {
+		return "opMUL";
+	}
+	if (strcmp("/", str) == 0) {
+		return "opDIV";
+	}
+	if (strcmp("%", str) == 0) {
+		return "opMOD";
+	}
+	if (strcmp("==", str) == 0) {
+		return "opEQ";
+	}
+	if (strcmp("!=", str) == 0) {
+		return "opNEQ";
+	}
+	if (strcmp("!", str) == 0) {
+		return "opNOT";
+	}
+	if (strcmp(">", str) == 0) {
+		return "opGT";
+	}
+	if (strcmp(">=", str) == 0) {
+		return "opGTE";
+	}
+	if (strcmp("<", str) == 0) {
+		return "opLT";
+	}
+	if (strcmp("<=", str) == 0) {
+		return "opLTE";
+	}
+	return str;
+}
+
+//static void dumpConstData(KonohaContext *kctx, VirtualMachineInstruction *pc, kMethod *mtd)
+//{
+//	DUMP_P("kconstdata_t data%zd[] = {\n", kctx->share->methodDeclSize);
+//	while(1) {
+//		if (pc->opcode == OPCODE_NSET && !TY_isUnbox(((OPNSET*)pc)->ty->typeId)) {
+//			kObject *o = (kObject*)((OPNSET*)pc)->n;
+//			DUMP_P(_TAB "{%d, ", O_typeId(o));
+//			switch(O_typeId(o)) {
+//			case TY_int:
+//				DUMP_P("(void*)%ld", ((kNumber*)o)->intValue);
+//				break;
+//			case TY_String:
+//				DUMP_P("(void*)\"%s\"", ((kString*)o)->text);
+//				break;
+//
+//			default:
+//				DUMP_P("NULL /* default constant */");
+//			}
+//			DUMP_P("},\n");
+//		}
+//		if (pc->opcode == OPCODE_RET) {
+//			break;
+//		}
+//		pc++;
+//	}
+//	DUMP_P(_TAB "{TY_void, (void*)NULL},/* sentinel */\n");
+//	DUMP_P("};\n\n");
+//}
+
+//static void dumpBYTECODE(KonohaContext *kctx, VirtualMachineInstruction *pc_start, int count)
+//{
+//	VirtualMachineInstruction *c = pc_start + count;
+//	static int constdatasize = 0;
+//	size_t i, size = OPDATA[c->opcode].size;
+//	const kushort_t *vmt = OPDATA[c->opcode].types;
+//	DUMP_P(_TAB "/* L_%02d */{.op%s = {OPCODE_%s", count, T_opcode(c->opcode), T_opcode(c->opcode));
+//	if (size > 0) {
+//		DUMP_P(", ");
+//	}
+//	if (c->opcode == OPCODE_NSET && !TY_isUnbox(((OPNSET*)c)->ty->typeId)) {
+//		DUMP_P("%d/*r*/, %d/*n*/}},\n", (int)c->data[0], constdatasize);
+//		constdatasize++;
+//		return;
+//	}
+//	for(i = 0; i < size; i++) {
+//		switch(vmt[i]) {
+//		case VMT_VOID: break;
+//		case VMT_ADDR:
+//			if(pc_start == NULL) {
+//				DUMP_P("%p/*addr*/, ", c->p[i]);
+//			}
+//			else {
+//				DUMP_P("%d/*L*/, ", (int)((VirtualMachineInstruction*)c->p[i] - pc_start));
+//			}
+//			break;
+//		case VMT_R:
+//			DUMP_P("%d/*r*/, ", (int)c->data[i]);
+//			break;
+//		case VMT_U:
+//			/* do nothing */
+//			break;
+//		case VMT_I:
+//		case VMT_INT:
+//			DUMP_P("%d/*i*/, ", c->data[i]); break;
+//		case VMT_F:
+//			DUMP_P("%p/*function*/, ", c->p[i]); break;
+//		case VMT_CID:
+//			DUMP_P("%zd/*cid*/, ", i); break;
+//		case VMT_CO:
+//			/*do nothing */
+//			break;
+//		case VMT_METHOD: {
+//			kMethod *mtd = (kMethod*)c->o[i];
+//			DUMP_P("%d/*cid*/, ", mtd->typeId);
+//			DUMP_P("%d/*mn of %s*/, ", mtd->mn, mn_toText(kctx, mtd->mn));
+//		}
+//		}/*switch*/
+//	}
+//	DUMP_P("}},\n");
+//}
+
+void dumpCidMn(KonohaContext *kctx)
+{
+	size_t i, size = kArray_size(&kctx->share->classTable);
+	static size_t _i; /* static variable */
+	for (i = 0; i < size; i++) {
+		KonohaClass *ct = kctx->share->classTable.classItems[i];
+		if (_i <= i && ct->typeId == ct->baseTypeId) { /* except generics */
+			_i++;
+			if (isupper(*CT_t(ct))) {
+				DUMP_P("#define TY_%s %d\n", ct_toText(kctx, ct), ct->typeId);
+			} else {
+				DUMP_P("#define TY_%s %d\n", ct_toText(kctx, ct), ct->typeId);
+			}
+		}
+	}
+	DUMP_P("\n");
+	for (i = 0; i < size; i++) {
+		KonohaClassVar *ct = (KonohaClassVar*)kctx->share->classTable.classItems[i];
+		kArray *methods = ct->methodList;
+		size_t msize = kArray_size(methods);
+		for (; ct->dumped_size < msize; ct->dumped_size++) {
+			kMethod *mtd = methods->methodItems[ct->dumped_size];
+			if (Method_isTransCast(mtd)) {
+				DUMP_P("#define MN_%s_to%s %d\n", ct_toText(kctx, ct), ct_toText(kctx, CT_(SYM_UNMASK(mtd->mn))), mtd->mn);
+			} else if (Method_isCast(mtd)) {
+				DUMP_P("#define MN_%s_as%s %d\n", ct_toText(kctx, ct), ct_toText(kctx, CT_(SYM_UNMASK(mtd->mn))), mtd->mn);
+			} else {
+				DUMP_P("#define MN_%s_%s %d\n", ct_toText(kctx, ct), mn_toText(kctx, mtd->mn), mtd->mn);
+			}
+		}
+	}
+	DUMP_P("\n");
+}
+
+static void tinyvm_dump(KonohaContext *kctx, kMethod *mtd)
+{
+	static int defined = 0; /* static variable */
+	if (!defined) {
+		defined = 1;
+		dumpCidMn(kctx);
+	}
+	//DUMP_P("kopl_u opl%zd[] = {\n", kctx->share->methodDeclSize);
+	//size_t i = 0;
+	//while(1) {
+	//	dumpBYTECODE(kctx, mtd->pc_start, i);
+	//	if (mtd->pc_start[i].opcode == OPCODE_RET) {
+	//		break;
+	//	}
+	//	i++;
+	//}
+	//DUMP_P("};\n\n");
+	//dumpConstData(kctx, mtd->pc_start, mtd);
+	//DUMP_P("kmethoddecl_t decl%zd = {\n", kctx->share->methodDeclSize);
+	//DUMP_P("%d/*cid*/, ", mtd->typeId);
+	//DUMP_P("%d/*method %s*/,\n", mtd->mn, SYM_t(mtd->mn));
+	//DUMP_P("data%zd, opl%zd\n};\n\n", kctx->share->methodDeclSize, kctx->share->methodDeclSize);
+	//((KonohaRuntimeVar*)kctx->share)->methodDeclSize++;
+}
+
+#else
+
 static void dumpOPCODE(KonohaContext *kctx, VirtualMachineInstruction *c, VirtualMachineInstruction *pc_start)
 {
 	size_t i, size = OPDATA[c->opcode].size;
@@ -945,6 +1147,8 @@ static void dumpOPCODE(KonohaContext *kctx, VirtualMachineInstruction *c, Virtua
 	DUMP_P("\n");
 }
 
+#endif
+
 static void _THCODE(KonohaContext *kctx, VirtualMachineInstruction *pc, void **codeaddr)
 {
 #ifdef K_USING_THCODE_
@@ -970,6 +1174,9 @@ static void Method_threadCode(KonohaContext *kctx, kMethod *mtd, kByteCode *kcod
 	KLIB kMethod_setFunc(kctx, mtd, MethodFunc_runVirtualMachine);
 	KSETv(Wmtd, Wmtd->kcode, kcode);
 	Wmtd->pc_start = KonohaVirtualMachine_run(kctx, kctx->esp + 1, kcode->code);
+#ifdef TINYVM_CODEGEN
+	tinyvm_dump(kctx, mtd);
+#else
 	if (verbose_code) {
 		DBG_P("DUMP CODE");
 		VirtualMachineInstruction *pc = mtd->pc_start;
@@ -981,6 +1188,7 @@ static void Method_threadCode(KonohaContext *kctx, kMethod *mtd, kByteCode *kcod
 			pc++;
 		}
 	}
+#endif
 }
 
 static void BUILD_compile(KonohaContext *kctx, kMethod *mtd, kBasicBlock *beginBlock, kBasicBlock *endBlock)
