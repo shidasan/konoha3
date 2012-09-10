@@ -560,7 +560,7 @@ static const kOPDATA_t OPDATA[] = {
 
 static void opcode_check(void)
 {
-	printf("check %zd %zd\n", sizeof(klr_SCALL_t), sizeof(VirtualMachineInstruction));
+	//printf("check %zd %zd\n", sizeof(klr_SCALL_t), sizeof(VirtualMachineInstruction));
 	assert(sizeof(klr_NSET_t) <= sizeof(VirtualMachineInstruction));
 	assert(sizeof(klr_NMOV_t) <= sizeof(VirtualMachineInstruction));
 	assert(sizeof(klr_NMOVx_t) <= sizeof(VirtualMachineInstruction));

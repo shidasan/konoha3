@@ -103,7 +103,7 @@ endif
 #
 COPTS := $(COPTS)
 CDEFS := $(CDEFS)
-INCLUDES := -I. -I$(SRCDIR)/include -I$(SRCDIR)/nxt/device -I$(SRCDIR)/nxt/ecrobot -I$(SRCDIR)/nxt/balancer $(INCLUDES) -I../../include
+INCLUDES := -I. -I$(SRCDIR)/include -I$(SRCDIR)/nxt/device -I$(SRCDIR)/nxt/ecrobot -I$(SRCDIR)/nxt/balancer $(INCLUDES) -I../../include -I../tinyvm
 LDFLAGS := -nostdlib $(LDFLAGS)
 #LIBS := $(LIBS) $(CXXLIBS)
 LIBS := $(LIBS) $(CXXLIBS) -lgcc -lc
@@ -121,7 +121,11 @@ ifdef USE_CXX
     UTASK_CXXOBJS = $(UNAME).o
     UTASK_COBJS =
 else
-    UTASK_COBJS = $(UNAME).o
+    UTASK_COBJS = $(UNAME).o\
+				  ../../package/konoha.nxt/nxt_glue.o\
+				  ../../package/konoha.array/array_glue.o\
+				  ../../package/konoha.float/float_glue.o\
+
 endif
 UTASK_CFLAGS =
 UTASK_LIBS = $(SRCDIR)/nxt/libecrobot.a $(SRCDIR)/nxt/libdevice.a $(SRCDIR)/nxt/libbalancer.a
@@ -297,7 +301,6 @@ $(OBJNAME).srec: $(OBJFILE)
 #  コンパイル結果の消去
 #
 clean:
-	rm -f Makefile.depend
 	rm -f \#* *~ *.o tmpfile?
 	rm -f $(MAKE_KERNEL) $(OBJNAME)
 	rm -f $(OBJNAME).syms $(OBJNAME).srec $(OBJNAME).chk
@@ -305,6 +308,7 @@ clean:
 	rm -f kernel_cfg.c kernel_chk.c kernel_chk.s kernel_id.h kernel_obj.dat
 	rm -f makeoffset.s offset.h
 	rm -f tinykonoha
+	rm -f $(UTASK_COBJS)
 
 cleankernel:
 	rm -rf $(KERNEL_LIB_OBJS)
@@ -437,7 +441,7 @@ $(STASK_ASMOBJS): %.o: %.S
 	$(CC) -c $(CFLAGS) $(STASK_CFLAGS) $<
 
 $(UTASK_COBJS): %.o: %.c
-	$(CC) -c $(CFLAGS) $(UTASK_CFLAGS) $<
+	$(CC) -c $(CFLAGS) $(UTASK_CFLAGS) $< -o $@
 
 $(UTASK_COBJS:.o=.s): %.s: %.c
 	$(CC) -S $(CFLAGS) $(UTASK_CFLAGS) $<

@@ -32,6 +32,14 @@
 #include "bytecode.h"
 #endif
 
+#ifdef K_USING_TOPPERS
+#include "tinykonoha_config.h"
+#include "kernel_id.h"
+#include "ecrobot_base.h"
+#include "ecrobot_interface.h"
+#include "balancer.h"
+#endif
+
 #define Int_to(T, a)               ((T)a.intValue)
 #define Float_to(T, a)             ((T)a.floatValue)
 

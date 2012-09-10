@@ -1558,19 +1558,19 @@ typedef struct {
 } while (0)
 
 //#ifndef K_NODEBUG
-#define KNH_ASSERT(a)       assert(a)
-#define DBG_ASSERT(a)       assert(a)
-#define TODO_ASSERT(a)      assert(a)
-#define DBG_P(fmt, ...)     PLATAPI debugPrintf(__FILE__, __FUNCTION__, __LINE__, fmt, ## __VA_ARGS__)
-#define DBG_ABORT(fmt, ...) PLATAPI debugPrintf(__FILE__, __FUNCTION__, __LINE__, fmt, ## __VA_ARGS__); PLATAPI exit_i(EXIT_FAILURE)
-#define DUMP_P(fmt, ...)    PLATAPI printf_i(fmt, ## __VA_ARGS__)
+//#define KNH_ASSERT(a)       assert(a)
+//#define DBG_ASSERT(a)       assert(a)
+//#define TODO_ASSERT(a)      assert(a)
+//#define DBG_P(fmt, ...)     PLATAPI debugPrintf(__FILE__, __FUNCTION__, __LINE__, fmt, ## __VA_ARGS__)
+//#define DBG_ABORT(fmt, ...) PLATAPI debugPrintf(__FILE__, __FUNCTION__, __LINE__, fmt, ## __VA_ARGS__); PLATAPI exit_i(EXIT_FAILURE)
+//#define DUMP_P(fmt, ...)    PLATAPI printf_i(fmt, ## __VA_ARGS__)
 //#else
-//#define KNH_ASSERT(a)
-//#define DBG_ASSERT(a)
-//#define TODO_ASSERT(a)
-//#define DBG_P(fmt, ...)
-//#define DBG_ABORT(fmt, ...)
-//#define DUMP_P(fmt, ...)
+#define KNH_ASSERT(a)
+#define DBG_ASSERT(a)
+#define TODO_ASSERT(a)
+#define DBG_P(fmt, ...)
+#define DBG_ABORT(fmt, ...)
+#define DUMP_P(fmt, ...)
 //#endif
 
 #ifndef unlikely
