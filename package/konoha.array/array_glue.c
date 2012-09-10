@@ -93,7 +93,7 @@ struct _kAbstractArray {
 	KUtilsGrowingArray a;
 };
 
-static void UnboxArray_ensureMinimumSize(KonohaContext *kctx, kArray *a, size_t min)
+static void UnboxArray_ensureMinimumSize(KonohaContext *kctx, struct _kAbstractArray *a, size_t min)
 {
 	size_t minbyte = min * sizeof(uintptr_t);
 	if (!(minbyte < a->a.bytemax)) {

@@ -25,6 +25,9 @@
 /* no debug opt */
 #cmakedefine K_NODEBUG  ${K_NODEBUG}
 
+/* dump cid, mn opt for tinykonoha */
+#cmakedefine TINYVM_CODEGEN  ${TINYVM_CODEGEN}
+
 /* dll extension */
 #cmakedefine K_OSDLLEXT "${K_OSDLLEXT}"
 

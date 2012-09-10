@@ -546,6 +546,9 @@ struct KonohaRuntimeVar {
 	kBoolean                 *constFalse;
 	kString                  *emptyString;
 	kArray                   *emptyArray;
+#ifdef TINYVM_CODEGEN
+	size_t                    methodDeclSize;
+#endif
 
 	kmutex_t          *filepackMutex;
 	kArray                   *fileidList;    // file, http://
@@ -739,6 +742,9 @@ struct KonohaClassVar {
 	ktype_t   p0;              kparamid_t    cparamdom;
 	kmagicflag_t magicflag;
 	size_t     cstruct_size;
+#ifdef TINYVM_CODEGEN
+	size_t     dumped_size;
+#endif
 	KonohaClassField         *fieldItems;
 	kushort_t  fieldsize;         kushort_t fieldAllocSize;
 	const char               *DBG_NAME;
