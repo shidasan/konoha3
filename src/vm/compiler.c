@@ -964,86 +964,89 @@ static const char *mn_toText(KonohaContext *kctx, kmethodn_t mn)
 	return str;
 }
 
-//static void dumpConstData(KonohaContext *kctx, VirtualMachineInstruction *pc, kMethod *mtd)
-//{
-//	DUMP_P("kconstdata_t data%zd[] = {\n", kctx->share->methodDeclSize);
-//	while(1) {
-//		if (pc->opcode == OPCODE_NSET && !TY_isUnbox(((OPNSET*)pc)->ty->typeId)) {
-//			kObject *o = (kObject*)((OPNSET*)pc)->n;
-//			DUMP_P(_TAB "{%d, ", O_typeId(o));
-//			switch(O_typeId(o)) {
-//			case TY_int:
-//				DUMP_P("(void*)%ld", ((kNumber*)o)->intValue);
-//				break;
-//			case TY_String:
-//				DUMP_P("(void*)\"%s\"", ((kString*)o)->text);
-//				break;
-//
-//			default:
-//				DUMP_P("NULL /* default constant */");
-//			}
-//			DUMP_P("},\n");
-//		}
-//		if (pc->opcode == OPCODE_RET) {
-//			break;
-//		}
-//		pc++;
-//	}
-//	DUMP_P(_TAB "{TY_void, (void*)NULL},/* sentinel */\n");
-//	DUMP_P("};\n\n");
-//}
+static void dumpConstData(KonohaContext *kctx, VirtualMachineInstruction *pc, kMethod *mtd)
+{
+	DUMP_P("kconstdata_t data%zd[] = {\n", kctx->share->methodDeclSize);
+	while(1) {
+		if (pc->opcode == OPCODE_NSET && !TY_isUnbox(((OPNSET*)pc)->ty->typeId)) {
+			kObject *o = (kObject*)((OPNSET*)pc)->n;
+			DUMP_P(_TAB "{%d, ", O_typeId(o));
+			switch(O_typeId(o)) {
+			case TY_int:
+				DUMP_P("(void*)%ld", ((kNumber*)o)->intValue);
+				break;
+			case TY_String:
+				DUMP_P("(void*)\"%s\"", ((kString*)o)->text);
+				break;
+			case TY_Method:
 
-//static void dumpBYTECODE(KonohaContext *kctx, VirtualMachineInstruction *pc_start, int count)
-//{
-//	VirtualMachineInstruction *c = pc_start + count;
-//	static int constdatasize = 0;
-//	size_t i, size = OPDATA[c->opcode].size;
-//	const kushort_t *vmt = OPDATA[c->opcode].types;
-//	DUMP_P(_TAB "/* L_%02d */{.op%s = {OPCODE_%s", count, T_opcode(c->opcode), T_opcode(c->opcode));
-//	if (size > 0) {
-//		DUMP_P(", ");
-//	}
-//	if (c->opcode == OPCODE_NSET && !TY_isUnbox(((OPNSET*)c)->ty->typeId)) {
-//		DUMP_P("%d/*r*/, %d/*n*/}},\n", (int)c->data[0], constdatasize);
-//		constdatasize++;
-//		return;
-//	}
-//	for(i = 0; i < size; i++) {
-//		switch(vmt[i]) {
-//		case VMT_VOID: break;
-//		case VMT_ADDR:
-//			if(pc_start == NULL) {
-//				DUMP_P("%p/*addr*/, ", c->p[i]);
-//			}
-//			else {
-//				DUMP_P("%d/*L*/, ", (int)((VirtualMachineInstruction*)c->p[i] - pc_start));
-//			}
-//			break;
-//		case VMT_R:
-//			DUMP_P("%d/*r*/, ", (int)c->data[i]);
-//			break;
-//		case VMT_U:
-//			/* do nothing */
-//			break;
-//		case VMT_I:
-//		case VMT_INT:
-//			DUMP_P("%d/*i*/, ", c->data[i]); break;
-//		case VMT_F:
-//			DUMP_P("%p/*function*/, ", c->p[i]); break;
-//		case VMT_CID:
-//			DUMP_P("%zd/*cid*/, ", i); break;
-//		case VMT_CO:
-//			/*do nothing */
-//			break;
-//		case VMT_METHOD: {
-//			kMethod *mtd = (kMethod*)c->o[i];
-//			DUMP_P("%d/*cid*/, ", mtd->typeId);
-//			DUMP_P("%d/*mn of %s*/, ", mtd->mn, mn_toText(kctx, mtd->mn));
-//		}
-//		}/*switch*/
-//	}
-//	DUMP_P("}},\n");
-//}
+				break;
+
+			default:
+				DUMP_P("NULL /* default constant */");
+			}
+			DUMP_P("},\n");
+		}
+		if (pc->opcode == OPCODE_RET) {
+			break;
+		}
+		pc++;
+	}
+	DUMP_P(_TAB "{TY_void, (void*)NULL},/* sentinel */\n");
+	DUMP_P("};\n\n");
+}
+
+static void dumpBYTECODE(KonohaContext *kctx, VirtualMachineInstruction *pc_start, int count)
+{
+	VirtualMachineInstruction *c = pc_start + count;
+	static int constdatasize = 0;
+	size_t i, size = OPDATA[c->opcode].size;
+	const kushort_t *vmt = OPDATA[c->opcode].types;
+	DUMP_P(_TAB "/* L_%02d */{.op%s = {OPCODE_%s", count, T_opcode(c->opcode), T_opcode(c->opcode));
+	if (size > 0) {
+		DUMP_P(", ");
+	}
+	if (c->opcode == OPCODE_NSET && !TY_isUnbox(((OPNSET*)c)->ty->typeId)) {
+		DUMP_P("%d/*r*/, %d/*n*/}},\n", (int)c->data[0], constdatasize);
+		constdatasize++;
+		return;
+	}
+	for(i = 0; i < size; i++) {
+		switch(vmt[i]) {
+		case VMT_VOID: break;
+		case VMT_ADDR:
+			if(pc_start == NULL) {
+				DUMP_P("%p/*addr*/, ", c->p[i]);
+			}
+			else {
+				DUMP_P("%d/*L*/, ", (int)((VirtualMachineInstruction*)c->p[i] - pc_start));
+			}
+			break;
+		case VMT_R:
+			DUMP_P("%d/*r*/, ", (int)c->data[i]);
+			break;
+		case VMT_U:
+			/* do nothing */
+			break;
+		case VMT_I:
+		case VMT_INT:
+			DUMP_P("%d/*i*/, ", c->data[i]); break;
+		case VMT_F:
+			DUMP_P("%p/*function*/, ", c->p[i]); break;
+		case VMT_CID:
+			DUMP_P("%zd/*cid*/, ", i); break;
+		case VMT_CO:
+			/*do nothing */
+			break;
+		case VMT_METHOD: {
+			kMethod *mtd = (kMethod*)c->o[i];
+			DUMP_P("%d/*cid*/, ", mtd->typeId);
+			DUMP_P("%d/*mn of %s*/, ", mtd->mn, mn_toText(kctx, mtd->mn));
+		}
+		}/*switch*/
+	}
+	DUMP_P("}},\n");
+}
 
 void dumpCidMn(KonohaContext *kctx)
 {
@@ -1086,22 +1089,22 @@ static void tinyvm_dump(KonohaContext *kctx, kMethod *mtd)
 		defined = 1;
 		dumpCidMn(kctx);
 	}
-	//DUMP_P("kopl_u opl%zd[] = {\n", kctx->share->methodDeclSize);
-	//size_t i = 0;
-	//while(1) {
-	//	dumpBYTECODE(kctx, mtd->pc_start, i);
-	//	if (mtd->pc_start[i].opcode == OPCODE_RET) {
-	//		break;
-	//	}
-	//	i++;
-	//}
-	//DUMP_P("};\n\n");
-	//dumpConstData(kctx, mtd->pc_start, mtd);
-	//DUMP_P("kmethoddecl_t decl%zd = {\n", kctx->share->methodDeclSize);
-	//DUMP_P("%d/*cid*/, ", mtd->typeId);
-	//DUMP_P("%d/*method %s*/,\n", mtd->mn, SYM_t(mtd->mn));
-	//DUMP_P("data%zd, opl%zd\n};\n\n", kctx->share->methodDeclSize, kctx->share->methodDeclSize);
-	//((KonohaRuntimeVar*)kctx->share)->methodDeclSize++;
+	DUMP_P("kopl_u opl%zd[] = {\n", kctx->share->methodDeclSize);
+	size_t i = 0;
+	while(1) {
+		dumpBYTECODE(kctx, mtd->pc_start, i);
+		if (mtd->pc_start[i].opcode == OPCODE_RET) {
+			break;
+		}
+		i++;
+	}
+	DUMP_P("};\n\n");
+	dumpConstData(kctx, mtd->pc_start, mtd);
+	DUMP_P("kmethoddecl_t decl%zd = {\n", kctx->share->methodDeclSize);
+	DUMP_P("%d/*cid*/, ", mtd->typeId);
+	DUMP_P("%d/*method %s*/,\n", mtd->mn, SYM_t(mtd->mn));
+	DUMP_P("data%zd, opl%zd\n};\n\n", kctx->share->methodDeclSize, kctx->share->methodDeclSize);
+	((KonohaRuntimeVar*)kctx->share)->methodDeclSize++;
 }
 
 #else

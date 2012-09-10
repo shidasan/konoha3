@@ -178,7 +178,35 @@ static KMETHOD System_balanceControl(KonohaContext *kctx, KonohaStack *sfp)
 #define _Const    kMethod_Const
 #define _F(F)   (intptr_t)(F)
 
-#ifndef K_USING_TINYVM
+#ifdef K_USING_TINYVM
+kbool_t tinykonoha_nxtMethodInit(KonohaContext *kctx, kNameSpace *ks)
+{
+	intptr_t MethodData[] = {
+		_F(System_balanceInit), TY_System, MN_(System_balanceInit),
+		_F(System_dly), TY_System, MN_(System_dly),
+		_F(System_actMainTask), TY_System, MN_(System_actMainTask),
+		_F(System_ecrobotIsRunning), TY_System, MN_(System_ecrobotIsRunning),
+		_F(System_tailControl), TY_System, MN_(System_tailControl),
+		_F(System_manipulateTail), TY_System, MN_(System_manipulateTail),
+		_F(System_ecrobotInitNxtstate), TY_System, MN_(System_ecrobotInitNxtstate),
+		_F(System_ecrobotInitSensors), TY_System, MN_(System_ecrobotInitSensors),
+		_F(System_ecrobotSetLightSensorActive), TY_System, MN_(System_ecrobotSetLightSensorActive),
+		_F(System_ecrobotGetGyroSensor), TY_System, MN_(System_ecrobotGetGyroSensor),
+		_F(System_ecrobotGetLightSensor), TY_System, MN_(System_ecrobotGetLightSensor),
+		_F(System_nxtMotorSetSpeed), TY_System, MN_(System_nxtMotorSetSpeed),
+		_F(System_nxtMotorSetCount), TY_System, MN_(System_nxtMotorSetCount),
+		_F(System_nxtMotorGetCount), TY_System, MN_(System_nxtMotorGetCount),
+		_F(System_staCyc), TY_System, MN_(System_staCyc),
+		_F(System_waiSem), TY_System, MN_(System_waiSem),
+		_F(System_balanceControl), TY_System, MN_(System_balanceControl),
+		DEND,
+	};
+	KLIB kNameSpace_loadMethodData(kctx, ks, MethodData);
+	return true;
+}
+
+#else
+
 static	kbool_t nxt_initPackage(KonohaContext *kctx, kNameSpace *ks, int argc, const char**args, kfileline_t pline)
 {
 	//KREQUIRE_PACKAGE("konoha.float", pline);

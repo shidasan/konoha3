@@ -22,11 +22,29 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***************************************************************************/
 
+#ifdef K_USING_TINYVM
+#include "tinykonoha.h"
+#include "tinyvm_gen.h"
+#include "bytecode.h"
+#include "constant.h"
+#include <minikonoha/float.h>
+#else
 #include <minikonoha/minikonoha.h>
 #include <minikonoha/sugar.h>
 #include <minikonoha/float.h>
+#endif
 
 /* ------------------------------------------------------------------------ */
+#ifdef K_USING_TINYVM
+static size_t check_index(KonohaContext *kctx, kint_t n, size_t max, kfileline_t pline)
+{
+	size_t n1 = (size_t)n;
+	if(unlikely(!(n1 < max))) {
+		KLIB KonohaRuntime_raise(kctx, EXPT_("OutOfArrayBoundary"), NULL, pline, NULL);
+	}
+	return n1;
+}
+#endif
 
 //## @Immutable method T0 Array.get(Int n);
 static KMETHOD Array_get(KonohaContext *kctx, KonohaStack *sfp)
@@ -266,6 +284,7 @@ static KMETHOD Array_concat(KonohaContext *kctx, KonohaStack *sfp)
 	RETURN_(a0);
 }
 
+#ifndef K_USING_TINYVM
 //## method int Array.indexOf(T0 a1);
 static KMETHOD Array_indexOf(KonohaContext *kctx, KonohaStack *sfp)
 {
@@ -318,6 +337,8 @@ static KMETHOD Array_lastIndexOf(KonohaContext *kctx, KonohaStack *sfp)
 	res = i;
 	RETURNi_(res);
 }
+
+#endif
 
 //## method String Array.toString();
 static KMETHOD Array_toString(KonohaContext *kctx, KonohaStack *sfp)
@@ -401,6 +422,41 @@ static KMETHOD Array_newList(KonohaContext *kctx, KonohaStack *sfp)
 #define _Const    kMethod_Const
 #define _Im       kMethod_Immutable
 #define _F(F)     (intptr_t)(F)
+
+#ifdef K_USING_TINYVM
+
+kbool_t tinykonoha_arrayMethodInit(KonohaContext *kctx, kNameSpace *ns)
+{
+
+	//KonohaClass *CT_ArrayT0 = CT_p0(kctx, CT_Array, TY_0);
+	//ktype_t TY_ArrayT0 = CT_ArrayT0->typeId;
+	KDEFINE_METHOD MethodData[] = {
+		_F(Array_get),         TY_Array, MN_(Array_get),
+		_F(Array_set),         TY_Array, MN_(Array_set),
+		//_F(Array_removeAt),    TY_Array, MN_(Array_removeAt),
+		_F(Array_getSize),     TY_Array, MN_(Array_getSize),
+		_F(Array_getSize),     TY_Array, MN_(Array_getlength),
+		//_F(Array_add1),        TY_Array, MN_(Array_add),
+		//_F(Array_push),        TY_Array, MN_(Array_push),
+		//_F(Array_pop),         TY_Array, MN_(Array_pop),
+		//_F(Array_shift),       TY_Array, MN_(Array_shift),
+		//_F(Array_unshift),     TY_Array, MN_(Array_unshift),
+		//_F(Array_reverse),     TY_Array, MN_(Array_reverse),
+
+		//_F(Array_concat),      TY_Array, MN_(Array_concat),
+		//_F(Array_indexOf),     TY_Array, MN_(Array_indexOf),
+		//_F(Array_lastIndexOf), TY_Array, MN_(Array_lastIndexOf),
+		//_F(Array_toString),    TY_Array, MN_(toString),
+		_F(Array_new),         TY_Array, MN_(Array_new),
+		_F(Array_newArray),    TY_Array, MN_(Array_newArray),
+		_F(Array_newList),     TY_Array, MN_(Array_newList),
+		DEND,
+	};
+	KLIB kNameSpace_loadMethodData(kctx, ns, MethodData);
+	return true;
+}
+
+#else
 
 static kbool_t array_initPackage(KonohaContext *kctx, kNameSpace *ns, int argc, const char**args, kfileline_t pline)
 {
@@ -553,3 +609,4 @@ KDEFINE_PACKAGE* array_init(void)
 	};
 	return &d;
 }
+#endif

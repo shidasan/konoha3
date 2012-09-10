@@ -272,7 +272,7 @@ static void klib2_init(KonohaLibVar *l)
 	l->Karray_resize     = karray_resize;
 	l->Karray_expand     = karray_expand;
 	l->Karray_free       = karray_free;
-	l->Konoha_setModule        = KRUNTIME_setModule;
+	l->KonohaRuntime_setModule        = KRUNTIME_setModule;
 	//l->Kreport           = Kreport;
 	l->Kreportf          = Kreportf;
 	l->kNameSpace_loadMethodData = kNameSpace_loadMethodData;
@@ -321,7 +321,7 @@ static KonohaContext *new_context(size_t stacksize)
 	MODGC_init(&kctx, &kctx);
 	KCLASSTABLE_init(&kctx);
 	//FLOAT_init(&kctx, NULL);
-	tinykonoha_floatMethodInit(&kctx, NULL);
+	//tinykonoha_floatMethodInit(&kctx, NULL);
 	KRUNTIME_init(&kctx, &kctx, stacksize);
 	KCLASSTABLE_loadMethod(&kctx);
 	return &kctx;

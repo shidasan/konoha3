@@ -905,6 +905,7 @@ kObject *MODGC_omalloc(KonohaContext *kctx, size_t size)
 	DBG_ASSERT(page_size <= 4);
 #endif
 	kGCObject *o = NULL;
+	printf("malloc\n");
 	FREELIST_POP(o,page_size);
 	memlocal(kctx)->freeObjectListSize[page_size] -= 1;
 	do_bzero((void*)o, size);

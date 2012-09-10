@@ -279,9 +279,9 @@ kbool_t tinykonoha_floatMethodInit(KonohaContext *kctx, kNameSpace *ks)
 		_F(Float_opLTE), TY_float, MN_(Float_opLTE),
 		_F(Float_opGT),  TY_float, MN_(Float_opGT),
 		_F(Float_opGTE), TY_float, MN_(Float_opGTE),
-		_F(Float_toInt), TY_float, MN_to(Float, Int),
-		_F(Int_toFloat), TY_Int, MN_to(Int, Float),
-		_F(Float_toString), TY_float, MN_to(Float, String),
+		//_F(Float_toInt), TY_float, MN_to(Float, Int),
+		//_F(Int_toFloat), TY_Int, MN_to(Int, Float),
+		//_F(Float_toString), TY_float, MN_to(Float, String),
 		DEND,
 	};
 	KLIB kNameSpace_loadMethodData(kctx, ks, MethodData);

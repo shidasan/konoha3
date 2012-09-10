@@ -651,9 +651,6 @@ static void initStructData(KonohaContext *kctx)
 	}
 }
 
-static	kbool_t FLOAT_init(KonohaContext *kctx, kNameSpace *ks);
-static kbool_t nxt_init(KonohaContext *kctx, kNameSpace *ks);
-
 static void KCLASSTABLE_init(KonohaContextVar *kctx)
 {
 	static KonohaRuntimeVar share;
@@ -667,8 +664,9 @@ static void KCLASSTABLE_init(KonohaContextVar *kctx)
 	KINITv(share.constData, new_(Array, 0));
 	KINITv(share.emptyArray, new_(Array, 0));
 	initStructData(kctx);
-	//FLOAT_init(kctx, NULL);
-	nxt_init(kctx, NULL);
+	tinykonoha_floatMethodInit(kctx, NULL);
+	tinykonoha_nxtMethodInit(kctx, NULL);
+	tinykonoha_arrayMethodInit(kctx, NULL);
 }
 
 #define _Public    kMethod_Public
@@ -695,82 +693,14 @@ static void KCLASSTABLE_loadMethod(KonohaContext *kctx)
 		_F(Int_opLTE), TY_Int, MN_(Int_opLTE),
 		_F(Int_opGT),  TY_Int, MN_(Int_opGT),
 		_F(Int_opGTE), TY_Int, MN_(Int_opGTE),
-		_F(Int_toString), TY_Int, MN_to(Int, String),
-		_F(String_toInt), TY_String, MN_to(String, Int),
-		_F(String_opADD), TY_String, MN_(String_opADD),
-		_F(System_assert), TY_System, MN_(System_assert),
+		//_F(Int_toString), TY_Int, MN_to(Int, String),
+		//_F(String_toInt), TY_String, MN_to(String, Int),
+		//_F(String_opADD), TY_String, MN_(String_opADD),
+		//_F(System_assert), TY_System, MN_(System_assert),
 		_F(System_p), TY_System, MN_(System_p),
-		_F(System_gc), TY_System, MN_(System_gc),
+		//_F(System_gc), TY_System, MN_(System_gc),
 		DEND,
 	};
 
 	KLIB kNameSpace_loadMethodData(kctx, NULL, MethodData);
 }
-
-
-static kbool_t nxt_init(KonohaContext *kctx, kNameSpace *ks)
-{
-	intptr_t MethodData[] = {
-		_F(System_balanceInit), TY_System, MN_(System_balanceInit),
-		_F(System_dly), TY_System, MN_(System_dly),
-		_F(System_actMainTask), TY_System, MN_(System_actMainTask),
-		_F(System_ecrobotIsRunning), TY_System, MN_(System_ecrobotIsRunning),
-		_F(System_tailControl), TY_System, MN_(System_tailControl),
-		_F(System_manipulateTail), TY_System, MN_(System_manipulateTail),
-		_F(System_ecrobotInitNxtstate), TY_System, MN_(System_ecrobotInitNxtstate),
-		_F(System_ecrobotInitSensors), TY_System, MN_(System_ecrobotInitSensors),
-		_F(System_ecrobotSetLightSensorActive), TY_System, MN_(System_ecrobotSetLightSensorActive),
-		_F(System_ecrobotGetGyroSensor), TY_System, MN_(System_ecrobotGetGyroSensor),
-		_F(System_ecrobotGetLightSensor), TY_System, MN_(System_ecrobotGetLightSensor),
-		_F(System_nxtMotorSetSpeed), TY_System, MN_(System_nxtMotorSetSpeed),
-		_F(System_nxtMotorSetCount), TY_System, MN_(System_nxtMotorSetCount),
-		_F(System_nxtMotorGetCount), TY_System, MN_(System_nxtMotorGetCount),
-		_F(System_staCyc), TY_System, MN_(System_staCyc),
-		_F(System_waiSem), TY_System, MN_(System_waiSem),
-		_F(System_balanceControl), TY_System, MN_(System_balanceControl),
-		DEND,
-	};
-	KLIB kNameSpace_loadMethodData(kctx, ks, MethodData);
-	return true;
-}
-
-//static	kbool_t FLOAT_init(KonohaContext *kctx, kNameSpace *ks)
-//{
-//	KonohaFloatModule *base = (KonohaFloatModule*)KCALLOC(sizeof(KonohaFloatModule), 1);
-//	base->h.name     = "float";
-//	base->h.setup    = kmodfloat_setup;
-//	base->h.reftrace = kmodfloat_reftrace;
-//	base->h.free     = kmodfloat_free;
-//	Konoha_setModule(MOD_float, &base->h, 0);
-//
-//	KDEFINE_CLASS defFloat = {
-//		STRUCTNAME(Float),
-//		.cflag = CFLAG_Int,
-//		.init = Float_init,
-//	};
-//
-//	//base->cFloat = Konoha_addClassDef(0/*ks->packid*/, PN_konoha, NULL, &defFloat, 0);
-//	base->cFloat = new_KonohaClass(kctx, NULL, &defFloat, 0);
-//	KonohaClass_setName(kctx, (KonohaClassVar*)base->cFloat, 0);
-//
-//	int FN_x = FN_("x");
-//	intptr_t MethodData[] = {
-//		_F(Float_opADD), TY_Float, MN_(Float_opADD),
-//		_F(Float_opSUB), TY_Float, MN_(Float_opSUB),
-//		_F(Float_opMUL), TY_Float, MN_(Float_opMUL),
-//		_F(Float_opDIV), TY_Float, MN_(Float_opDIV),
-//		_F(Float_opEQ),  TY_Float, MN_(Float_opEQ),
-//		_F(Float_opNEQ), TY_Float, MN_(Float_opNEQ),
-//		_F(Float_opLT),  TY_Float, MN_(Float_opLT),
-//		_F(Float_opLTE), TY_Float, MN_(Float_opLTE),
-//		_F(Float_opGT),  TY_Float, MN_(Float_opGT),
-//		_F(Float_opGTE), TY_Float, MN_(Float_opGTE),
-//		_F(Float_toInt), TY_Float, MN_to(Float, Int),
-//		_F(Int_toFloat), TY_Int, MN_to(Int, Float),
-//		_F(Float_toString), TY_Float, MN_to(Float, String),
-//		_F(String_toFloat), TY_String, MN_to(String, Float),
-//		DEND,
-//	};
-//	KLIB kNameSpace_loadMethodData(kctx, ks, MethodData);
-//	return true;
-//}
