@@ -184,7 +184,7 @@ static void Arena_init(KonohaContext *kctx, kmemshare_t *memshare)
 	}\
 	do_free(memshare->ObjectArenaTBL[j], memshare->capacityObjectArenaTBL[j] * sizeof(objpageTBL_t));\
 	memshare->ObjectArenaTBL[j] = NULL;\
-}while(0)
+} while (0)
 
 static void Arena_free(KonohaContext *kctx, kmemshare_t *memshare)
 {
@@ -292,25 +292,25 @@ static void Kfree(KonohaContext *kctx, void *p, size_t s)
 /* ------------------------------------------------------- */
 #define FREELIST_POP(o,i) do {\
 	if(memlocal(kctx)->freeObjectList[i] == NULL) {\
-		MODGC_gc_invoke(kctx,0);\
+		KLIB Kgc_invoke(kctx,0);\
 	}\
 	DBG_ASSERT(memlocal(kctx)->freeObjectList[i] != NULL);\
 	o = memlocal(kctx)->freeObjectList[i];\
 	memlocal(kctx)->freeObjectList[i] = (kGCObject *)((kGCObject0 *)o)->ref;\
 	((kGCObject0 *)o)->ref = NULL;\
-} while(0)
+} while (0)
 
 #define FREELIST_PUSH(o,i) do {\
 	kGCObject0 *tmp0 = (kGCObject0 *) o;\
 	tmp0->ref = (kGCObject0 *) memlocal(kctx)->freeObjectList[i];\
 	memlocal(kctx)->freeObjectList[i] = (kGCObject *)o;\
-} while(0)
+} while (0)
 
 #define OBJECT_REUSE(used,i) do {\
 	Object_ClearCT(used);\
 	(used)->h.magicflag = 0;\
 	FREELIST_PUSH(used,i);\
-} while(0)
+} while (0)
 
 static void ObjectPage_init0(objpage0_t *opage)
 {
@@ -533,7 +533,7 @@ static void knh_ObjectObjectArenaTBL_free2(KonohaContext *kctx, const objpageTBL
 		objpageTBL_t *t = oat + i;\
 		knh_ObjectObjectArenaTBL_free##j(kctx, t);\
 	}\
-} while(0)
+} while (0)
 
 static void knh_ObjectArena_finalfree0(KonohaContext *kctx, objpageTBL_t *oat, size_t oatSize)
 {
@@ -731,7 +731,7 @@ static void gc_mark(KonohaContext *kctx)
 	if(memlocal(kctx)->freeObjectListSize[n] < listSize / 10) {/* 90% */\
 		gc_extendObjectArena##n(kctx);\
 	}\
-}while(0)
+} while (0)
 
 static size_t sweep0(KonohaContext *kctx, void *p, int n, size_t sizeOfObject)
 {
@@ -827,7 +827,7 @@ static void MSGC_local_free(KonohaContext *kctx, struct KonohaModuleContext *bas
 	base->freeObjectList[i] = (kGCObject *)p;\
 	base->freeObjectTail[i] = (kGCObject *)p->ref5_tail;\
 	/*base->freeObjectListSize[i] = K_ARENASIZE/K_PAGEOBJECTSIZE(i);*/\
-}while(0)
+} while (0)
 
 static void MSGC_setup(KonohaContext *kctx, struct KonohaModule *def, int newctx)
 {
@@ -853,6 +853,7 @@ static void MSGC_free(KonohaContext *kctx, struct KonohaModule *baseh)
 	kctx->modshare[MOD_gc] = NULL;
 }
 
+void Kgc_invoke(KonohaContext *kctx, KonohaStack *esp);
 void MODGC_init(KonohaContext *kctx, KonohaContextVar *ctx)
 {
 	assert(sizeof(kGCObject0) == sizeof(kObjectVar));
@@ -865,6 +866,7 @@ void MODGC_init(KonohaContext *kctx, KonohaContextVar *ctx)
 		KSET_KLIB(Kmalloc, 0);
 		KSET_KLIB(Kzmalloc, 0);
 		KSET_KLIB(Kfree, 0);
+		KSET_KLIB(Kgc_invoke, 0);
 		KSET_KLIB(Kwrite_barrier, 0);
 		KLIB Konoha_setModule(kctx, MOD_gc, &base->h, 0);
 	}
@@ -909,7 +911,7 @@ kObject *MODGC_omalloc(KonohaContext *kctx, size_t size)
 	return (kObject *)o;
 }
 
-void MODGC_gc_invoke(KonohaContext *kctx, KonohaStack *esp)
+void Kgc_invoke(KonohaContext *kctx, KonohaStack *esp)
 {
 	//TODO : stop the world
 	gc_init(kctx);
@@ -932,7 +934,7 @@ void MODGC_check_malloced_size(void)
 			return true;\
 		}\
 	}\
-} while(0)
+} while (0)
 
 kbool_t MODGC_kObject_isManaged(KonohaContext *kctx, void *ptr)
 {

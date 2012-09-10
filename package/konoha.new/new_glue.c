@@ -66,9 +66,9 @@ static KMETHOD ParseExpr_new(KonohaContext *kctx, KonohaStack *sfp)
 	if(nextIdx != -1 && nextIdx < kArray_size(tokenList)) {
 		kToken *nextTokenAfterClassName = tokenList->tokenItems[nextIdx];
 //		if (ct->typeId == TY_void) {
-//			RETURN_(SUGAR kStmt_printMessage(kctx, stmt, tk1, ErrTag, "undefined class: %s", S_text(tk1->text)));
+//			RETURN_(SUGAR kStmt_printMessage2(kctx, stmt, tk1, ErrTag, "undefined class: %s", S_text(tk1->text)));
 //		} else if (CT_isVirtual(ct)) {
-//			SUGAR kStmt_printMessage(kctx, stmt, NULL, ErrTag, "invalid application of 'new' to incomplete class %s", CT_t(ct));
+//			SUGAR kStmt_printMessage2(kctx, stmt, NULL, ErrTag, "invalid application of 'new' to incomplete class %s", CT_t(ct));
 //		}
 		if(nextTokenAfterClassName->resolvedSyntaxInfo->keyword == KW_ParenthesisGroup) {  // new C (...)
 			SugarSyntax *syn = SYN_(Stmt_nameSpace(stmt), KW_ExprMethodCall);
@@ -89,17 +89,17 @@ static KMETHOD ParseExpr_new(KonohaContext *kctx, KonohaStack *sfp)
 // ----------------------------------------------------------------------------
 /* define class */
 
-static kbool_t new_initNameSpace(KonohaContext *kctx,  kNameSpace *ns, kfileline_t pline)
+static kbool_t new_initNameSpace(KonohaContext *kctx, kNameSpace *packageNameSpace, kNameSpace *ns, kfileline_t pline)
 {
 	KDEFINE_SYNTAX SYNTAX[] = {
 		{ .keyword = SYM_("new"), ParseExpr_(new), .precedence_op1 = C_PRECEDENCE_CALL},
 		{ .keyword = KW_END, },
 	};
-	SUGAR kNameSpace_defineSyntax(kctx, ns, SYNTAX);
+	SUGAR kNameSpace_defineSyntax(kctx, ns, SYNTAX, packageNameSpace);
 	return true;
 }
 
-static kbool_t new_setupNameSpace(KonohaContext *kctx, kNameSpace *ns, kfileline_t pline)
+static kbool_t new_setupNameSpace(KonohaContext *kctx, kNameSpace *packageNameSpace, kNameSpace *ns, kfileline_t pline)
 {
 	return true;
 }

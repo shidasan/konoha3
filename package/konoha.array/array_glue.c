@@ -283,8 +283,8 @@ static KMETHOD Array_indexOf(KonohaContext *kctx, KonohaStack *sfp)
 		//TODO:Need to implement Object compareTo.
 		kObject *o = sfp[1].asObject;
 		for(i = 0; i < kArray_size(a); i++) {
-			KLIB Kraise(kctx, EXPT_("NotImplemented"), sfp, sfp[K_RTNIDX].uline);
-			if (O_ct(o)->compareTo(a->objectItems[i], o) == 0) {
+			KLIB KonohaRuntime_raise(kctx, EXPT_("NotImplemented"), sfp, sfp[K_RTNIDX].uline, NULL);
+			if (O_ct(o)->compareObject(a->objectItems[i], o) == 0) {
 				res = i; break;
 			}
 		}
@@ -305,12 +305,12 @@ static KMETHOD Array_lastIndexOf(KonohaContext *kctx, KonohaStack *sfp)
 				break;
 			}
 		}
-	}else {
+	} else {
 		//TODO: Need to implement Object compareTo;
 		kObject *o = sfp[1].asObject;
 		for(i = kArray_size(a)- 1; i >= 0; i--) {
-			KLIB Kraise(kctx, EXPT_("NotImplemented"), sfp, sfp[K_RTNIDX].uline);
-			if(O_ct(o)->compareTo(a->objectItems[i], o) == 0) {
+			KLIB KonohaRuntime_raise(kctx, EXPT_("NotImplemented"), sfp, sfp[K_RTNIDX].uline, NULL);
+			if(O_ct(o)->compareObject(a->objectItems[i], o) == 0) {
 				break;
 			}
 		}
@@ -404,31 +404,31 @@ static KMETHOD Array_newList(KonohaContext *kctx, KonohaStack *sfp)
 
 static kbool_t array_initPackage(KonohaContext *kctx, kNameSpace *ns, int argc, const char**args, kfileline_t pline)
 {
-	KREQUIRE_PACKAGE("konoha.new", pline);
+	KRequirePackage("konoha.new", pline);
 	// define array generics
 	//kparamtype_t p1 = {TY_0, FN_("a")};
 	//KonohaClass *CT_ArrayT0 = KLIB KonohaClass_Generics(kctx, CT_Array, TY_0, 1, &p1);
 	KonohaClass *CT_ArrayT0 = CT_p0(kctx, CT_Array, TY_0);
 	ktype_t TY_ArrayT0 = CT_ArrayT0->typeId;
 	KDEFINE_METHOD MethodData[] = {
-		_Public|_Im,    _F(Array_get), TY_0,   TY_Array, MN_("get"), 1, TY_Int, FN_("index"),
-		_Public,        _F(Array_set), TY_void, TY_Array, MN_("set"), 2, TY_Int, FN_("index"),  TY_0, FN_("value"),
-		_Public|_Im,    _F(Array_removeAt), TY_0,   TY_Array, MN_("removeAt"), 1, TY_Int, FN_("index"),
-		_Public|_Const, _F(Array_getSize), TY_Int, TY_Array, MN_("getSize"), 0,
-		_Public|_Const, _F(Array_getSize), TY_Int, TY_Array, MN_("getlength"), 0,
+		_Public|_Im,    _F(Array_get), TY_0,   TY_Array, MN_("get"), 1, TY_int, FN_("index"),
+		_Public,        _F(Array_set), TY_void, TY_Array, MN_("set"), 2, TY_int, FN_("index"),  TY_0, FN_("value"),
+		_Public|_Im,    _F(Array_removeAt), TY_0,   TY_Array, MN_("removeAt"), 1, TY_int, FN_("index"),
+		_Public|_Const, _F(Array_getSize), TY_int, TY_Array, MN_("getSize"), 0,
+		_Public|_Const, _F(Array_getSize), TY_int, TY_Array, MN_("getlength"), 0,
 		_Public,        _F(Array_add1), TY_void, TY_Array, MN_("add"), 1, TY_0, FN_("value"),
-		_Public,        _F(Array_push), TY_Int, TY_Array, MN_("push"), 1, TY_0, FN_("value"),
+		_Public,        _F(Array_push), TY_int, TY_Array, MN_("push"), 1, TY_0, FN_("value"),
 		_Public,        _F(Array_pop), TY_0, TY_Array, MN_("pop"), 0,
 		_Public,        _F(Array_shift), TY_0, TY_Array, MN_("shift"), 0,
-		_Public,        _F(Array_unshift), TY_Int, TY_Array, MN_("unshift"), 1, TY_0, FN_("value"),
+		_Public,        _F(Array_unshift), TY_int, TY_Array, MN_("unshift"), 1, TY_0, FN_("value"),
 		_Public,        _F(Array_reverse), TY_Array, TY_Array, MN_("reverse"), 0,
 
 		_Public,        _F(Array_concat), TY_ArrayT0, TY_Array, MN_("concat"), 1, TY_ArrayT0, FN_("a1"),
-		_Public,        _F(Array_indexOf), TY_Int, TY_Array, MN_("indexOf"), 1, TY_0, FN_("value"),
-		_Public,        _F(Array_lastIndexOf), TY_Int, TY_Array, MN_("lastIndexOf"), 1, TY_0, FN_("value"),
+		_Public,        _F(Array_indexOf), TY_int, TY_Array, MN_("indexOf"), 1, TY_0, FN_("value"),
+		_Public,        _F(Array_lastIndexOf), TY_int, TY_Array, MN_("lastIndexOf"), 1, TY_0, FN_("value"),
 		_Public,        _F(Array_toString), TY_String, TY_Array, MN_("toString"), 0,
-		_Public|_Im,    _F(Array_new), TY_void, TY_Array, MN_("new"), 1, TY_Int, FN_("size"),
-		_Public,        _F(Array_newArray), TY_Array, TY_Array, MN_("newArray"), 1, TY_Int, FN_("size"),
+		_Public|_Im,    _F(Array_new), TY_void, TY_Array, MN_("new"), 1, TY_int, FN_("size"),
+		_Public,        _F(Array_newArray), TY_Array, TY_Array, MN_("newArray"), 1, TY_int, FN_("size"),
 		_Public|kMethod_Hidden, _F(Array_newList), TY_Array, TY_Array, MN_("newList"), 0,
 		DEND,
 	};
@@ -524,17 +524,17 @@ static KMETHOD ParseExpr_Bracket(KonohaContext *kctx, KonohaStack *sfp)
 
 #define GROUP(T)    .keyword = KW_##T##Group
 
-static kbool_t array_initNameSpace(KonohaContext *kctx, kNameSpace *ns, kfileline_t pline)
+static kbool_t array_initNameSpace(KonohaContext *kctx, kNameSpace *packageNameSpace, kNameSpace *ns, kfileline_t pline)
 {
 	KDEFINE_SYNTAX SYNTAX[] = {
 		{ GROUP(Bracket), .flag = SYNFLAG_ExprPostfixOp2, ExprTyCheck_(Bracket), ParseExpr_(Bracket), .precedence_op2 = C_PRECEDENCE_CALL, },
 		{ .keyword = KW_END, },
 	};
-	SUGAR kNameSpace_defineSyntax(kctx, ns, SYNTAX);
+	SUGAR kNameSpace_defineSyntax(kctx, ns, SYNTAX, packageNameSpace);
 	return true;
 }
 
-static kbool_t array_setupNameSpace(KonohaContext *kctx, kNameSpace *ns, kfileline_t pline)
+static kbool_t array_setupNameSpace(KonohaContext *kctx, kNameSpace *packageNameSpace, kNameSpace *ns, kfileline_t pline)
 {
 	return true;
 }
@@ -542,7 +542,7 @@ static kbool_t array_setupNameSpace(KonohaContext *kctx, kNameSpace *ns, kfileli
 KDEFINE_PACKAGE* array_init(void)
 {
 	static KDEFINE_PACKAGE d = {
-		KPACKNAME("array", "1.0"),
+		KPACKNAME("konoha", "1.0"),
 		.initPackage = array_initPackage,
 		.setupPackage = array_setupPackage,
 		.initNameSpace = array_initNameSpace,

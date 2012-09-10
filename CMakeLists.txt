@@ -102,13 +102,18 @@ else(KONOHA_VM_MODULE)
 endif(KONOHA_VM_MODULE)
 
 set(PACKAGES
+## add konoha.xx package in an alphabetical order 
 	konoha
 	konoha.array
 	konoha.assign
+	konoha.break
 	konoha.bytes
 	konoha.class
+	konoha.continue
+	konoha.date
 	konoha.defined
 	konoha.float
+	konoha.foreach
 	konoha.global
 	konoha.i
 	konoha.io
@@ -117,12 +122,13 @@ set(PACKAGES
 	konoha.iterator
 	konoha.math
 	konoha.map
+	konoha.mpi
 	konoha.namespace
 	konoha.new
 	konoha.null
-	konoha.rope
 	konoha.string
 	konoha.subtype
+##	konoha.sql
 	konoha.var
 	konoha.while
 	sugar
@@ -132,18 +138,16 @@ set(PACKAGES
 	posix.file
 	posix.fd
 ##	posix.socket
-##	konoha.sql
-##	konoha.subproc
-	konoha.mpi
-##	curl
+	posix.thread
+	dscript.subproc
+	curl
 ##	ijit
 ##	jansson
-##	mecab
+	mecab
 	python
 	apache
 #	openssl
 	logpool
-	konoha.date
 )
 
 find_library(HAVE_LIBDL NAMES dl)
@@ -319,7 +323,6 @@ macro(create_package_project _PKGNAME)
 	if(${LEN} GREATER 0)
 		add_library(${LIB} SHARED ${PACKAGE_SOURCE_CODE})
 		set_target_properties(${LIB} PROPERTIES PREFIX "")
-		target_link_libraries(${LIB} minikonoha)
 		if(PACKAGE_EXTRA_LIBRARY)
 		target_link_libraries(${LIB} ${PACKAGE_EXTRA_LIBRARY})
 		endif(PACKAGE_EXTRA_LIBRARY)
@@ -401,6 +404,8 @@ foreach(f ${test_files})
 	set_tests_properties(${test_name} PROPERTIES ENVIRONMENT
 		"KONOHA_PACKAGEPATH=${PARENT_BINARY_DIR}/package")
 endforeach(f ${test_files})
+
+add_subdirectory(platform/dse)
 
 install(TARGETS minikonoha minikonoha_bin
 		RUNTIME DESTINATION bin

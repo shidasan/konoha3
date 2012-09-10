@@ -40,6 +40,13 @@ extern "C" {
 
 // --------------------------------------------------------------------------
 
+static void THROW_ZeroDividedException(KonohaContext *kctx, KonohaStack *sfp)
+{
+	KLIB KonohaRuntime_raise(kctx, EXPT_("ZeroDivided"), sfp, sfp[K_RTNIDX].uline, NULL);
+}
+
+// --------------------------------------------------------------------------
+
 static void Float_init(KonohaContext *kctx, kObject *o, void *conf)
 {
 	kNumberVar *n = (kNumberVar*)o;  // kFloat has the same structure
@@ -104,7 +111,7 @@ static KMETHOD Float_opDIV(KonohaContext *kctx, KonohaStack *sfp)
 {
 	kfloat_t n = sfp[1].floatValue;
 	if(unlikely(n == 0.0)) {
-		KLIB Kraise(kctx, EXPT_("ZeroDivided"), sfp, sfp[K_RTNIDX].uline);
+		THROW_ZeroDividedException(kctx, sfp);
 	}
 	RETURNf_(sfp[0].floatValue / n);
 }
@@ -119,7 +126,7 @@ static KMETHOD Int_opDIV(KonohaContext *kctx, KonohaStack *sfp)
 {
 	kfloat_t n = sfp[1].floatValue;
 	if(unlikely(n == 0.0)) {
-		KLIB Kraise(kctx, EXPT_("ZeroDivided"), sfp, sfp[K_RTNIDX].uline);
+		THROW_ZeroDividedException(kctx, sfp);
 	}
 	RETURNf_(sfp[0].intValue / n);
 }
@@ -262,19 +269,19 @@ kbool_t tinykonoha_floatMethodInit(KonohaContext *kctx, kNameSpace *ks)
 
 	int FN_x = FN_("x");
 	intptr_t MethodData[] = {
-		_F(Float_opADD), TY_Float, MN_(Float_opADD),
-		_F(Float_opSUB), TY_Float, MN_(Float_opSUB),
-		_F(Float_opMUL), TY_Float, MN_(Float_opMUL),
-		_F(Float_opDIV), TY_Float, MN_(Float_opDIV),
-		_F(Float_opEQ),  TY_Float, MN_(Float_opEQ),
-		_F(Float_opNEQ), TY_Float, MN_(Float_opNEQ),
-		_F(Float_opLT),  TY_Float, MN_(Float_opLT),
-		_F(Float_opLTE), TY_Float, MN_(Float_opLTE),
-		_F(Float_opGT),  TY_Float, MN_(Float_opGT),
-		_F(Float_opGTE), TY_Float, MN_(Float_opGTE),
-		_F(Float_toInt), TY_Float, MN_to(Float, Int),
+		_F(Float_opADD), TY_float, MN_(Float_opADD),
+		_F(Float_opSUB), TY_float, MN_(Float_opSUB),
+		_F(Float_opMUL), TY_float, MN_(Float_opMUL),
+		_F(Float_opDIV), TY_float, MN_(Float_opDIV),
+		_F(Float_opEQ),  TY_float, MN_(Float_opEQ),
+		_F(Float_opNEQ), TY_float, MN_(Float_opNEQ),
+		_F(Float_opLT),  TY_float, MN_(Float_opLT),
+		_F(Float_opLTE), TY_float, MN_(Float_opLTE),
+		_F(Float_opGT),  TY_float, MN_(Float_opGT),
+		_F(Float_opGTE), TY_float, MN_(Float_opGTE),
+		_F(Float_toInt), TY_float, MN_to(Float, Int),
 		_F(Int_toFloat), TY_Int, MN_to(Int, Float),
-		_F(Float_toString), TY_Float, MN_to(Float, String),
+		_F(Float_toString), TY_float, MN_to(Float, String),
 		DEND,
 	};
 	KLIB kNameSpace_loadMethodData(kctx, ks, MethodData);
@@ -293,48 +300,49 @@ static kbool_t float_initPackage(KonohaContext *kctx, kNameSpace *ns, int argc, 
 	KLIB Konoha_setModule(kctx, MOD_float, &base->h, pline);
 
 	KDEFINE_CLASS defFloat = {
-		STRUCTNAME(Float),
-		.cflag = CFLAG_Int,
+		UNBOXNAME(float),
+		.cstruct_size = sizeof(kFloat),
+		.cflag = CFLAG_int,
 		.init = Float_init,
 		.p     = Float_p,
 	};
 	base->cFloat = KLIB Konoha_defineClass(kctx, ns->packageId, PN_konoha, NULL, &defFloat, pline);
 	int FN_x = FN_("x");
 	KDEFINE_METHOD MethodData[] = {
-		_Public|_Const|_Im, _F(Float_opPlus), TY_Float, TY_Float, MN_("+"), 0,
-		_Public|_Const|_Im, _F(Float_opADD), TY_Float, TY_Float, MN_("+"), 1, TY_Float, FN_x,
-		_Public|_Const|_Im, _F(Int_opADD), TY_Float, TY_Int, MN_("+"), 1, TY_Float, FN_x,
-		_Public|_Const|_Im, _F(Float_opSUB), TY_Float, TY_Float, MN_("-"), 1, TY_Float, FN_x,
-		_Public|_Const|_Im, _F(Int_opSUB), TY_Float, TY_Int, MN_("-"), 1, TY_Float, FN_x,
-		_Public|_Const|_Im, _F(Float_opMUL), TY_Float, TY_Float, MN_("*"), 1, TY_Float, FN_x,
-		_Public|_Im, _F(Float_opDIV), TY_Float, TY_Float, MN_("/"), 1, TY_Float, FN_x,
-		_Public|_Const|_Im, _F(Float_opEQ),  TY_Boolean, TY_Float, MN_("=="), 1, TY_Float, FN_x,
-		_Public|_Const|_Im, _F(Float_opNEQ), TY_Boolean, TY_Float, MN_("!="), 1, TY_Float, FN_x,
-		_Public|_Const|_Im, _F(Float_opLT),  TY_Boolean, TY_Float, MN_("<"), 1, TY_Float, FN_x,
-		_Public|_Const|_Im, _F(Float_opLTE), TY_Boolean, TY_Float, MN_("<="), 1, TY_Float, FN_x,
-		_Public|_Const|_Im, _F(Float_opGT),  TY_Boolean, TY_Float, MN_(">"), 1, TY_Float, FN_x,
-		_Public|_Const|_Im, _F(Float_opGTE), TY_Boolean, TY_Float, MN_(">="), 1, TY_Float, FN_x,
-		_Public|_Const|_Im, _F(Int_opMUL), TY_Float, TY_Int, MN_("*"), 1, TY_Float, FN_x,
-		_Public|_Im, _F(Int_opDIV), TY_Float, TY_Int, MN_("/"), 1, TY_Float, FN_x,
-		_Public|_Const|_Im, _F(Int_opEQ),  TY_Boolean, TY_Int, MN_("=="), 1, TY_Float, FN_x,
-		_Public|_Const|_Im, _F(Int_opNEQ), TY_Boolean, TY_Int, MN_("!="), 1, TY_Float, FN_x,
-		_Public|_Const|_Im, _F(Int_opLT),  TY_Boolean, TY_Int, MN_("<"), 1, TY_Float, FN_x,
-		_Public|_Const|_Im, _F(Int_opLTE), TY_Boolean, TY_Int, MN_("<="), 1, TY_Float, FN_x,
-		_Public|_Const|_Im, _F(Int_opGT),  TY_Boolean, TY_Int, MN_(">"), 1, TY_Float, FN_x,
-		_Public|_Const|_Im, _F(Int_opGTE), TY_Boolean, TY_Int, MN_(">="), 1, TY_Float, FN_x,
+		_Public|_Const|_Im, _F(Float_opPlus), TY_float, TY_float, MN_("+"), 0,
+		_Public|_Const|_Im, _F(Float_opADD), TY_float, TY_float, MN_("+"), 1, TY_float, FN_x,
+		_Public|_Const|_Im, _F(Int_opADD), TY_float, TY_int, MN_("+"), 1, TY_float, FN_x,
+		_Public|_Const|_Im, _F(Float_opSUB), TY_float, TY_float, MN_("-"), 1, TY_float, FN_x,
+		_Public|_Const|_Im, _F(Int_opSUB), TY_float, TY_int, MN_("-"), 1, TY_float, FN_x,
+		_Public|_Const|_Im, _F(Float_opMUL), TY_float, TY_float, MN_("*"), 1, TY_float, FN_x,
+		_Public|_Im, _F(Float_opDIV), TY_float, TY_float, MN_("/"), 1, TY_float, FN_x,
+		_Public|_Const|_Im, _F(Float_opEQ),  TY_boolean, TY_float, MN_("=="), 1, TY_float, FN_x,
+		_Public|_Const|_Im, _F(Float_opNEQ), TY_boolean, TY_float, MN_("!="), 1, TY_float, FN_x,
+		_Public|_Const|_Im, _F(Float_opLT),  TY_boolean, TY_float, MN_("<"), 1, TY_float, FN_x,
+		_Public|_Const|_Im, _F(Float_opLTE), TY_boolean, TY_float, MN_("<="), 1, TY_float, FN_x,
+		_Public|_Const|_Im, _F(Float_opGT),  TY_boolean, TY_float, MN_(">"), 1, TY_float, FN_x,
+		_Public|_Const|_Im, _F(Float_opGTE), TY_boolean, TY_float, MN_(">="), 1, TY_float, FN_x,
+		_Public|_Const|_Im, _F(Int_opMUL), TY_float, TY_int, MN_("*"), 1, TY_float, FN_x,
+		_Public|_Im, _F(Int_opDIV), TY_float, TY_int, MN_("/"), 1, TY_float, FN_x,
+		_Public|_Const|_Im, _F(Int_opEQ),  TY_boolean, TY_int, MN_("=="), 1, TY_float, FN_x,
+		_Public|_Const|_Im, _F(Int_opNEQ), TY_boolean, TY_int, MN_("!="), 1, TY_float, FN_x,
+		_Public|_Const|_Im, _F(Int_opLT),  TY_boolean, TY_int, MN_("<"), 1, TY_float, FN_x,
+		_Public|_Const|_Im, _F(Int_opLTE), TY_boolean, TY_int, MN_("<="), 1, TY_float, FN_x,
+		_Public|_Const|_Im, _F(Int_opGT),  TY_boolean, TY_int, MN_(">"), 1, TY_float, FN_x,
+		_Public|_Const|_Im, _F(Int_opGTE), TY_boolean, TY_int, MN_(">="), 1, TY_float, FN_x,
 
-		_Public|_Const|_Im|_Coercion, _F(Float_toInt), TY_Int, TY_Float, MN_to(TY_Int), 0,
-		_Public|_Const|_Im|_Coercion, _F(Int_toFloat), TY_Float, TY_Int, MN_to(TY_Float), 0,
-		_Public|_Const|_Im, _F(Float_toString), TY_String, TY_Float, MN_to(TY_String), 0,
-		_Public|_Const|_Im, _F(String_toFloat), TY_Float, TY_String, MN_to(TY_Float), 0,
-		_Public|_Const|_Im, _F(Float_opMINUS), TY_Float, TY_Float, MN_("-"), 0,
+		_Public|_Const|_Im|_Coercion, _F(Float_toInt), TY_int, TY_float, MN_to(TY_int), 0,
+		_Public|_Const|_Im|_Coercion, _F(Int_toFloat), TY_float, TY_int, MN_to(TY_float), 0,
+		_Public|_Const|_Im, _F(Float_toString), TY_String, TY_float, MN_to(TY_String), 0,
+		_Public|_Const|_Im, _F(String_toFloat), TY_float, TY_String, MN_to(TY_float), 0,
+		_Public|_Const|_Im, _F(Float_opMINUS), TY_float, TY_float, MN_("-"), 0,
 		DEND,
 	};
 	KLIB kNameSpace_loadMethodData(kctx, ns, MethodData);
 	KDEFINE_FLOAT_CONST FloatData[] = {
-		{"FLOAT_EPSILON", TY_Float, DBL_EPSILON},
-		{"Infinity", TY_Float, INFINITY},
-		{"NaN", TY_Float, NAN},
+		{"FLOAT_EPSILON", TY_float, DBL_EPSILON},
+		{"Infinity", TY_float, INFINITY},
+		{"NaN", TY_float, NAN},
 		{}
 	};
 	KLIB kNameSpace_loadConstData(kctx, ns, KonohaConst_(FloatData), pline);
@@ -417,18 +425,16 @@ static KMETHOD ExprTyCheck_Float(KonohaContext *kctx, KonohaStack *sfp)
 	VAR_ExprTyCheck(stmt, expr, gma, reqty);
 	kToken *tk = expr->termToken;
 	sfp[4].floatValue = strtod(S_text(tk->text), NULL);   // just using tramsformation float
-	RETURN_(SUGAR kExpr_setUnboxConstValue(kctx, expr, TY_Float, sfp[4].unboxValue));
+	RETURN_(SUGAR kExpr_setUnboxConstValue(kctx, expr, TY_float, sfp[4].unboxValue));
 }
 
-static kbool_t float_initNameSpace(KonohaContext *kctx,  kNameSpace *ns, kfileline_t pline)
+static kbool_t float_initNameSpace(KonohaContext *kctx, kNameSpace *packageNameSpace, kNameSpace *ns, kfileline_t pline)
 {
 	KDEFINE_SYNTAX SYNTAX[] = {
-		{ .keyword = SYM_("float"),  .type = TY_Float, },
-		{ .keyword = SYM_("double"), .type = TY_Float, },
 		{ .keyword = SYM_("$Float"), ExprTyCheck_(Float), },
 		{ .keyword = KW_END, },
 	};
-	SUGAR kNameSpace_defineSyntax(kctx, ns, SYNTAX);
+	SUGAR kNameSpace_defineSyntax(kctx, ns, SYNTAX, packageNameSpace);
 	SUGAR kNameSpace_setTokenizeFunc(kctx, ns, '0', parseNumber, NULL, 0);
 //	SUGAR kNameSpace_setTokenizeFunc(kctx, ns, '1', parseNumber, NULL, 0);
 //	SUGAR kNameSpace_setTokenizeFunc(kctx, ns, '2', parseNumber, NULL, 0);
@@ -442,7 +448,7 @@ static kbool_t float_initNameSpace(KonohaContext *kctx,  kNameSpace *ns, kfileli
 	return true;
 }
 
-static kbool_t float_setupNameSpace(KonohaContext *kctx, kNameSpace *ns, kfileline_t pline)
+static kbool_t float_setupNameSpace(KonohaContext *kctx, kNameSpace *packageNameSpace, kNameSpace *ns, kfileline_t pline)
 {
 	return true;
 }

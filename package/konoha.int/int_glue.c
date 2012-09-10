@@ -80,21 +80,21 @@ static kbool_t int_initPackage(KonohaContext *kctx, kNameSpace *ns, int argc, co
 {
 	int FN_x = FN_("x");
 	KDEFINE_METHOD MethodData[] = {
-		_Public|_Const|_Im, _F(Int_opPlus), TY_Int, TY_Int, MN_("+"), 0,
-		_Public|_Const|_Im, _F(Int_opCompl), TY_Int, TY_Int, MN_("~"), 0,
-		_Public|_Const|_Im, _F(Int_opLSHIFT), TY_Int, TY_Int, MN_("<<"), 1, TY_Int, FN_x,
-		_Public|_Const|_Im, _F(Int_opRSHIFT), TY_Int, TY_Int, MN_(">>"), 1, TY_Int, FN_x,
-		_Public|_Const|_Im, _F(Int_opAND), TY_Int, TY_Int, MN_("&"), 1, TY_Int, FN_x,
-		_Public|_Const|_Im, _F(Int_opOR ), TY_Int, TY_Int, MN_("|"), 1, TY_Int, FN_x,
-		_Public|_Const|_Im, _F(Int_opXOR), TY_Int, TY_Int, MN_("^"), 1, TY_Int, FN_x,
-		//_Public|_Const|_Im, _F(Int_opINC), TY_Int, TY_Int, MN_("opINC"), 0,
-		//_Public|_Const|_Im, _F(Int_opDEC), TY_Int, TY_Int, MN_("opDEC"), 0,
+		_Public|_Const|_Im, _F(Int_opPlus), TY_int, TY_int, MN_("+"), 0,
+		_Public|_Const|_Im, _F(Int_opCompl), TY_int, TY_int, MN_("~"), 0,
+		_Public|_Const|_Im, _F(Int_opLSHIFT), TY_int, TY_int, MN_("<<"), 1, TY_int, FN_x,
+		_Public|_Const|_Im, _F(Int_opRSHIFT), TY_int, TY_int, MN_(">>"), 1, TY_int, FN_x,
+		_Public|_Const|_Im, _F(Int_opAND), TY_int, TY_int, MN_("&"), 1, TY_int, FN_x,
+		_Public|_Const|_Im, _F(Int_opOR ), TY_int, TY_int, MN_("|"), 1, TY_int, FN_x,
+		_Public|_Const|_Im, _F(Int_opXOR), TY_int, TY_int, MN_("^"), 1, TY_int, FN_x,
+		//_Public|_Const|_Im, _F(Int_opINC), TY_int, TY_int, MN_("opINC"), 0,
+		//_Public|_Const|_Im, _F(Int_opDEC), TY_int, TY_int, MN_("opDEC"), 0,
 		DEND,
 	};
 	KLIB kNameSpace_loadMethodData(kctx, ns, MethodData);
 	KDEFINE_INT_CONST IntData[] = {
-		{"INT_MAX", TY_Int, KINT_MAX},
-		{"INT_MIN", TY_Int, KINT_MIN},
+		{"INT_MAX", TY_int, KINT_MAX},
+		{"INT_MIN", TY_int, KINT_MIN},
 		{NULL},
 	};
 	KLIB kNameSpace_loadConstData(kctx, ns, KonohaConst_(IntData), pline);
@@ -148,7 +148,7 @@ static kbool_t int_setupPackage(KonohaContext *kctx, kNameSpace *ns, isFirstTime
 //	RETURNi_(source - start - 1);
 //}
 
-static kbool_t int_initNameSpace(KonohaContext *kctx,  kNameSpace *ns, kfileline_t pline)
+static kbool_t int_initNameSpace(KonohaContext *kctx, kNameSpace *packageNameSpace, kNameSpace *ns, kfileline_t pline)
 {
 	KDEFINE_SYNTAX SYNTAX[] = {
 		{ .keyword = SYM_("~"), .precedence_op1 = C_PRECEDENCE_PREUNARY,},
@@ -161,7 +161,7 @@ static kbool_t int_initNameSpace(KonohaContext *kctx,  kNameSpace *ns, kfileline
 		//{ TOKEN("--"),  .op1 = "opDEC", .precedence_op2 = C_PRECEDENCE_PREUNARY, .flag = SYNFLAG_ExprPostfixOp2,},
 		{ .keyword = KW_END, },
 	};
-	SUGAR kNameSpace_defineSyntax(kctx, ns, SYNTAX);
+	SUGAR kNameSpace_defineSyntax(kctx, ns, SYNTAX, packageNameSpace);
 	//kMethod *mtd = KLIB new_kMethod(kctx, 0, 0, 0, parseNonDecimalNumber);
 	//kFunc *fo = GCSAFE_new(Func, (uintptr_t) mtd);
 	//SUGAR kNameSpace_setTokenizeFunc(kctx, ns, '0', NULL, fo, 0);
@@ -173,7 +173,7 @@ static kbool_t int_initNameSpace(KonohaContext *kctx,  kNameSpace *ns, kfileline
 	return true;
 }
 
-static kbool_t int_setupNameSpace(KonohaContext *kctx, kNameSpace *ns, kfileline_t pline)
+static kbool_t int_setupNameSpace(KonohaContext *kctx, kNameSpace *packageNameSpace, kNameSpace *ns, kfileline_t pline)
 {
 	return true;
 }

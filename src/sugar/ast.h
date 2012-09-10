@@ -44,7 +44,11 @@ static kExpr *callFuncParseExpr(KonohaContext *kctx, SugarSyntax *syn, kFunc *fo
 	lsfp[K_CALLDELTA+5].intValue = e;
 	countRef[0] += 1;
 //	DBG_P("calling %d times keyword='%s%s' fo=%p", countRef[0], PSYM_t(syn->keyword), fo);
-	KCALL(lsfp, 0, fo->mtd, 5, K_NULLEXPR);
+	{
+		KonohaStack *sfp = lsfp + K_CALLDELTA;
+		KSetMethodCallStack(sfp, 0/*UL*/, fo->mtd, 5, K_NULLEXPR);
+		KonohaRuntime_callMethod(kctx, sfp);
+	}
 	END_LOCAL();
 	DBG_ASSERT(IS_Expr(lsfp[0].asObject));
 	return lsfp[0].asExpr;
@@ -74,11 +78,11 @@ static kExpr *kStmt_parseOperatorExpr(KonohaContext *kctx, kStmt *stmt, SugarSyn
 		currentSyntax = currentSyntax->parentSyntaxNULL;
 	}
 	if(callCount > 0) {
-		kkStmt_printMessage(stmt, ErrTag, "syntax error: expression %s", Token_text(tokenList->tokenItems[operatorIdx]));
+		kStmt_printMessage(kctx, stmt, ErrTag, "syntax error: expression %s", Token_text(tokenList->tokenItems[operatorIdx]));
 	}
 	else {
 //		DBG_P("exprSyntax=%p, '%s%s'", exprSyntax, PSYM_t(exprSyntax->keyword));
-		kkStmt_printMessage(stmt, ErrTag, "undefined expression: %s", Token_text(tokenList->tokenItems[operatorIdx]));
+		kStmt_printMessage(kctx, stmt, ErrTag, "undefined expression: %s", Token_text(tokenList->tokenItems[operatorIdx]));
 	}
 	return K_NULLEXPR;
 }
@@ -129,7 +133,7 @@ static kExpr* kStmt_parseExpr(KonohaContext *kctx, kStmt *stmt, kArray *tokenLis
 			else if(endIdx < kArray_size(tokenList)) {
 				where = " before "; token = Token_text(tokenList->tokenItems[endIdx]);
 			}
-			kkStmt_printMessage(stmt, ErrTag, "expected expression%s%s", where, token);
+			kStmt_printMessage(kctx, stmt, ErrTag, "expected expression%s%s", where, token);
 		}
 	}
 	return K_NULLEXPR;
@@ -240,7 +244,11 @@ static int callPatternMatchFunc(KonohaContext *kctx, kFunc *fo, int *countRef, k
 	lsfp[K_CALLDELTA+4].intValue = beginIdx;
 	lsfp[K_CALLDELTA+5].intValue = endIdx;
 	countRef[0] += 1;
-	KCALL(lsfp, 0, fo->mtd, 5, KLIB Knull(kctx, CT_Int));
+	{
+		KonohaStack *sfp = lsfp + K_CALLDELTA;
+		KSetMethodCallStack(sfp, 0/*UL*/, fo->mtd, 5, KLIB Knull(kctx, CT_Int));
+		KonohaRuntime_callMethod(kctx, sfp);
+	}
 	END_LOCAL();
 	RESET_GCSTACK();
 	return (int)lsfp[0].intValue;
@@ -270,10 +278,10 @@ static int PatternMatch(KonohaContext *kctx, SugarSyntax *syn, kStmt *stmt, ksym
 		}
 	}
 	if(callCount == 0) {
-		kkStmt_printMessage(stmt, ErrTag, "undefined syntax pattern: %s%s", KW_t(syn->keyword));
+		kStmt_printMessage(kctx, stmt, ErrTag, "undefined syntax pattern: %s%s", KW_t(syn->keyword));
 	}
 //	else {
-//		kkStmt_printMessage(stmt, ErrTag, "syntax error: %s%s", KW_t(syn->keyword));
+//		kStmt_printMessage(kctx, stmt, ErrTag, "syntax error: %s%s", KW_t(syn->keyword));
 //	}
 	return -1;
 }
@@ -291,7 +299,7 @@ static int TokenArray_findPrefetchedRuleToken(kArray *tokenList, int beginIdx, i
 static int kStmt_parseMismatchedRule(KonohaContext *kctx, kStmt *stmt, kToken *tk, kToken *ruleToken, int returnIdx, int canRollBack)
 {
 	if(!canRollBack && !Stmt_isERR(stmt)) {
-		kToken_p(stmt, tk, ErrTag, "%s%s expects %s%s", T_statement(stmt->syn->keyword), KW_t(ruleToken->resolvedSymbol));
+		kStmtToken_printMessage(kctx, stmt, tk, ErrTag, "%s%s expects %s%s", T_statement(stmt->syn->keyword), KW_t(ruleToken->resolvedSymbol));
 	}
 	return returnIdx;
 }
@@ -358,7 +366,7 @@ static int kStmt_matchSyntaxRule(KonohaContext *kctx, kStmt *stmt, kArray *token
 		kToken *ruleToken = rule->tokenList->tokenItems[currentRuleIdx];
 		if(ruleToken->resolvedSymbol != KW_OptionalGroup) {
 			if(!canRollBack) {
-				kkStmt_printMessage(stmt, ErrTag, "%s%s needs syntax pattern: %s%s", T_statement(stmt->syn->keyword), KW_t(ruleToken->resolvedSymbol));
+				kStmt_printMessage(kctx, stmt, ErrTag, "%s%s needs syntax pattern: %s%s", T_statement(stmt->syn->keyword), KW_t(ruleToken->resolvedSymbol));
 				return returnIdx;
 			}
 		}
@@ -366,7 +374,7 @@ static int kStmt_matchSyntaxRule(KonohaContext *kctx, kStmt *stmt, kArray *token
 	}
 	if(currentTokenIdx < endIdx) {
 		if(!canRollBack) {
-			kkStmt_printMessage(stmt, ErrTag, "%s%s: unexpected token %s", T_statement(stmt->syn->keyword), Token_text(tokenList->tokenItems[currentTokenIdx]));
+			kStmt_printMessage(kctx, stmt, ErrTag, "%s%s: unexpected token %s", T_statement(stmt->syn->keyword), Token_text(tokenList->tokenItems[currentTokenIdx]));
 			return returnIdx;
 		}
 	}
@@ -436,14 +444,14 @@ static kbool_t TokenRange_expandMacro(KonohaContext *kctx, TokenRange *range, ks
 	while(macro->symbol != 0) {
 		if(macro->symbol == symbol) {
 			size_t i;
-			TokenRange *macroRange = macro->macro;
-			for(i = macroRange->beginIdx; i < macroRange->endIdx; i++) {
-				kToken *tk = macroRange->tokenList->tokenItems[i];
+			for(i = macro->beginIdx; i < macro->endIdx; i++) {
+				kToken *tk = macro->tokenList->tokenItems[i];
 				if(tk->resolvedSyntaxInfo != NULL) {
 					KLIB kArray_add(kctx, range->tokenList, tk);
 				}
 				else {
-					i = TokenRange_addResolvedToken(kctx, range, macroRange, i);
+					TokenRange macroRange = {range->ns, macro->tokenList, macro->beginIdx, macro->endIdx};
+					i = TokenRange_addResolvedToken(kctx, range, &macroRange, i);
 				}
 			}
 			return true;
@@ -463,13 +471,8 @@ static int TokenRange_addSymbolToken(KonohaContext *kctx, TokenRange *range, Tok
 	}
 	SugarSyntax *syn = SYN_(range->ns, symbol);
 	if(syn != NULL) {
-		if(syn->ty != TY_unknown) {
-			kToken_setTypeId(kctx, tk, range->ns, syn->ty);
-		}
-		else {
-			tk->resolvedSymbol     = symbol;
-			tk->resolvedSyntaxInfo = syn;
-		}
+		tk->resolvedSymbol     = symbol;
+		tk->resolvedSyntaxInfo = syn;
 	}
 	else {
 		KonohaClass *foundClass = KLIB kNameSpace_getClass(kctx, range->ns, t, S_size(tk->text), NULL);
@@ -478,14 +481,14 @@ static int TokenRange_addSymbolToken(KonohaContext *kctx, TokenRange *range, Tok
 		}
 		else {
 //			if(!isalpha(t[0])) {
-//				Token_pERR(kctx, tk, "undefined token: %s", Token_text(tk));
+//				kToken_printMessage(kctx, tk, "undefined token: %s", Token_text(tk));
 //				range->errToken = tk;
 //				return sourceRange->endIdx;  // end
 //				while(t[0] != 0) {
 //					ksymbol_t op1 = ksymbolA(t, 1, SYM_NEWID);
 //					syn = SYN_(range->ns, op1);
 //					if(syn == NULL) {
-//						Token_pERR(kctx, tk, "undefined token: %s", Token_text(tk));
+//						kToken_printMessage(kctx, tk, "undefined token: %s", Token_text(tk));
 //						range->errToken = tk;
 //						return range->endIdx;  // end
 //					}
@@ -553,7 +556,7 @@ static int TokenRange_addStrucuredToken(KonohaContext *kctx, TokenRange *range, 
 		if(nestedRange->errToken != NULL) {
 			if(returnIdx == sourceRange->endIdx) {
 				int closech = (AST_type == KW_ParenthesisGroup) ? ')': ']';
-				Token_pERR(kctx, astToken, "'%c' is expected (probably before %s)", closech, Token_text(sourceRange->tokenList->tokenItems[probablyCloseBefore]));
+				kToken_printMessage(kctx, astToken, ErrTag, "'%c' is expected (probably before %s)", closech, Token_text(sourceRange->tokenList->tokenItems[probablyCloseBefore]));
 				nestedRange->errToken = astToken;
 			}
 			range->errToken = nestedRange->errToken;

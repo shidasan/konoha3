@@ -61,13 +61,13 @@ static kbool_t kStmt_inferDeclType(KonohaContext *kctx, kStmt *stmt, kGamma *gma
 		}
 		kToken *termToken = kExpr_at(declExpr, 1)->termToken;
 		ktype_t inferedType = kExpr_at(declExpr, 2)->ty;
-		SUGAR kStmt_printMessage(kctx, stmt, termToken, InfoTag, "%s has type %s", SYM_t(termToken->resolvedSymbol), TY_t(inferedType));
+		SUGAR kStmt_printMessage2(kctx, stmt, termToken, InfoTag, "%s has type %s", SYM_t(termToken->resolvedSymbol), TY_t(inferedType));
 		return SUGAR kStmt_declType(kctx, stmt, gma, inferedType, declExpr, TypeDecl, lastStmtRef);
 	}
 	if(Expr_isSymbolTerm(declExpr)) {
 		kToken *termToken = declExpr->termToken;
-		SUGAR kStmt_printMessage(kctx, stmt, termToken, WarnTag, "var %s expects an initial value", SYM_t(termToken->resolvedSymbol));
-		SUGAR kStmt_printMessage(kctx, stmt, termToken, InfoTag, "%s has type %s", SYM_t(termToken->resolvedSymbol), TY_t(TY_Object));
+		SUGAR kStmt_printMessage2(kctx, stmt, termToken, WarnTag, "var %s expects an initial value", SYM_t(termToken->resolvedSymbol));
+		SUGAR kStmt_printMessage2(kctx, stmt, termToken, InfoTag, "%s has type %s", SYM_t(termToken->resolvedSymbol), TY_t(TY_Object));
 	}
 	return SUGAR kStmt_declType(kctx, stmt, gma, TY_Object, declExpr, TypeDecl, lastStmtRef);
 }
@@ -80,17 +80,17 @@ static KMETHOD StmtTyCheck_var(KonohaContext *kctx, KonohaStack *sfp)
 	RETURNb_(kStmt_inferDeclType(kctx, stmt, gma, declExpr, NULL, &stmt));
 }
 
-static kbool_t var_initNameSpace(KonohaContext *kctx,  kNameSpace *ns, kfileline_t pline)
+static kbool_t var_initNameSpace(KonohaContext *kctx, kNameSpace *packageNameSpace, kNameSpace *ns, kfileline_t pline)
 {
 	KDEFINE_SYNTAX SYNTAX[] = {
-		{ .keyword = SYM_("var"), TopStmtTyCheck_(var), .rule = "\"var\" $Expr", },
+		{ .keyword = SYM_("var"), TopStmtTyCheck_(var), StmtTyCheck_(var), .rule = "\"var\" $Expr", },
 		{ .keyword = KW_END, },
 	};
-	SUGAR kNameSpace_defineSyntax(kctx, ns, SYNTAX);
+	SUGAR kNameSpace_defineSyntax(kctx, ns, SYNTAX, packageNameSpace);
 	return true;
 }
 
-static kbool_t var_setupNameSpace(KonohaContext *kctx, kNameSpace *ns, kfileline_t pline)
+static kbool_t var_setupNameSpace(KonohaContext *kctx, kNameSpace *packageNameSpace, kNameSpace *ns, kfileline_t pline)
 {
 	return true;
 }

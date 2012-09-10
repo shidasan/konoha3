@@ -60,8 +60,6 @@ typedef struct StreamApi {
 	kbool_t (*isEndOfStream)(KonohaContext *kctx, FILE_i *fp);
 } StreamApi;
 
-extern kObjectVar **KONOHA_reftail(KonohaContext *, size_t);
-
 static size_t read_NOP(KonohaContext *kctx, FILE_i *fp, char *buf, size_t bufsiz)
 {
 	return 0;
@@ -300,7 +298,7 @@ static KMETHOD InputStream_new(KonohaContext *kctx, KonohaStack *sfp)
 	kString *path = sfp[1].asString;
 	FILE *fp = fopen(S_text(path), "r");
 	if(fp == NULL) {
-		KLIB Kraise(kctx, EXPT_("IO"), sfp, sfp[K_RTNIDX].uline);
+		KLIB KonohaRuntime_raise(kctx, EXPT_("IO"), sfp, sfp[K_RTNIDX].uline, NULL);
 	}
 	in->fp = (FILE_i*)fp;
 	in->streamApi = &FileStreamApi;
@@ -395,7 +393,7 @@ static KMETHOD OutputStream_new(KonohaContext *kctx, KonohaStack *sfp)
 	const char *mode = IS_NULL(sfp[2].s) ? "w" : S_text(sfp[2].s);
 	FILE *fp = fopen(S_text(path), mode);
 	if(fp == NULL) {
-		KLIB Kraise(kctx, EXPT_("IO"), sfp, sfp[K_RTNIDX].uline);
+		KLIB KonohaRuntime_raise(kctx, EXPT_("IO"), sfp, sfp[K_RTNIDX].uline, NULL);
 	}
 	out->fp = (FILE_i*)fp;
 	out->streamApi = &FileStreamApi;
@@ -675,13 +673,13 @@ static kbool_t io_initPackage(KonohaContext *kctx, kNameSpace *ns, int argc, con
 	int FN_value = FN_("value");
 	int FN_x = FN_("x");
 	KDEFINE_METHOD MethodData[] = {
-		_Public, _F(InputStream_getByte),  TY_Int,         TY_InputStream,  MN_("getByte"), 0,
-		_Public, _F(InputStream_isClosed), TY_Boolean,     TY_InputStream,  MN_("isClosed"), 0,
+		_Public, _F(InputStream_getByte),  TY_int,         TY_InputStream,  MN_("getByte"), 0,
+		_Public, _F(InputStream_isClosed), TY_boolean,     TY_InputStream,  MN_("isClosed"), 0,
 		_Public, _F(InputStream_new),      TY_InputStream, TY_InputStream,  MN_("new"), 1, TY_String, FN_path,
 		_Public, _F(InputStream_close),    TY_void,        TY_InputStream,  MN_("close"), 0,
 		_Public, _F(InputStream_readLine), TY_String,      TY_InputStream,  MN_("readLine"), 0,
-		_Public, _F(OutputStream_putByte),  TY_void,         TY_OutputStream, MN_("putByte"), 1, TY_Int, FN_x,
-		_Public, _F(OutputStream_isClosed), TY_Boolean,      TY_OutputStream, MN_("isClosed"), 0,
+		_Public, _F(OutputStream_putByte),  TY_void,         TY_OutputStream, MN_("putByte"), 1, TY_int, FN_x,
+		_Public, _F(OutputStream_isClosed), TY_boolean,      TY_OutputStream, MN_("isClosed"), 0,
 		_Public, _F(OutputStream_new),      TY_OutputStream, TY_OutputStream, MN_("new"), 2, TY_String, FN_path, TY_String, FN_mode,
 		_Public, _F(OutputStream_print),    TY_void,         TY_OutputStream, MN_("print"), 1,   TY_String, FN_value|_Coercion,
 		_Public, _F(OutputStream_println),  TY_void,         TY_OutputStream, MN_("println"), 1, TY_String, FN_value|_Coercion,
@@ -690,17 +688,17 @@ static kbool_t io_initPackage(KonohaContext *kctx, kNameSpace *ns, int argc, con
 
 		_Public, _F(File_new),     TY_File,        TY_File, MN_("new"), 1, TY_String, FN_x,
 		_Public, _F(File_getPath), TY_String,      TY_File, MN_("getPath"), 0,
-		_Public, _F(File_exists),  TY_Boolean,     TY_File, MN_("exists"), 0,
-		_Public, _F(File_isDir),   TY_Boolean,     TY_File, MN_("isDir"), 0,
-		_Public, _F(File_isFile),  TY_Boolean,     TY_File, MN_("isFile"), 0,
-		_Public, _F(File_getSize), TY_Int,         TY_File, MN_("getSize"), 0,
-		_Public, _F(File_getSize), TY_Int,         TY_File, MN_("length"), 0,
-		_Public, _F(File_rename),  TY_Boolean,     TY_File, MN_("rename"), 1, TY_String, FN_x,
-		_Public, _F(File_remove),  TY_Boolean,     TY_File, MN_("remove"), 0,
+		_Public, _F(File_exists),  TY_boolean,     TY_File, MN_("exists"), 0,
+		_Public, _F(File_isDir),   TY_boolean,     TY_File, MN_("isDir"), 0,
+		_Public, _F(File_isFile),  TY_boolean,     TY_File, MN_("isFile"), 0,
+		_Public, _F(File_getSize), TY_int,         TY_File, MN_("getSize"), 0,
+		_Public, _F(File_getSize), TY_int,         TY_File, MN_("length"), 0,
+		_Public, _F(File_rename),  TY_boolean,     TY_File, MN_("rename"), 1, TY_String, FN_x,
+		_Public, _F(File_remove),  TY_boolean,     TY_File, MN_("remove"), 0,
 		_Public, _F(File_list),    TY_StrArray,    TY_File, MN_("list"), 0,
 
-		_Public|_Static, _F(System_isDir),  TY_Boolean,      TY_System, MN_("isDir"), 1, TY_String, FN_x,
-		_Public|_Static, _F(System_isFile), TY_Boolean,      TY_System, MN_("isFile"), 1, TY_String, FN_x,
+		_Public|_Static, _F(System_isDir),  TY_boolean,      TY_System, MN_("isDir"), 1, TY_String, FN_x,
+		_Public|_Static, _F(System_isFile), TY_boolean,      TY_System, MN_("isFile"), 1, TY_String, FN_x,
 		_Public|_Static, _F(System_getIn ), TY_InputStream,  TY_System, MN_("getIn"), 0,
 		_Public|_Static, _F(System_getOut), TY_OutputStream, TY_System, MN_("getOut"), 0,
 		_Public|_Static, _F(System_getErr), TY_OutputStream, TY_System, MN_("getErr"), 0,
@@ -715,12 +713,12 @@ static kbool_t io_setupPackage(KonohaContext *kctx, kNameSpace *ns, isFirstTime_
 	return true;
 }
 
-static kbool_t io_initNameSpace(KonohaContext *kctx, kNameSpace *ns, kfileline_t pline)
+static kbool_t io_initNameSpace(KonohaContext *kctx, kNameSpace *packageNameSpace, kNameSpace *ns, kfileline_t pline)
 {
 	return true;
 }
 
-static kbool_t io_setNameSpace(KonohaContext *kctx, kNameSpace *ns, kfileline_t pline)
+static kbool_t io_setNameSpace(KonohaContext *kctx, kNameSpace *packageNameSpace, kNameSpace *ns, kfileline_t pline)
 {
 	return true;
 }

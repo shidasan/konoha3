@@ -95,7 +95,7 @@ static KonohaPackage *loadPackageNULL(KonohaContext *kctx, kpackage_t packageId,
 	KonohaPackageHandler *packageHandler = PLATAPI loadPackageHandler(packageName);
 	if(path == NULL && packageHandler == NULL) {
 		kreportf(ErrTag, pline, "package not found: %s path=%s", packageName, PLATAPI shortText(pathbuf));
-		KLIB Kraise(kctx, EXPT_("PackageLoader"), NULL, pline);
+		KLIB KonohaRuntime_raise(kctx, EXPT_("PackageLoader"), NULL, pline, NULL);
 		return NULL;
 	}
 	kNameSpace *ns = new_NameSpace(kctx, packageId, packageId);
@@ -161,7 +161,7 @@ static kbool_t kNameSpace_merge(KonohaContext *kctx, kNameSpace *ns, kNameSpace 
 			}
 		}
 		// record imported
-		kNameSpace_setConstData(kctx, ns, target->packageId | KW_PATTERN, TY_Int, target->packageId);
+		kNameSpace_setConstData(kctx, ns, target->packageId | KW_PATTERN, TY_int, target->packageId);
 		return true;
 	}
 	return false;
@@ -182,7 +182,7 @@ static kbool_t kNameSpace_importPackage(KonohaContext *kctx, kNameSpace *ns, con
 	if(pack != NULL) {
 		kbool_t isContinousLoading = kNameSpace_merge(kctx, ns, pack->packageNameSpace, pline);
 		if(isContinousLoading && pack->packageHandler != NULL && pack->packageHandler->initNameSpace != NULL) {
-			isContinousLoading = pack->packageHandler->initNameSpace(kctx, ns, pline);
+			isContinousLoading = pack->packageHandler->initNameSpace(kctx, pack->packageNameSpace, ns, pline);
 		}
 		if(isContinousLoading && pack->exportScriptUri != 0) {
 			const char *scriptPath = FileId_t(pack->exportScriptUri);
@@ -191,7 +191,7 @@ static kbool_t kNameSpace_importPackage(KonohaContext *kctx, kNameSpace *ns, con
 			isContinousLoading = PLATAPI loadScript(scriptPath, uline, (void*)&thunk, evalHookFunc);
 		}
 		if(isContinousLoading && pack->packageHandler != NULL && pack->packageHandler->setupNameSpace != NULL) {
-			isContinousLoading = pack->packageHandler->setupNameSpace(kctx, ns, pline);
+			isContinousLoading = pack->packageHandler->setupNameSpace(kctx, pack->packageNameSpace, ns, pline);
 		}
 		return true;
 	}

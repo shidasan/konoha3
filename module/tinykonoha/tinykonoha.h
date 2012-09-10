@@ -1252,6 +1252,8 @@ struct KonohaLibVar {
 	void* (*Kmalloc)(KonohaContext*, size_t);
 	void* (*Kzmalloc)(KonohaContext*, size_t);
 	void  (*Kfree)(KonohaContext*, void *, size_t);
+	void  (*Kgc_invoke)(KonohaContext *, KonohaStack *esp);
+	kObjectVar **(*Kobject_reftail)(KonohaContext *, size_t size);
 	void  (*Kwrite_barrier)(KonohaContext *, kObject *);
 
 	void  (*Karray_init)(KonohaContext *, KUtilsGrowingArray *, size_t);
@@ -1328,7 +1330,7 @@ struct KonohaLibVar {
 
 	void          (*KCodeGen)(KonohaContext*, kMethod *, kBlock *);
 	void          (*Kreportf)(KonohaContext*, kinfotag_t, kfileline_t, const char *fmt, ...);
-	void          (*Kraise)(KonohaContext*, int symbol, KonohaStack *, kfileline_t);
+	void          (*KonohaRuntime_raise)(KonohaContext*, int symbol, KonohaStack *, kfileline_t, kString *Nullable);
 
 	uintptr_t     (*Ktrace)(KonohaContext*, struct klogconf_t *logconf, ...);
 };
@@ -1515,7 +1517,7 @@ typedef struct {
 
 #define KNH_SAFEPOINT(kctx, sfp) do {\
 	if (kctx->safepoint != 0) {\
-		MODGC_gc_invoke(kctx, sfp);\
+		Kgc_invoke(kctx, sfp);\
 	}\
 } while (0)
 

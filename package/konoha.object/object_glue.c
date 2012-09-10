@@ -48,14 +48,14 @@ static KMETHOD ExprTyCheck_InstanceOf(KonohaContext *kctx, KonohaStack *sfp)
 		KonohaClass *selfClass = CT_(selfExpr->ty), *targetClass = CT_(targetExpr->ty);
 		if(CT_isFinal(selfClass)) {
 			kbool_t staticSubType = (selfClass == targetClass || selfClass->isSubType(kctx, selfClass, targetClass));
-			RETURN_(SUGAR kExpr_setUnboxConstValue(kctx, expr, TY_Boolean, staticSubType));
+			RETURN_(SUGAR kExpr_setUnboxConstValue(kctx, expr, TY_boolean, staticSubType));
 		}
 		kNameSpace *ns = Stmt_nameSpace(stmt);
 		kMethod *mtd = KLIB kNameSpace_getMethodNULL(kctx, ns, TY_Object, MN_("<:"), 1, MPOL_PARAMSIZE);
 		DBG_ASSERT(mtd != NULL);
 		KSETv(expr->cons, expr->cons->methodItems[0], mtd);
 		KSETv(expr->cons, expr->cons->exprItems[2], SUGAR kExpr_setConstValue(kctx, expr, targetExpr->ty, KLIB Knull(kctx, targetClass)));
-		RETURN_(SUGAR kStmt_tyCheckCallParamExpr(kctx, stmt, expr, mtd, gma, TY_Boolean));
+		RETURN_(SUGAR kStmt_tyCheckCallParamExpr(kctx, stmt, expr, mtd, gma, TY_boolean));
 	}
 }
 
@@ -103,11 +103,11 @@ static KMETHOD ExprTyCheck_As(KonohaContext *kctx, KonohaStack *sfp)
 
 static	kbool_t object_initPackage(KonohaContext *kctx, kNameSpace *ns, int argc, const char**args, kfileline_t pline)
 {
-	KREQUIRE_PACKAGE("konoha.new", pline);
+	KRequirePackage("konoha.new", pline);
 	int FN_type = FN_("type");
 	KDEFINE_METHOD MethodData[] = {
-		_Public|_Const, _F(Object_getTypeId), TY_Int, TY_Object, MN_("getTypeId"), 0,
-		_Public|_Hidden|_Imm|_Const, _F(Object_instanceOf), TY_Boolean, TY_Object, MN_("<:"), 1, TY_Object, FN_type,
+		_Public|_Const, _F(Object_getTypeId), TY_int, TY_Object, MN_("getTypeId"), 0,
+		_Public|_Hidden|_Imm|_Const, _F(Object_instanceOf), TY_boolean, TY_Object, MN_("<:"), 1, TY_Object, FN_type,
 		_Public|_Hidden|_Imm|_Const|kMethod_SmartReturn, _F(Object_as), TY_Object, TY_Object, MN_("as"), 1, TY_Object, FN_type,
 		DEND,
 	};
@@ -135,14 +135,14 @@ static KMETHOD ExprTyCheck_Getter(KonohaContext *kctx, KonohaStack *sfp)
 			KSETv(expr->cons, expr->cons->methodItems[0], mtd);
 			RETURN_(SUGAR kStmt_tyCheckCallParamExpr(kctx, stmt, expr, mtd, gma, reqty));
 		}
-		SUGAR kStmt_printMessage(kctx, stmt, tkN, ErrTag, "undefined field: %s", S_text(tkN->text));
+		SUGAR kStmt_printMessage2(kctx, stmt, tkN, ErrTag, "undefined field: %s", S_text(tkN->text));
 	}
 	RETURN_(K_NULLEXPR);
 }
 
 // ----------------------------------------------------------------------------
 
-static kbool_t object_initNameSpace(KonohaContext *kctx,  kNameSpace *ns, kfileline_t pline)
+static kbool_t object_initNameSpace(KonohaContext *kctx, kNameSpace *packageNameSpace, kNameSpace *ns, kfileline_t pline)
 {
 	KDEFINE_SYNTAX SYNTAX[] = {
 		{ .keyword = SYM_("."), ExprTyCheck_(Getter) },
@@ -151,11 +151,11 @@ static kbool_t object_initNameSpace(KonohaContext *kctx,  kNameSpace *ns, kfilel
 //		{ .keyword = SYM_("to"), .precedence_op2 = C_PRECEDENCE_MUL/*FIXME*/ },
 		{ .keyword = KW_END, },
 	};
-	SUGAR kNameSpace_defineSyntax(kctx, ns, SYNTAX);
+	SUGAR kNameSpace_defineSyntax(kctx, ns, SYNTAX, packageNameSpace);
 	return true;
 }
 
-static kbool_t object_setupNameSpace(KonohaContext *kctx, kNameSpace *ns, kfileline_t pline)
+static kbool_t object_setupNameSpace(KonohaContext *kctx, kNameSpace *packageNameSpace, kNameSpace *ns, kfileline_t pline)
 {
 	return true;
 }

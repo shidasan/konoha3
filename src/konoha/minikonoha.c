@@ -113,7 +113,7 @@ static kbool_t Konoha_setModule(KonohaContext *kctx, int x, KonohaModule *d, kfi
 {
 	if(kctx->modshare[x] != NULL) {
 		kreportf(ErrTag, pline, "module already registered: %s", kctx->modshare[x]->name);
-		KLIB Kraise(kctx, EXPT_("PackageLoader"), NULL, pline);
+		KLIB KonohaRuntime_raise(kctx, EXPT_("PackageLoader"), NULL, pline, NULL);
 		return false;
 	}
 	kctx->modshare[x] = d;
@@ -161,11 +161,12 @@ static KonohaContextVar* new_KonohaContext(KonohaContext *kctx, const PlatformAp
 		MODSUGAR_loadMethod(kctx);
 	}
 	else {
-//		for(i = 0; i < KonohaModule_MAXSIZE; i++) {
-//			if(newctx->modshare[i] != NULL && newctx->modshare[i]->new_local != NULL) {
-//				newctx->mod[i] = newctx->modshare[i]->new_local((KonohaContext_t)newctx, newctx->modshare[i]);
-//			}
-//		}
+		int i;
+		for(i = 0; i < KonohaModule_MAXSIZE; i++) {
+			if(newctx->modshare[i] != NULL && newctx->modshare[i]->setup != NULL) {
+				newctx->modshare[i]->setup((KonohaContext *)newctx, newctx->modshare[i], true);
+			}
+		}
 	}
 	return newctx;
 }
@@ -228,24 +229,6 @@ static void KonohaContext_free(KonohaContext *kctx, KonohaContextVar *ctx)
 		KFREE(kctx->modlocal, sizeof(KonohaModuleContext*) * KonohaModule_MAXSIZE);
 		KFREE(ctx, sizeof(KonohaContextVar));
 	}
-}
-
-/* ------------------------------------------------------------------------ */
-
-// Don't export KONOHA_reftail to packages
-// Don't include KONOHA_reftail in shared header files  (kimio)
-
-kObjectVar** KONOHA_reftail(KonohaContext *kctx, size_t size)
-{
-	KonohaStackRuntimeVar *stack = kctx->stack;
-	size_t ref_size = stack->reftail - stack->ref.refhead;
-	if(stack->ref.bytemax/sizeof(void*) < size + ref_size) {
-		KLIB Karray_expand(kctx, &stack->ref, (size + ref_size) * sizeof(kObject*));
-		stack->reftail = stack->ref.refhead + ref_size;
-	}
-	kObjectVar **reftail = stack->reftail;
-	stack->reftail = NULL;
-	return reftail;
 }
 
 /* ------------------------------------------------------------------------ */

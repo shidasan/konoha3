@@ -63,7 +63,7 @@ static int parseINDENT(KonohaContext *kctx, kTokenVar *tk, TokenizerEnv *tenv, i
 	}
 	if(IS_NOTNULL(tk)) {
 		tk->unresolvedTokenType = TokenType_INDENT;
-		tk->indent = 0; /* indent FIXME: Debug/Parser/LineNumber.k (Failed) */
+		tk->indent = indent;
 	}
 	return pos-1;
 }
@@ -218,13 +218,13 @@ static int parseCOMMENT(KonohaContext *kctx, kTokenVar *tk, TokenizerEnv *tenv, 
 		if(prev == '*' && ch == '/') {
 			level--;
 			if(level == 0) return pos;
-		}else if(prev == '/' && ch == '*') {
+		} else if(prev == '/' && ch == '*') {
 			level++;
 		}
 		prev = ch;
 	}
 	if(IS_NOTNULL(tk)) {
-		Token_pERR(kctx, tk, "must close with */");
+		kToken_printMessage(kctx, tk, ErrTag, "must close with */");
 	}
 	return pos-1;/*EOF*/
 }
@@ -264,7 +264,7 @@ static int parseDoubleQuotedText(KonohaContext *kctx, kTokenVar *tk, TokenizerEn
 		kwb_putc(&wb, ch);
 	}
 	if(IS_NOTNULL(tk)) {
-		Token_pERR(kctx, tk, "must close with \"");
+		kToken_printMessage(kctx, tk, ErrTag, "must close with \"");
 	}
 	KLIB Kwb_free(&wb);
 	return pos-1;
@@ -278,7 +278,7 @@ static int parseSKIP(KonohaContext *kctx, kTokenVar *tk, TokenizerEnv *tenv, int
 static int parseUndefinedToken(KonohaContext *kctx, kTokenVar *tk, TokenizerEnv *tenv, int tok_start)
 {
 	if(IS_NOTNULL(tk)) {
-		Token_pERR(kctx, tk, "undefined token character: %c (ascii=%x)", tenv->source[tok_start], tenv->source[tok_start]);
+		kToken_printMessage(kctx, tk, ErrTag, "undefined token character: %c (ascii=%x)", tenv->source[tok_start], tenv->source[tok_start]);
 	}
 	while(tenv->source[++tok_start] != 0);
 	return tok_start;
@@ -421,7 +421,11 @@ static int callFuncTokenize(KonohaContext *kctx, kFunc *fo, kTokenVar *tk, Token
 	KSETv_AND_WRITE_BARRIER(NULL, lsfp[K_CALLDELTA+0].o, fo->self, GC_NO_WRITE_BARRIER);
 	KSETv_AND_WRITE_BARRIER(NULL, lsfp[K_CALLDELTA+1].o, (kObject*)tk, GC_NO_WRITE_BARRIER);
 	KSETv_AND_WRITE_BARRIER(NULL, lsfp[K_CALLDELTA+2].s, preparedString, GC_NO_WRITE_BARRIER);
-	KCALL(lsfp, 0, fo->mtd, 2, KLIB Knull(kctx, CT_Int));
+	{
+		KonohaStack *sfp = lsfp + K_CALLDELTA;
+		KSetMethodCallStack(sfp, 0/*UL*/, fo->mtd, 2, KLIB Knull(kctx, CT_Int));
+		KonohaRuntime_callMethod(kctx, sfp);
+	}
 	END_LOCAL();
 	int pos = lsfp[0].intValue + tok_start;
 	if(pos > tok_start) { // check new lines
@@ -497,7 +501,7 @@ static int parseLazyBlock(KonohaContext *kctx, kTokenVar *tk, TokenizerEnv *tenv
 		}
 	}
 	if(IS_NOTNULL(tk)) {
-		Token_pERR(kctx, tk, "must close with }");
+		kToken_printMessage(kctx, tk, ErrTag, "must close with }");
 	}
 	return pos-1;
 }
@@ -685,7 +689,7 @@ static kbool_t kArray_addSyntaxRule(KonohaContext *kctx, kArray *ruleList, Token
 			continue;
 		}
 		dumpToken(kctx, tk, -1);
-		Token_pERR(kctx, tk, "illegal syntax rule: %s", Token_text(tk));
+		kToken_printMessage(kctx, tk, ErrTag, "illegal syntax rule: %s", Token_text(tk));
 		return false;
 	}
 	//KdumpTokenArray(kctx, ruleList, 0, kArray_size(ruleList));
