@@ -2,18 +2,6 @@
 #define KVPROTO_DELTA 7
 
 #include<../../include/minikonoha/float.h>
-#include<../../package/konoha.nxt/nxt_glue.h>
-//#include<../../package/konoha.float/float_glue.c>
-
-//static inline karray_t* kvproto_null(void)  // for proto_get safe null
-//{
-//	static kvs_t dnull[KVPROTO_DELTA] = {};
-//	static karray_t pnull = {
-//		.bytesize = sizeof(kvs_t), .bytemax = 0,
-//	};
-//	pnull.kvs = dnull;
-//	return &pnull;
-//}
 
 static kObject *DEFAULT_fnull(KonohaContext *kctx, KonohaClass *ct)
 {
