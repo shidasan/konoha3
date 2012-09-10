@@ -1314,7 +1314,7 @@ struct KonohaLibVar {
 	void       (*kMethod_genCode)(KonohaContext*, kMethod*, kBlock *bk);
 	intptr_t   (*kMethod_indexOfField)(kMethod *);
 
-	kbool_t      (*Konoha_setModule)(KonohaContext*, int, struct KonohaModule *, kfileline_t);
+	kbool_t      (*KonohaRuntime_setModule)(KonohaContext*, int, struct KonohaModule *, kfileline_t);
 	KonohaClass* (*Konoha_defineClass)(KonohaContext*, kpackage_t, kpackage_t, kString *, KDEFINE_CLASS *, kfileline_t);
 
 	kbool_t       (*kNameSpace_requirePackage)(KonohaContext*, const char *, kfileline_t);

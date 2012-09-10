@@ -2,5 +2,10 @@
 
 K.import("konoha.object");
 
-assert(("").getTypeId() == 4);
+void test() {
+	Object o = 1;
+	//assert(o == 1);
+}
+
+test();
 

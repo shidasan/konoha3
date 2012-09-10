@@ -396,9 +396,9 @@ typedef struct {
 #define MN_isSETTER(mn)      (SYM_HEAD(mn) == MN_SETTER)
 #define MN_toSETTER(mn)      ((SYM_UNMASK(mn)) | MN_SETTER)
 
-#define MN_to(cid)           ((CT_(cid)->nameid) | MN_TOCID)
+#define MN_to(cid)           ((CT_(cid)->classNameSymbol) | MN_TOCID)
 #define MN_isTOCID(mn)       ((SYM_UNMASK(mn)) == MN_TOCID)
-#define MN_as(cid)           ((CT_(cid)->nameid) | MN_ASCID)
+#define MN_as(cid)           ((CT_(cid)->classNameSymbol) | MN_ASCID)
 #define MN_isASCID(mn)       ((SYM_UNMASK(mn)) == MN_ASCID)
 
 /* ------------------------------------------------------------------------ */
@@ -748,7 +748,7 @@ struct KonohaClassVar {
 	KonohaClassField         *fieldItems;
 	kushort_t  fieldsize;         kushort_t fieldAllocSize;
 	const char               *DBG_NAME;
-	ksymbol_t   nameid;       kushort_t   optvalue;
+	ksymbol_t   classNameSymbol;  kushort_t   optvalue;
 
 	kArray     *methodList;
 	kString    *shortNameNULL;
@@ -783,6 +783,7 @@ struct KonohaClassField {
 #define TY_System            ((ktype_t)10)
 #define TY_0                ((ktype_t)11)    /* Parameter Type*/
 
+#define CT_void                 CT_(TY_void)
 #define CT_Object               CT_(TY_Object)
 #define CT_Boolean              CT_(TY_boolean)
 #define CT_Int                  CT_(TY_int)
@@ -1281,6 +1282,7 @@ struct KonohaLibVar {
 
 	KonohaClass*    (*Kclass)(KonohaContext*, ktype_t, kfileline_t);
 	kString*        (*KonohaClass_shortName)(KonohaContext*, KonohaClass *ct);
+	KonohaClass*    (*KonohaClass_define)(KonohaContext*, kpackage_t, kString *, KDEFINE_CLASS *, kfileline_t);
 	KonohaClass*    (*KonohaClass_Generics)(KonohaContext*, KonohaClass *ct, ktype_t rty, int psize, kparamtype_t *p);
 	kbool_t         (*KonohaClass_isSubtype)(KonohaContext*, KonohaClass *, KonohaClass *);
 
@@ -1309,18 +1311,17 @@ struct KonohaLibVar {
 	void       (*kMethod_genCode)(KonohaContext*, kMethod*, kBlock *bk);
 	intptr_t   (*kMethod_indexOfField)(kMethod *);
 
-	kbool_t      (*Konoha_setModule)(KonohaContext*, int, struct KonohaModule *, kfileline_t);
-	KonohaClass* (*Konoha_defineClass)(KonohaContext*, kpackage_t, kpackage_t, kString *, KDEFINE_CLASS *, kfileline_t);
+	kbool_t      (*KonohaRuntime_setModule)(KonohaContext*, int, struct KonohaModule *, kfileline_t);
 
-	kbool_t       (*kNameSpace_requirePackage)(KonohaContext*, const char *, kfileline_t);
-	kbool_t       (*kNameSpace_importPackage)(KonohaContext*, kNameSpace*, const char *, kfileline_t);
-	KonohaClass*  (*kNameSpace_getClass)(KonohaContext*, kNameSpace *, const char *, size_t, KonohaClass *);
+	struct KonohaPackageVar*   (*kNameSpace_requirePackage)(KonohaContext*, const char *, kfileline_t);
+	kbool_t              (*kNameSpace_importPackage)(KonohaContext*, kNameSpace*, const char *, kfileline_t);
+	KonohaClass*     (*kNameSpace_getClass)(KonohaContext*, kNameSpace *, const char *, size_t, KonohaClass *);
+	KonohaClass*     (*kNameSpace_defineClass)(KonohaContext*, kNameSpace *, kString *, KDEFINE_CLASS *, kfileline_t);
 
+	kbool_t       (*kNameSpace_setConstData)(KonohaContext *, kNameSpace *, ksymbol_t, ktype_t, uintptr_t, kfileline_t);
+	kbool_t       (*kNameSpace_loadConstData)(KonohaContext*, kNameSpace *, const char **d, kfileline_t);
 	void          (*kNameSpace_loadMethodData)(KonohaContext*, kNameSpace *, intptr_t *);
-	kbool_t       (*kNameSpace_setConstData)(KonohaContext *, kNameSpace *, ksymbol_t, ktype_t, uintptr_t);
-	void          (*kNameSpace_loadConstData)(KonohaContext*, kNameSpace *, const char **d, kfileline_t);
 	kMethod*      (*kNameSpace_getMethodNULL)(KonohaContext*, kNameSpace *, ktype_t cid, kmethodn_t mn, int option, int policy);
-	//kMethod*      (*kNameSpace_getGetterMethodNULL)(KonohaContext*, kNameSpace *, ktype_t cid, ksymbol_t sym);
 	void          (*kNameSpace_compileAllDefinedMethods)(KonohaContext *kctx);
 
 	void          (*KCodeGen)(KonohaContext*, kMethod *, kBlock *);
@@ -1377,8 +1378,8 @@ struct KonohaLibVar {
 #define kArray_setsize(A, N)      ((kArrayVar*)A)->bytesize = N * sizeof(void*)
 #define new_kParam(CTX, R, PSIZE, P)       (KLIB kMethod_setParam(CTX, NULL, R, PSIZE, P))
 
-#define KRequirePackage(NAME, UL)                   KLIB kNameSpace_requirePackage(kctx, NAME, UL)
-#define KImportPackage(NS, NAME, UL)                KLIB kNameSpace_importPackage(kctx, NS, NAME, UL)
+#define KRequirePackage(NAME, UL)       if(!KLIB kNameSpace_requirePackage(kctx, NAME, UL)) return false;
+#define KImportPackage(NS, NAME, UL)    if(!KLIB kNameSpace_importPackage(kctx, NS, NAME, UL)) return false;
 
 typedef intptr_t  KDEFINE_METHOD;
 

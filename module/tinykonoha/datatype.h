@@ -305,6 +305,7 @@ static KonohaClass *CT_body(KonohaContext *kctx, KonohaClass *ct, size_t head, s
 	return ct;
 }
 
+void KonohaClass_setName(KonohaContext *kctx, KonohaClassVar *ct, kfileline_t pline);
 static KonohaClass *Konoha_defineClass(KonohaContext *kctx, kpackage_t packageId, kpackage_t packageDomain, kString *name, KDEFINE_CLASS *cdef, kfileline_t pline)
 {
 	KonohaClassVar *ct = new_KonohaClass(kctx, NULL, cdef, pline);

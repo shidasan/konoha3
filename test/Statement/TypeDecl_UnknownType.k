@@ -1,9 +1,8 @@
 // written by kimio kuramitsu
-
+// this test is based on uchida's report
 
 void test() {
-	Object o = 1;
-	//assert(o == 1);
+	UnknownType a;
 }
 
 test();
