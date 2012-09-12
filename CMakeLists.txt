@@ -139,10 +139,10 @@ set(PACKAGES
 	konoha.regexp
 	posix.process
 	posix.file
-	posix.fd
+##	posix.fd
 ##	posix.socket
 	posix.thread
-	dscript.subproc
+##	dscript.subproc
 	curl
 ##	ijit
 ##	jansson

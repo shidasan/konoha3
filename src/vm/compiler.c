@@ -26,6 +26,10 @@
 #include <minikonoha/sugar.h>
 #include "vm.h"
 #include "minivm.h"
+#ifdef TINYVM_SEND_BLUETOOTH
+#include <windows.h>
+#include <winuser.h>
+#endif
 /* ************************************************************************ */
 
 #ifdef __cplusplus
@@ -903,8 +907,17 @@ static kByteCode* new_ByteCode(KonohaContext *kctx, kBasicBlock *beginBlock, kBa
 	}
 	return kcode;
 }
+#ifdef TINYVM_SEND_BLUETOOTH
 
-#ifdef TINYVM_CODEGEN
+#ifndef __CYGWIN__
+#error Excepting cygwin, code transporter for tinykonoha is unavailable for now
+#endif
+
+static void sendBluetooth(KonohaContext *kctx, kMethod *mtd)
+{
+}
+
+#elif defined(TINYVM_CODEGEN)
 
 #define _TAB "  "
 
@@ -1107,6 +1120,8 @@ static void tinyvm_dump(KonohaContext *kctx, kMethod *mtd)
 	((KonohaRuntimeVar*)kctx->share)->methodDeclSize++;
 }
 
+#elif defined TINYVM_SEND_BLUETOOTH
+
 #else
 
 static void dumpOPCODE(KonohaContext *kctx, VirtualMachineInstruction *c, VirtualMachineInstruction *pc_start)
@@ -1179,6 +1194,8 @@ static void Method_threadCode(KonohaContext *kctx, kMethod *mtd, kByteCode *kcod
 	Wmtd->pc_start = KonohaVirtualMachine_run(kctx, kctx->esp + 1, kcode->code);
 #ifdef TINYVM_CODEGEN
 	tinyvm_dump(kctx, mtd);
+#elif defined TINYVM_SEND_BLUETOOTH
+	sendBluetooth(kctx, mtd);
 #else
 	if (verbose_code) {
 		DBG_P("DUMP CODE");

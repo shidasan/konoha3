@@ -28,6 +28,9 @@
 /* dump cid, mn opt for tinykonoha */
 #cmakedefine TINYVM_CODEGEN  ${TINYVM_CODEGEN}
 
+/* send bytecode using bluetooth*/
+#cmakedefine TINYVM_SEND_BLUETOOTH  ${TINYVM_SEND_BLUETOOTH}
+
 /* dll extension */
 #cmakedefine K_OSDLLEXT "${K_OSDLLEXT}"
 
