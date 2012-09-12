@@ -140,21 +140,19 @@ struct kByteCodeVar {
 
 //-------------------------------------------------------------------------
 
-//static void kNameSpace_lookupMethodWithInlineCache(KonohaContext *kctx, KonohaStack *sfp, kNameSpace *ns, kMethod **cache)
-//{
-//	ktype_t typeId = O_typeId(sfp[0].asObject);
-//	kMethod *mtd = cache[0];
-//	if(mtd->typeId != typeId) {
-//		mtd = KLIB kNameSpace_getMethodNULL(kctx, ns, typeId, mtd->mn, mtd->paramdom, MPOL_LATEST|MPOL_SIGNATURE);
-//		cache[0] = mtd;
-//	}
-//	sfp[K_MTDIDX].mtdNC = mtd;
-//}
-//
-//static VirtualMachineInstruction* KonohaVirtualMachine_run(KonohaContext *, KonohaStack *, VirtualMachineInstruction *);
-//
-//static VirtualMachineInstruction *KonohaVirtualMachine_tryJump(KonohaContext *kctx, KonohaStack *sfp, VirtualMachineInstruction *pc)
-//{
+static void kNameSpace_lookupMethodWithInlineCache(KonohaContext *kctx, KonohaStack *sfp, kNameSpace *ns, kMethod **cache)
+{
+	ktype_t typeId = O_typeId(sfp[0].asObject);
+	kMethod *mtd = cache[0];
+	if(mtd->typeId != typeId) {
+		mtd = KLIB kNameSpace_getMethodNULL(kctx, ns, typeId, mtd->mn, 0, MPOL_LATEST|MPOL_SIGNATURE);
+		cache[0] = mtd;
+	}
+	sfp[K_MTDIDX].mtdNC = mtd;
+}
+
+static VirtualMachineInstruction *KonohaVirtualMachine_tryJump(KonohaContext *kctx, KonohaStack *sfp, VirtualMachineInstruction *pc)
+{
 //	int jmpresult;
 //	INIT_GCSTACK();
 //	KonohaStackRuntimeVar *base = kctx->stack;
@@ -174,7 +172,7 @@ struct kByteCodeVar {
 //	memcpy(base->evaljmpbuf, &lbuf, sizeof(jmpbuf_i));
 //	RESET_GCSTACK();
 //	return pc;
-//}
+}
 
 static void KonohaVirtualMachine_onSafePoint(KonohaContext *kctx, KonohaStack *sfp, kfileline_t pline)
 {

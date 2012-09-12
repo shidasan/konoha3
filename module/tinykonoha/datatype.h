@@ -1,7 +1,7 @@
 #define KVPROTO_INIT  8
 #define KVPROTO_DELTA 7
 
-#include<../../include/minikonoha/float.h>
+#include "constant.h"
 
 static kObject *DEFAULT_fnull(KonohaContext *kctx, KonohaClass *ct)
 {
@@ -666,21 +666,21 @@ static void KCLASSTABLE_loadMethod(KonohaContext *kctx)
 {
 	//int FN_x = FN_("x");
 	intptr_t MethodData[] = {
-		_F(Object_toString), TY_Object, MN_to(Int, String),
-		_F(Boolean_opNOT), TY_Boolean, MN_(Boolean_opNOT),
-		_F(Int_opMINUS), TY_Int, MN_(Int_opMINUS),
-		_F(Int_opADD), TY_Int, MN_(Int_opADD),
-		_F(Int_opSUB), TY_Int, MN_(Int_opSUB),
-		_F(Int_opMUL), TY_Int, MN_(Int_opMUL),
+		//_F(Object_toString), TY_Object, MN_to(Int, String),
+		_F(Boolean_opNOT), TY_Boolean, MN_(boolean_opNOT),
+		_F(Boolean_opEQ),  TY_Boolean, MN_(boolean_opEQ),
+		_F(Int_opADD),     TY_Int,     MN_(int_opADD),
+		_F(Int_opSUB),     TY_Int,     MN_(int_opSUB),
+		_F(Int_opMUL),     TY_Int,     MN_(int_opMUL),
 		/* opDIV and opMOD raise zero divided exception. Don't set _Const */
-		_F(Int_opDIV), TY_Int, MN_(Int_opDIV),
-		_F(Int_opMOD), TY_Int, MN_(Int_opMOD),
-		_F(Int_opEQ),  TY_Int, MN_(Int_opEQ),
-		_F(Int_opNEQ), TY_Int, MN_(Int_opNEQ),
-		_F(Int_opLT),  TY_Int, MN_(Int_opLT),
-		_F(Int_opLTE), TY_Int, MN_(Int_opLTE),
-		_F(Int_opGT),  TY_Int, MN_(Int_opGT),
-		_F(Int_opGTE), TY_Int, MN_(Int_opGTE),
+		_F(Int_opDIV),     TY_Int,     MN_(int_opDIV),
+		_F(Int_opMOD),     TY_Int,     MN_(int_opMOD),
+		_F(Int_opEQ),      TY_Int,     MN_(int_opEQ),
+		_F(Int_opNEQ),     TY_Int,     MN_(int_opNEQ),
+		_F(Int_opLT),      TY_Int,     MN_(int_opLT),
+		_F(Int_opLTE),     TY_Int,     MN_(int_opLTE),
+		_F(Int_opGT),      TY_Int,     MN_(int_opGT),
+		_F(Int_opGTE),     TY_Int,     MN_(int_opGTE),
 		//_F(Int_toString), TY_Int, MN_to(Int, String),
 		//_F(String_toInt), TY_String, MN_to(String, Int),
 		//_F(String_opADD), TY_String, MN_(String_opADD),
