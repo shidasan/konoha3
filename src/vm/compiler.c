@@ -27,8 +27,10 @@
 #include "vm.h"
 #include "minivm.h"
 #ifdef TINYVM_SEND_BLUETOOTH
-#include <windows.h>
-#include <winuser.h>
+#ifndef __CYGWIN__
+#error Excepting cygwin, code transporter for tinykonoha is unavailable for now
+#endif
+#include "sendbluetooth.h"
 #endif
 /* ************************************************************************ */
 
@@ -907,17 +909,8 @@ static kByteCode* new_ByteCode(KonohaContext *kctx, kBasicBlock *beginBlock, kBa
 	}
 	return kcode;
 }
-#ifdef TINYVM_SEND_BLUETOOTH
 
-#ifndef __CYGWIN__
-#error Excepting cygwin, code transporter for tinykonoha is unavailable for now
-#endif
-
-static void sendBluetooth(KonohaContext *kctx, kMethod *mtd)
-{
-}
-
-#elif defined(TINYVM_CODEGEN)
+#ifdef TINYVM_CODEGEN
 
 #define _TAB "  "
 
@@ -1119,8 +1112,6 @@ static void tinyvm_dump(KonohaContext *kctx, kMethod *mtd)
 	DUMP_P("data%zd, opl%zd\n};\n\n", kctx->share->methodDeclSize, kctx->share->methodDeclSize);
 	((KonohaRuntimeVar*)kctx->share)->methodDeclSize++;
 }
-
-#elif defined TINYVM_SEND_BLUETOOTH
 
 #else
 
