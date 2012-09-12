@@ -171,7 +171,7 @@ static void String_checkASCII(KonohaContext *kctx, kString *s)
 
 static kString* new_String(KonohaContext *kctx, const char *text, size_t len, int spol)
 {
-	KonohaClass *ct = CT_(CLASS_String);
+	KonohaClass *ct = CT_(TY_String);
 	kStringVar *s = NULL; //knh_PtrMap_getS(kctx, ct->constPoolMapNULL, text, len);
 	if(s != NULL) return s;
 	if(TFLAG_is(int, spol, SPOL_TEXT)) {
@@ -250,7 +250,7 @@ static KonohaClassVar *new_KonohaClass(KonohaContext *kctx, KonohaClass *bct, KD
 		ct->cflag = s->cflag;
 		ct->typeId = newid;
 		ct->baseTypeId = newid;
-		ct->superTypeId = (s->superTypeId == 0) ? CLASS_Object : s->superTypeId;
+		ct->superTypeId = (s->superTypeId == 0) ? TY_Object : s->superTypeId;
 		ct->fieldItems = s->fieldItems;
 		ct->fieldsize = s->fieldsize;
 		ct->fieldAllocSize = s->fieldAllocSize;
@@ -303,7 +303,7 @@ static KonohaClass *Konoha_defineClass(KonohaContext *kctx, kpackage_t packageId
 
 static kParam *new_Param(KonohaContext *kctx, ktype_t rtype, int psize, kparamtype_t *p)
 {
-	KonohaClass *ct = CT_(CLASS_Param);
+	KonohaClass *ct = CT_(TY_Param);
 	ct = CT_body(kctx, ct, sizeof(void*), psize * sizeof(kparamtype_t));
 	kParamVar *pa = (kParamVar*)new_Object(kctx, ct, 0);
 	pa->rtype = rtype;
@@ -618,7 +618,7 @@ void KonohaClass_setName(KonohaContext *kctx, KonohaClassVar *ct, kfileline_t pl
 	//}
 	if(ct->methodList == NULL) {
 		KINITv(ct->methodList, K_EMPTYARRAY);
-		if(ct->typeId > CLASS_Object) {
+		if(ct->typeId > TY_Object) {
 			ct->searchSuperMethodClassNULL = CT_(ct->superTypeId);
 		}
 	}
@@ -631,7 +631,7 @@ static void initStructData(KonohaContext *kctx)
 {
 	KonohaClass **ctt = (KonohaClass**)kctx->share->classTable.classItems;
 	size_t i;
-	for (i = 0; i <= CLASS_T0; i++) {
+	for (i = 0; i <= TY_0; i++) {
 		KonohaClassVar *ct = (KonohaClassVar *)ctt[i];
 		//const char *name = ct->DBG_NAME;
 		//ct->nameid = kuname(name, strlen(name), SPOL_ASCII|SPOL_POOL|SPOL_TEXT, _NEWID);

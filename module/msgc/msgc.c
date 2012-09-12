@@ -488,7 +488,7 @@ static kGCObject2 *new_ObjectArena2(KonohaContext *kctx, size_t arenasize)
 		size_t i;\
 		for(i = 0; i < K_PAGEOBJECTSIZE(n); ++i) {\
 			kGCObject##n *o = &opage->slots[i];\
-			if(o->h.cid == CLASS_Tvoid) continue;\
+			if(o->h.cid == TY_void) continue;\
 			KONOHA_freeObjectField(kctx, (kObjectVar*)o);\
 		}\
 		opage++;\
@@ -742,7 +742,7 @@ static size_t sweep0(KonohaContext *kctx, void *p, int n, size_t sizeOfObject)
 		kGCObject0 *o = (kGCObject0 *) K_SHIFTPTR(p,sizeOfObject*i);
 		if(!Object_isMark((kObject*)o)) {
 #ifdef K_USING_TINYVM
-			if(o->h.cid != CLASS_Tvoid) {
+			if(o->h.cid != TY_void) {
 #else
 			if( O_ct(o)) {
 #endif

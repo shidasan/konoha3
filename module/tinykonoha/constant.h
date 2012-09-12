@@ -1,24 +1,5 @@
-#define TY_void 0
-#define TY_var 1
-#define TY_Object 2
-#define TY_boolean 3
-#define TY_int 4
-#define TY_String 5
-#define TY_Array 6
-#define TY_Param 7
-#define TY_Method 8
-#define TY_Func 9
-#define TY_System 10
-#define TY_0 11
-#define TY_BasicBlock 12
-#define TY_ByteCode 13
-#define TY_NameSpace 14
-#define TY_Token 15
-#define TY_Expr 16
-#define TY_Stmt 17
-#define TY_Block 18
-#define TY_Gamma 19
-
+//#ifdef _TINYKONOHA_CONSTANT_H_
+//#define _TINYKONOHA_CONSTANT_H_
 #define MN_Object_String -1073741781
 #define MN_boolean_opNOT 28
 #define MN_boolean_opEQ 24
@@ -50,8 +31,6 @@
 #define MN_NameSpace_import 62
 #define MN_NameSpace_load 64
 
-#define TY_float 22
-
 #define MN_int_opADD 18
 #define MN_int_opSUB 19
 #define MN_int_opMUL 17
@@ -79,8 +58,6 @@
 #define MN_float_String -1073741781
 #define MN_float_opSUB 19
 
-#define TY_float 22
-
 #define MN_Array_get 1073741824
 #define MN_Array_set 536870912
 #define MN_Array_removeAt 75
@@ -100,3 +77,22 @@
 #define MN_Array_newArray 89
 #define MN_Array_newList 90
 
+#define MN_System_balanceControl 92
+#define MN_System_balanceInit 93
+#define MN_System_dly 94
+#define MN_System_actMainTask 95
+#define MN_System_ecrobotIsRunning 96
+#define MN_System_tailControl 97
+#define MN_System_manipulateTail 98
+#define MN_System_ecrobotInitNxtstate 99
+#define MN_System_ecrobotInitSensors 100
+#define MN_System_ecrobotSetLightSensorActive 101
+#define MN_System_ecrobotGetGyroSensor 102
+#define MN_System_ecrobotGetLightSensor 103
+#define MN_System_nxtMotorSetSpeed 104
+#define MN_System_nxtMotorSetCount 105
+#define MN_System_nxtMotorGetCount 106
+#define MN_System_staCyc 107
+#define MN_System_waiSem 108
+
+//#endif //_TINYKONOHA_CONSTANT_H_

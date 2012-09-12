@@ -29,7 +29,7 @@
 #else
 #include "tinykonoha.h"
 #include "tinyvm_gen.h"
-#include "bytecode.h"
+#include "constant.h"
 #endif
 
 #ifdef K_USING_TOPPERS
@@ -226,6 +226,7 @@ static	kbool_t nxt_initPackage(KonohaContext *kctx, kNameSpace *ks, int argc, co
 	int FN_x = FN_("x");
 	int FN_y = FN_("y");
 	intptr_t MethodData[] = {
+			_Public|_Const, _F(System_balanceControl), TY_void, TY_System, MN_("balanceControl"), 2, TY_float, FN_x, TY_float, FN_y, 
 			_Public|_Const, _F(System_balanceInit), TY_void, TY_System, MN_("balanceInit"), 0,
 			_Public|_Const, _F(System_dly), TY_void, TY_System, MN_("dly"), 1, TY_int, FN_x, 
 			_Public|_Const, _F(System_actMainTask), TY_void, TY_System, MN_("actMainTask"), 0, 
@@ -242,7 +243,6 @@ static	kbool_t nxt_initPackage(KonohaContext *kctx, kNameSpace *ks, int argc, co
 			_Public|_Const, _F(System_nxtMotorGetCount), TY_int, TY_System, MN_("nxtMotorGetCount"), 1, TY_int, FN_x, 
 			_Public|_Const, _F(System_staCyc), TY_void, TY_System, MN_("staCyc"), 0,
 			_Public|_Const, _F(System_waiSem), TY_void, TY_System, MN_("waiSem"), 0,
-			_Public|_Const, _F(System_balanceControl), TY_void, TY_System, MN_("balanceControl"), 2, TY_float, FN_x, TY_float, FN_y, 
 			DEND,
 	};
 	KLIB kNameSpace_loadMethodData(kctx, ks, MethodData);
