@@ -28,6 +28,34 @@
 #include "ecrobot_base.h"
 #include "ecrobot_interface.h"
 #include "balancer.h"
+
+#define TDBG_i(KEY, VALUE)						\
+    display_clear(0);							\
+    display_goto_xy(0, 0);						\
+    display_string(KEY);						\
+    display_goto_xy(0, 1);						\
+    display_int(VALUE, 1);						\
+    display_update();							\
+	dly_tsk(500);								\
+
+#define TDBG_s(KEY)								\
+    display_clear(0);							\
+    display_goto_xy(0, 0);						\
+    display_string(KEY);						\
+    display_update();							\
+	dly_tsk(500);								\
+
+#define TDBG_abort(MSG)							\
+    display_clear(0);							\
+    display_goto_xy(0, 0);						\
+    display_string("abort");					\
+    display_goto_xy(0, 1);						\
+    display_string(MSG);						\
+    display_update();							\
+    while (1) {									\
+		dly_tsk(1000U);							\
+    }											\
+
 #else
 #include "stdio.h"
 #endif
@@ -327,6 +355,91 @@ static KonohaContext *new_context(size_t stacksize)
 	return &kctx;
 }
 
+static char *receive_buf(unsigned char *buf)
+{
+	int er;
+	while ((er = bluetooth_receive(CONSOLE_PORTID, buf)) <= 0) {
+		dly_tsk(2);
+	}
+	int pos = 0;
+	for (; buf[pos] != ' '; pos++) ;
+	pos++; //eat ' '
+	return buf + pos;
+}
+
+void undefCode(KonohaContext *kctx, char *buf)
+{
+	TDBG_i("undefined", buf[0]);
+}
+void genNSET(KonohaContext *kctx, char *buf)
+{
+	TDBG_i("NSEt", buf[0]);
+}
+void genNMOV(KonohaContext *kctx, char *buf)
+{
+	TDBG_i("NMOV", buf[0]);
+}
+void genCALL(KonohaContext *kctx, char *buf)
+{
+	TDBG_i("CALL", buf[0]);
+}
+void genRET(KonohaContext *kctx, char *buf)
+{
+	TDBG_i("RET", buf[0]);
+}
+void genJMP(KonohaContext *kctx, char *buf)
+{
+	TDBG_i("JMP", buf[0]);
+}
+void genJMPF(KonohaContext *kctx, char *buf)
+{
+	TDBG_i("JMPF", buf[0]);
+}
+
+typedef void (*genByteCode)(KonohaContext *, char *);
+genByteCode genCode[] = {NULL, NULL, NULL, NULL,
+	                     genNSET, genNMOV, NULL, NULL, 
+						 NULL, NULL, NULL, genCALL,
+						 genRET, NULL, NULL, genJMP,
+						 genJMPF, NULL, NULL, NULL,
+						 NULL, NULL, NULL};
+
+static void loadByteCode(KonohaContext *kctx)
+{
+	TDBG_s("load");
+	char buf[128] = {0};
+	do {
+		bluetooth_connect();
+	} while (bluetooth_get_connect_state(CONSOLE_PORTID) == 0);
+	int8_t magicValue = 0;
+
+	/* method loading loop*/
+	while (1) {
+		char *data = receive_buf(buf);
+		magicValue = data[0];
+		data++;// eat magicValue
+		if (magicValue != -1) {
+			TDBG_s("method loop end");
+			break;
+		}
+		int opsize = (int32_t)*data;
+		TDBG_i("opsize", opsize);
+		int i = 0;
+		
+		/* bytecode loading loop */
+		for (; i < opsize; i++) {
+			data = receive_buf(buf);
+			int8_t opcode = data[0];
+			if (genCode[opcode] != NULL) {
+				genCode[opcode](kctx, data);
+			} else {
+				undefCode(kctx, data);
+			}
+		}
+	}
+	TDBG_abort("load end");
+}
+
 //static void loadByteCode(KonohaContext *kctx)
 //{
 //	size_t i, j, declsize = sizeof(decls) / sizeof(decls[0]);
@@ -433,7 +546,8 @@ void cyc0(VP_INT exinf)
 void TaskMain(VP_INT exinf)
 {
 	struct KonohaContext *kctx = new_context(K_STACK_SIZE);
-	//loadByteCode(kctx);
+	loadByteCode(kctx);
+	TDBG_s("load end");
 
 	mstate = MWAIT;
 	ecrobot_set_light_sensor_active(NXT_PORT_S3);
@@ -468,8 +582,8 @@ void TaskDisp(VP_INT exinf)
 	keystate = ecrobot_get_touch_sensor(NXT_PORT_S4);
 	nxt_motor_set_count(NXT_PORT_A, 0);		/* 完全停止用モータエンコーダリセット */
 	act_tsk(TASK0);
-	mstate = MWAIT;
-	wtime = STOPWAIT;
+	//mstate = MWAIT;
+	//wtime = STOPWAIT;
 	while(1){
 		ecrobot_poll_nxtstate();
 		ercd = serial_ref_por(CONSOLE_PORTID, &rpor);

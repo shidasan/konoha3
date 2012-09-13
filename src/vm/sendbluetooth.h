@@ -23,6 +23,7 @@
  ***************************************************************************/
 
 #include <unistd.h>
+#include <stdio.h>
 #include <windows.h>
 #include <winuser.h>
 
@@ -65,10 +66,12 @@ static void sendBuf(KonohaContext *kctx, HANDLE hComm, bt_buffer_t *writebuf)
 	const char *magicstr = "abcdefghi "; //Sometimes a few bytes of received buffer at front had brewed out, to avoid it.
 	size_t strsize = strlen(magicstr);
 	DWORD readsize = 0;
+	memset(buf, 0, BUFSIZE);
 	memcpy(buf, magicstr, strsize);
 	memcpy(buf+strsize, writebuf->buf, writebuf->size);
 	buf[strsize + writebuf->size] = '\r';
 	buf[strsize + writebuf->size + 1] = '\n';
+	//printf("%s\n", buf);
 	if (!WriteFile(hComm, buf, BUFSIZE, &readsize, NULL)) {
 		CloseHandle(hComm);
 		printf("cannot send buffer\n");
@@ -79,83 +82,141 @@ static void sendBuf(KonohaContext *kctx, HANDLE hComm, bt_buffer_t *writebuf)
 
 static void sendBluetooth(KonohaContext *kctx, kMethod *mtd)
 {
-	HANDLE hComm = NULL;
-	//hComm = CreateFile(
-	//		PORT,
-	//		GENERIC_WRITE | GENERIC_READ,
-	//		0,
-	//		NULL,
-	//		OPEN_EXISTING,
-	//		FILE_ATTRIBUTE_NORMAL,
-	//		NULL);
-	//COMMTIMEOUTS timeout;
-	//if (!GetCommTimeouts(hComm, &timeout)) {
-	//	CloseHandle(hComm);
-	//	KLIB KonohaRuntime_raise(kctx, EXPT_("Cannot get TIMEOUTS"), NULL, 0, NULL);
-	//}
-	//timeout.ReadIntervalTimeout = MAXDWORD;
-	//timeout.ReadTotalTimeoutMultiplier = 50;
-	//timeout.ReadTotalTimeoutConstant = 0;
-	//timeout.WriteTotalTimeoutMultiplier = 50;
-	//if (!SetCommTimeouts(hComm, &timeout)) {
-	//	CloseHandle(hComm);
-	//	KLIB KonohaRuntime_raise(kctx, EXPT_("Cannot set TIMEOUTS"), NULL, 0, NULL);
-	//}
+	printf("sendBluetooth\n");
+	HANDLE hComm;
+	char port[] = PORT;
+	char *portStr = port;
+	printf("-\n");
+	hComm = CreateFile(
+			portStr,
+			GENERIC_WRITE | GENERIC_READ,
+			0,
+			NULL,
+			OPEN_EXISTING,
+			FILE_ATTRIBUTE_NORMAL,
+			NULL);
+	fprintf(stderr, "0");
+	COMMTIMEOUTS timeout;
+	if (!GetCommTimeouts(hComm, &timeout)) {
+		CloseHandle(hComm);
+		printf("cannnot get TIMEOUTS\n");
+		KLIB KonohaRuntime_raise(kctx, EXPT_("Cannot get TIMEOUTS"), NULL, 0, NULL);
+	}
+	fprintf(stderr, "1");
+	timeout.ReadIntervalTimeout = MAXDWORD;
+	timeout.ReadTotalTimeoutMultiplier = 50;
+	timeout.ReadTotalTimeoutConstant = 0;
+	timeout.WriteTotalTimeoutMultiplier = 50;
+	printf("2");
+	if (!SetCommTimeouts(hComm, &timeout)) {
+		CloseHandle(hComm);
+		KLIB KonohaRuntime_raise(kctx, EXPT_("Cannot set TIMEOUTS"), NULL, 0, NULL);
+	}
+	printf("3");
 
-	//if (hComm = INVALID_HANDLE_VALUE) {
-	//	CloseHandle(hComm);
-	//	KLIB KonohaRuntime_raise(kctx, EXPT_("Invalid handle value"), NULL, 0, NULL);
-	//}
+	if (hComm == INVALID_HANDLE_VALUE) {
+		CloseHandle(hComm);
+		KLIB KonohaRuntime_raise(kctx, EXPT_("Invalid handle value"), NULL, 0, NULL);
+	}
+	printf("4");
 
 	bt_buffer_t *writebuf = bt_buffer_new(kctx);
+	printf("5");
+	int8_t magicValue = -1;
 	int32_t opsize = 0;
 
 	while (mtd->pc_start[opsize].opcode != OPCODE_RET) {
 		opsize++;
 	}
+	usleep(USLEEP_PARAM);
+	printf("6");
 	opsize++; // OPCODE_RET
-	bt_buffer_append(kctx, writebuf, (char*)&opsize, sizeof(int32_t));
+	bt_buffer_append(kctx, writebuf, &magicValue, sizeof(int8_t));
+	bt_buffer_append(kctx, writebuf, &opsize, sizeof(int32_t));
+	printf("7");
 	sendBuf(kctx, hComm, writebuf);
 	VirtualMachineInstruction *pc = NULL;
 	int i = 0;
+	printf("opsize %d\n", opsize);
 	for (; i < opsize; i++) {
 		bt_buffer_clear(kctx, writebuf);
 		pc = mtd->pc_start + i;
-		bt_buffer_append(kctx, writebuf, (char*)&pc->opcode, sizeof(int8_t));
+		bt_buffer_append(kctx, writebuf, &pc->opcode, sizeof(int8_t));
 		switch (pc->opcode) {
 		case OPCODE_NSET: {
 			OPNSET *op = (OPNSET*)pc;
+			printf("nset\n");
 			int8_t a = op->a;
 			int32_t n = op->n;
 			int16_t ty = op->ty->typeId;
+			printf("ty %d\n", op->ty->typeId);
 			bt_buffer_append(kctx, writebuf, &a, sizeof(int8_t));
-			bt_buffer_append(kctx, writebuf, &n, sizeof(int32_t));
 			bt_buffer_append(kctx, writebuf, &ty, sizeof(int16_t));
+			switch(ty) {
+			case TY_int: {
+				bt_buffer_append(kctx, writebuf, &n, sizeof(int32_t));
+				break;
+			}
+			case TY_String: {
+				kString *str = (kString*)op->n;
+				printf("string %s\n", str->text);
+				int8_t length = strlen(str->text);
+				bt_buffer_append(kctx, writebuf, &length, sizeof(int8_t));
+				bt_buffer_append(kctx, writebuf, str->text, length+1);
+				break;
+			}
+			}
+			sendBuf(kctx, hComm, writebuf);
 			break;
 		}
 		case OPCODE_NMOV: {
 			OPNMOV *op = (OPNMOV*)pc;
+			printf("NMOV\n");
 			int8_t a = op->a;
 			int8_t b = op->b;
 			bt_buffer_append(kctx, writebuf, &a, sizeof(int8_t));
 			bt_buffer_append(kctx, writebuf, &b, sizeof(int8_t));
+			sendBuf(kctx, hComm, writebuf);
 			break;
 		}
 		case OPCODE_CALL: {
 			OPCALL *op = (OPCALL*)pc;
+			printf("call\n");
 			int8_t thisidx = op->thisidx;
 			int8_t espshift = op->espshift;
 			bt_buffer_append(kctx, writebuf, &thisidx, sizeof(int8_t));
 			bt_buffer_append(kctx, writebuf, &espshift, sizeof(int8_t));
+			sendBuf(kctx, hComm, writebuf);
+			break;
+		}
+		case OPCODE_RET: {
+			OPRET *op = (OPRET*)pc;
+			printf("RET\n");
+			sendBuf(kctx, hComm, writebuf);
+			break;
+		}
+		case OPCODE_JMP: {
+			OPRET *op = (OPRET*)pc;
+			printf("TODO\n");
+			assert(0);
+			sendBuf(kctx, hComm, writebuf);
+			break;
+		}
+		case OPCODE_JMPF: {
+			OPRET *op = (OPRET*)pc;
+			printf("TODO\n");
+			assert(0);
+			sendBuf(kctx, hComm, writebuf);
 			break;
 		}
 		default: {
-			int8_t terminator = 0xff;
-			bt_buffer_append(kctx, writebuf, &terminator, sizeof(int8_t));
+					 printf("default opcode: %d\n", pc->opcode);
+			//int8_t terminator = 0xff;
+			//bt_buffer_append(kctx, writebuf, &terminator, sizeof(int8_t));
 			break;
 		}
 		}
-		sendBuf(kctx, hComm, writebuf);
 	}
+	printf("8");
 	bt_buffer_free(kctx, writebuf);
 }

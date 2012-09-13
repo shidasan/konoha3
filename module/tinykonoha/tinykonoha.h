@@ -387,7 +387,7 @@ typedef struct {
 #define MN_toSETTER(mn)      ((SYM_UNMASK(mn)) | MN_SETTER)
 
 #ifdef K_USING_TINYVM
-#define MN_to(F, T)          MN_##F##_to##T
+#define MN_to(F, T)          MN_##F##_##T
 #define MN_isTOCID(mn)       0
 #define MN_as(cid)           0
 #define MN_isASCID(mn)       0
