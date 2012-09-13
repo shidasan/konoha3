@@ -72,10 +72,10 @@ typedef struct {
 /* KCODE */
 
 typedef uintptr_t  kopcode_t;
-typedef intptr_t   kreg_t;
-typedef intptr_t   ksfpidx_t;
-typedef intptr_t   kregO_t;
-typedef intptr_t   kregN_t;
+typedef int8_t   kreg_t;
+typedef int8_t   ksfpidx_t;
+typedef int8_t   kregO_t;
+typedef int8_t   kregN_t;
 typedef struct ksfx_t {
 	ksfpidx_t i;
 	ksfpidx_t n;
@@ -89,30 +89,27 @@ typedef struct {
 	ktype_t typeId; kparamid_t signature;
 } kMethodInlineCache;
 
-#if defined(K_USING_THCODE_)
-#define KCODE_HEAD \
-	void *codeaddr; \
-	size_t count; \
-	kushort_t opcode; \
-	kushort_t line
+//#if defined(K_USING_THCODE_)
+//#define KCODE_HEAD \
+//	void *codeaddr; \
+//	size_t count; \
+//	kushort_t opcode; \
+//	kushort_t line
+//
+//#else
+//#define KCODE_HEAD \
+//	size_t count; \
+//	kopcode_t opcode; \
+//	uintptr_t line \
+//
+//#endif/*K_USING_THCODE_*/
 
-#else
-#define KCODE_HEAD \
-	size_t count; \
-	kopcode_t opcode; \
-	uintptr_t line \
-
-#endif/*K_USING_THCODE_*/
+#define KCODE_HEAD int8_t opcode
 
 typedef struct VirtualMachineInstruction {
 	KCODE_HEAD;
-	union {
-		intptr_t data[5];
-		void *p[5];
-		kObject *o[5];
-		KonohaClass *ct[5];
-		char *u[5];
-	};
+	uint8_t data[3];
+	void *ptr;
 } VirtualMachineInstruction;
 
 /* ------------------------------------------------------------------------ */
@@ -220,27 +217,33 @@ static void KonohaVirtualMachine_onSafePoint(KonohaContext *kctx, KonohaStack *s
 		goto L_RETURN;\
 	}\
 
-#define OPEXEC_NSET(A, N, CT) rbp[(A)].unboxValue = N
-#define OPEXEC_NMOV(A, B, CT) rbp[(A)].unboxValue = rbp[(B)].unboxValue
-#define OPEXEC_NMOVx(A, B, BX, CT) rbp[(A)].o = (rbp[(B)].asObjectVar)->fieldObjectItems[(BX)]
-#define OPEXEC_XNMOV(A, AX, B, CT) (rbp[(A)].asObjectVar)->fieldObjectItems[AX] = rbp[(B)].o
+//#define OPEXEC_NSET(A, N, CT) rbp[(A)].unboxValue = N
+//#define OPEXEC_NMOV(A, B, CT) rbp[(A)].unboxValue = rbp[(B)].unboxValue
+//#define OPEXEC_NMOVx(A, B, BX, CT) rbp[(A)].o = (rbp[(B)].asObjectVar)->fieldObjectItems[(BX)]
+//#define OPEXEC_XNMOV(A, AX, B, CT) (rbp[(A)].asObjectVar)->fieldObjectItems[AX] = rbp[(B)].o
+//#define OPEXEC_NEW(A, P, CT)   KSETv_AND_WRITE_BARRIER(NULL, rbp[(A)].o, KLIB new_kObject(kctx, CT, P), GC_NO_WRITE_BARRIER)
+//#define OPEXEC_NULL(A, CT)     KSETv_AND_WRITE_BARRIER(NULL, rbp[(A)].o, KLIB Knull(kctx, CT), GC_NO_WRITE_BARRIER)
+#define OPEXEC_NSET(A, N) rbp[(A)].unboxValue = N
+#define OPEXEC_NMOV(A, B) rbp[(A)].unboxValue = rbp[(B)].unboxValue
+#define OPEXEC_NMOVx(A, B, BX) rbp[(A)].o = (rbp[(B)].asObjectVar)->fieldObjectItems[(BX)]
+#define OPEXEC_XNMOV(A, AX, B) (rbp[(A)].asObjectVar)->fieldObjectItems[AX] = rbp[(B)].o
 
-#define OPEXEC_NEW(A, P, CT)   KSETv_AND_WRITE_BARRIER(NULL, rbp[(A)].o, KLIB new_kObject(kctx, CT, P), GC_NO_WRITE_BARRIER)
-#define OPEXEC_NULL(A, CT)     KSETv_AND_WRITE_BARRIER(NULL, rbp[(A)].o, KLIB Knull(kctx, CT), GC_NO_WRITE_BARRIER)
+#define OPEXEC_NEW(A, P, CID)   KSETv_AND_WRITE_BARRIER(NULL, rbp[(A)].o, KLIB new_kObject(kctx, CT_(CID), P), GC_NO_WRITE_BARRIER)
+#define OPEXEC_NULL(A, CID)     KSETv_AND_WRITE_BARRIER(NULL, rbp[(A)].o, KLIB Knull(kctx, CT_(CID)), GC_NO_WRITE_BARRIER)
 #define OPEXEC_BOX(A, B, CT)   KSETv_AND_WRITE_BARRIER(NULL, rbp[(A)].o, KLIB new_kObject(kctx, CT, rbp[(B)].intValue), GC_NO_WRITE_BARRIER)
 #define OPEXEC_UNBOX(A, B, CT) rbp[(A)].unboxValue = N_toint(rbp[B].o)
 
 #define PC_NEXT(pc)   pc+1
 
 #define OPEXEC_LOOKUP(THIS, NS, MTD) { \
-		kNameSpace_lookupMethodWithInlineCache(kctx, SFP(rshift(rbp, THIS)), NS, (kMethod**)&MTD);\
+		/*kNameSpace_lookupMethodWithInlineCache(kctx, SFP(rshift(rbp, THIS)), NS, (kMethod**)&MTD);*/\
 	} \
 
 #define OPEXEC_CALL(UL, THIS, espshift, CTO) { \
 		kMethod *mtd_ = rbp[THIS+K_MTDIDX2].mtdNC;\
 		KonohaStack *sfp_ = SFP(rshift(rbp, THIS)); \
 		sfp_[K_RTNIDX].o = CTO;\
-		sfp_[K_RTNIDX].uline = UL;\
+		/*sfp_[K_RTNIDX].uline = UL;*/\
 		sfp_[K_SHIFTIDX].shift = THIS; \
 		sfp_[K_PCIDX].pc = PC_NEXT(pc);\
 		sfp_[K_MTDIDX].mtdNC = mtd_;\

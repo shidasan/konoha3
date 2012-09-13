@@ -53,7 +53,7 @@ typedef struct OPNSET {
 	KCODE_HEAD;
 	kreg_t a;
 	kint_t n;
-	KonohaClass* ty;
+	/*KonohaClass* ty;*/
 } OPNSET;
 
 #define OPCODE_NMOV ((kopcode_t)5)
@@ -61,7 +61,7 @@ typedef struct OPNMOV {
 	KCODE_HEAD;
 	kreg_t a;
 	kreg_t b;
-	KonohaClass* ty;
+	/*KonohaClass* ty;*/
 } OPNMOV;
 
 #define OPCODE_NMOVx ((kopcode_t)6)
@@ -70,31 +70,31 @@ typedef struct OPNMOVx {
 	kreg_t a;
 	kreg_t b;
 	uintptr_t bx;
-	KonohaClass* ty;
+	/*KonohaClass* ty;*/
 } OPNMOVx;
 
 #define OPCODE_XNMOV ((kopcode_t)7)
 typedef struct OPXNMOV {
 	KCODE_HEAD;
 	kreg_t a;
-	uintptr_t ax;
+	uintptr_t ax __attribute__((packed));
 	kreg_t b;
-	KonohaClass* ty;
+	/*KonohaClass* ty;*/
 } OPXNMOV;
 
 #define OPCODE_NEW ((kopcode_t)8)
 typedef struct OPNEW {
 	KCODE_HEAD;
 	kreg_t a;
-	uintptr_t p;
-	KonohaClass* ty;
+	uintptr_t p __attribute__((packed));
+	ktype_t cid __attribute__((packed));
 } OPNEW;
 
 #define OPCODE_NULL ((kopcode_t)9)
 typedef struct OPNULL {
 	KCODE_HEAD;
 	kreg_t a;
-	KonohaClass* ty;
+	ktype_t cid;
 } OPNULL;
 
 #define OPCODE_LOOKUP ((kopcode_t)10)
@@ -102,13 +102,13 @@ typedef struct OPLOOKUP {
 	KCODE_HEAD;
 	kreg_t thisidx;
 	kNameSpace* ns;
-	kMethod* mtd;
+	/*kMethod* mtd;*/
 } OPLOOKUP;
 
 #define OPCODE_CALL ((kopcode_t)11)
 typedef struct OPCALL {
 	KCODE_HEAD;
-	uintptr_t uline;
+	/*uintptr_t uline;*/
 	kreg_t thisidx;
 	kreg_t espshift;
 	kObject* tyo;
@@ -134,13 +134,13 @@ typedef struct OPBNOT {
 #define OPCODE_JMP ((kopcode_t)15)
 typedef struct OPJMP {
 	KCODE_HEAD;
-	VirtualMachineInstruction  *jumppc;
+	uint16_t jumppc;
 } OPJMP;
 
 #define OPCODE_JMPF ((kopcode_t)16)
 typedef struct OPJMPF {
 	KCODE_HEAD;
-	VirtualMachineInstruction  *jumppc;
+	uint16_t jumppc;
 	kreg_t a;
 } OPJMPF;
 
@@ -158,28 +158,28 @@ typedef struct OPYIELD {
 #define OPCODE_ERROR ((kopcode_t)19)
 typedef struct OPERROR {
 	KCODE_HEAD;
-	uintptr_t uline;
-	kString* msg;
+	/*uintptr_t uline;*/
+	kString* msg __attribute__((packed));
 	kreg_t esp;
 } OPERROR;
 
 #define OPCODE_SAFEPOINT ((kopcode_t)20)
 typedef struct OPSAFEPOINT {
 	KCODE_HEAD;
-	uintptr_t uline;
+	/*uintptr_t uline;*/
 	kreg_t esp;
 } OPSAFEPOINT;
 
 #define OPCODE_CHKSTACK ((kopcode_t)21)
 typedef struct OPCHKSTACK {
 	KCODE_HEAD;
-	uintptr_t uline;
+	/*uintptr_t uline;*/
 } OPCHKSTACK;
 
 #define OPCODE_TRACE ((kopcode_t)22)
 typedef struct OPTRACE {
 	KCODE_HEAD;
-	uintptr_t uline;
+	/*uintptr_t uline;*/
 	kreg_t thisidx;
 	TraceFunc trace;
 } OPTRACE;
@@ -226,14 +226,14 @@ static const kOPDATA_t OPDATA[] = {
 	{"THCODE", 0, 1, { VMT_F, VMT_VOID}}, 
 	{"ENTER", 0, 0, { VMT_VOID}}, 
 	{"EXIT", 0, 0, { VMT_VOID}}, 
-	{"NSET", 0, 3, { VMT_RN, VMT_INT, VMT_CID, VMT_VOID}}, 
-	{"NMOV", 0, 3, { VMT_RN, VMT_RN, VMT_CID, VMT_VOID}}, 
-	{"NMOVx", 0, 4, { VMT_RN, VMT_RO, VMT_U, VMT_CID, VMT_VOID}}, 
-	{"XNMOV", 0, 4, { VMT_RO, VMT_U, VMT_RN, VMT_CID, VMT_VOID}}, 
+	{"NSET", 0, 2, { VMT_RN, VMT_INT,/* VMT_CID,*/ VMT_VOID}}, 
+	{"NMOV", 0, 2, { VMT_RN, VMT_RN,/* VMT_CID,*/ VMT_VOID}}, 
+	{"NMOVx", 0, 3, { VMT_RN, VMT_RO, VMT_U,/* VMT_CID,*/ VMT_VOID}}, 
+	{"XNMOV", 0, 3, { VMT_RO, VMT_U, VMT_RN,/* VMT_CID,*/ VMT_VOID}}, 
 	{"NEW", 0, 3, { VMT_RO, VMT_U, VMT_CID, VMT_VOID}}, 
 	{"NULL", 0, 2, { VMT_RO, VMT_CID, VMT_VOID}}, 
-	{"LOOKUP", 0, 3, { VMT_RO, VMT_NAMESPACE, VMT_METHOD, VMT_VOID}}, 
-	{"CALL", 0, 4, { VMT_U, VMT_RO, VMT_RO, VMT_CO, VMT_VOID}}, 
+	{"LOOKUP", 0, 3, { VMT_RO, VMT_NAMESPACE,/* VMT_METHOD,*/ VMT_VOID}}, 
+	{"CALL", 0, 3, { /*VMT_U, */VMT_RO, VMT_RO, VMT_CO, VMT_VOID}}, 
 	{"RET", 0, 0, { VMT_VOID}}, 
 	{"NCALL", 0, 0, { VMT_VOID}}, 
 	{"BNOT", 0, 2, { VMT_RN, VMT_RN, VMT_VOID}}, 
@@ -241,10 +241,10 @@ static const kOPDATA_t OPDATA[] = {
 	{"JMPF", 0, 2, { VMT_ADDR, VMT_RN, VMT_VOID}}, 
 	{"TRYJMP", 0, 1, { VMT_ADDR, VMT_VOID}}, 
 	{"YIELD", 0, 0, { VMT_VOID}}, 
-	{"ERROR", 0, 3, { VMT_U, VMT_STRING, VMT_RO, VMT_VOID}}, 
-	{"SAFEPOINT", 0, 2, { VMT_U, VMT_RO, VMT_VOID}}, 
-	{"CHKSTACK", 0, 1, { VMT_U, VMT_VOID}}, 
-	{"TRACE", 0, 3, { VMT_U, VMT_RO, VMT_F, VMT_VOID}}, 
+	{"ERROR", 0, 2, { /*VMT_U,*/ VMT_STRING, VMT_RO, VMT_VOID}}, 
+	{"SAFEPOINT", 0, 1, { /*VMT_U,*/ VMT_RO, VMT_VOID}}, 
+	{"CHKSTACK", 0, 0, { /*VMT_U,*/ VMT_VOID}}, 
+	{"TRACE", 0, 2, { /*VMT_U,*/ VMT_RO, VMT_F, VMT_VOID}}, 
 };
 
 static void opcode_check(void)
@@ -305,7 +305,7 @@ static kbool_t kopcode_hasjump(kopcode_t opcode)
 
 #ifdef K_USING_THCODE_
 #define CASE(x)  L_##x : 
-#define NEXT_OP   (pc->codeaddr)
+#define NEXT_OP   (OPJUMP[pc->opcode])
 #define JUMP      *(NEXT_OP)
 #ifdef K_USING_VMASMDISPATCH
 #define GOTO_NEXT()     \
@@ -368,32 +368,32 @@ static VirtualMachineInstruction* KonohaVirtualMachine_run(KonohaContext *kctx, 
 	} 
 	CASE(NSET) {
 		OPNSET *op = (OPNSET*)pc;
-		OPEXEC_NSET(op->a, op->n, op->ty); pc++;
+		OPEXEC_NSET(op->a, op->n/*, op->ty*/); pc++;
 		GOTO_NEXT();
 	} 
 	CASE(NMOV) {
 		OPNMOV *op = (OPNMOV*)pc;
-		OPEXEC_NMOV(op->a, op->b, op->ty); pc++;
+		OPEXEC_NMOV(op->a, op->b/*, op->ty*/); pc++;
 		GOTO_NEXT();
 	} 
 	CASE(NMOVx) {
 		OPNMOVx *op = (OPNMOVx*)pc;
-		OPEXEC_NMOVx(op->a, op->b, op->bx, op->ty); pc++;
+		OPEXEC_NMOVx(op->a, op->b, op->bx/*, op->ty*/); pc++;
 		GOTO_NEXT();
 	} 
 	CASE(XNMOV) {
 		OPXNMOV *op = (OPXNMOV*)pc;
-		OPEXEC_XNMOV(op->a, op->ax, op->b, op->ty); pc++;
+		OPEXEC_XNMOV(op->a, op->ax, op->b/*, op->ty*/); pc++;
 		GOTO_NEXT();
 	} 
 	CASE(NEW) {
 		OPNEW *op = (OPNEW*)pc;
-		OPEXEC_NEW(op->a, op->p, op->ty); pc++;
+		OPEXEC_NEW(op->a, op->p, op->cid); pc++;
 		GOTO_NEXT();
 	} 
 	CASE(NULL) {
 		OPNULL *op = (OPNULL*)pc;
-		OPEXEC_NULL(op->a, op->ty); pc++;
+		OPEXEC_NULL(op->a, op->cid); pc++;
 		GOTO_NEXT();
 	} 
 	CASE(LOOKUP) {
@@ -403,7 +403,7 @@ static VirtualMachineInstruction* KonohaVirtualMachine_run(KonohaContext *kctx, 
 	} 
 	CASE(CALL) {
 		OPCALL *op = (OPCALL*)pc;
-		OPEXEC_CALL(op->uline, op->thisidx, op->espshift, op->tyo); pc++;
+		OPEXEC_CALL(0, op->thisidx, op->espshift, op->tyo); pc++;
 		GOTO_NEXT();
 	} 
 	CASE(RET) {
@@ -423,12 +423,14 @@ static VirtualMachineInstruction* KonohaVirtualMachine_run(KonohaContext *kctx, 
 	} 
 	CASE(JMP) {
 		OPJMP *op = (OPJMP*)pc;
-		OPEXEC_JMP(pc = op->jumppc, JUMP); pc++;
+		kMethod *mtd = rbp[K_MTDIDX*2].mtdNC;
+		OPEXEC_JMP(pc = mtd->pc_start + op->jumppc, JUMP); pc++;
 		GOTO_NEXT();
 	} 
 	CASE(JMPF) {
 		OPJMPF *op = (OPJMPF*)pc;
-		OPEXEC_JMPF(pc = op->jumppc, JUMP, op->a); pc++;
+		kMethod *mtd = rbp[K_MTDIDX*2].mtdNC;
+		OPEXEC_JMPF(pc = mtd->pc_start + op->jumppc, JUMP, op->a); pc++;
 		GOTO_NEXT();
 	} 
 	CASE(TRYJMP) {
@@ -443,22 +445,22 @@ static VirtualMachineInstruction* KonohaVirtualMachine_run(KonohaContext *kctx, 
 	} 
 	CASE(ERROR) {
 		OPERROR *op = (OPERROR*)pc;
-		OPEXEC_ERROR(op->uline, op->msg, op->esp); pc++;
+		OPEXEC_ERROR(0, op->msg, op->esp); pc++;
 		GOTO_NEXT();
 	} 
 	CASE(SAFEPOINT) {
 		OPSAFEPOINT *op = (OPSAFEPOINT*)pc;
-		OPEXEC_SAFEPOINT(op->uline, op->esp); pc++;
+		OPEXEC_SAFEPOINT(0, op->esp); pc++;
 		GOTO_NEXT();
 	} 
 	CASE(CHKSTACK) {
 		OPCHKSTACK *op = (OPCHKSTACK*)pc;
-		OPEXEC_CHKSTACK(op->uline); pc++;
+		OPEXEC_CHKSTACK(0); pc++;
 		GOTO_NEXT();
 	} 
 	CASE(TRACE) {
 		OPTRACE *op = (OPTRACE*)pc;
-		OPEXEC_TRACE(op->uline, op->thisidx, op->trace); pc++;
+		OPEXEC_TRACE(0, op->thisidx, op->trace); pc++;
 		GOTO_NEXT();
 	} 
 	DISPATCH_END(pc);
