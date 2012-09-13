@@ -30,8 +30,8 @@
 #else
 #include "tinykonoha.h"
 #include "tinyvm_gen.h"
-#include "bytecode.h"
 #include <minikonoha/float.h>
+#include "constant.h"
 #endif
 
 #ifdef __cplusplus
@@ -269,16 +269,16 @@ kbool_t tinykonoha_floatMethodInit(KonohaContext *kctx, kNameSpace *ks)
 
 	int FN_x = FN_("x");
 	intptr_t MethodData[] = {
-		_F(Float_opADD), TY_float, MN_(Float_opADD),
-		_F(Float_opSUB), TY_float, MN_(Float_opSUB),
-		_F(Float_opMUL), TY_float, MN_(Float_opMUL),
-		_F(Float_opDIV), TY_float, MN_(Float_opDIV),
-		_F(Float_opEQ),  TY_float, MN_(Float_opEQ),
-		_F(Float_opNEQ), TY_float, MN_(Float_opNEQ),
-		_F(Float_opLT),  TY_float, MN_(Float_opLT),
-		_F(Float_opLTE), TY_float, MN_(Float_opLTE),
-		_F(Float_opGT),  TY_float, MN_(Float_opGT),
-		_F(Float_opGTE), TY_float, MN_(Float_opGTE),
+		_F(Float_opADD), TY_float, MN_(float_opADD),
+		_F(Float_opSUB), TY_float, MN_(float_opSUB),
+		_F(Float_opMUL), TY_float, MN_(float_opMUL),
+		_F(Float_opDIV), TY_float, MN_(float_opDIV),
+		_F(Float_opEQ),  TY_float, MN_(float_opEQ),
+		_F(Float_opNEQ), TY_float, MN_(float_opNEQ),
+		_F(Float_opLT),  TY_float, MN_(float_opLT),
+		_F(Float_opLTE), TY_float, MN_(float_opLTE),
+		_F(Float_opGT),  TY_float, MN_(float_opGT),
+		_F(Float_opGTE), TY_float, MN_(float_opGTE),
 		//_F(Float_toInt), TY_float, MN_to(Float, Int),
 		//_F(Int_toFloat), TY_Int, MN_to(Int, Float),
 		//_F(Float_toString), TY_float, MN_to(Float, String),

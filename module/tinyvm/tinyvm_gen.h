@@ -1,927 +1,471 @@
-#ifndef TINYVM_OPCODES_H
-#define TINYVM_OPCODES_H
+/****************************************************************************
+ * Copyright (c) 2012, the Konoha project authors. All rights reserved.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *  * Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+ * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ ***************************************************************************/
+#ifndef MINIVM_H
+#define MINIVM_H
+// THIS FILE WAS MODIFYED AFTER AUTOMATICALLY GENERATED
 
 #include "tinyvm.h"
 
-#define OPCODE_NSET ((kopcode_t)0)
-typedef struct klr_NSET_t {
-	int8_t opcode;
-	int8_t/* rn */ a;
-	int32_t/* int */ n __attribute__((packed));
-	uint16_t/* cid */ ty;
-} klr_NSET_t;
+#define OPCODE_NOP ((kopcode_t)0)
+typedef struct OPNOP {
+	KCODE_HEAD;
+} OPNOP;
 
-#define OPCODE_NMOV ((kopcode_t)1)
-typedef struct klr_NMOV_t {
-	int8_t opcode;
-	int8_t/* rn */ a;
-	int8_t/* rn */ b;
-	uint16_t/* cid */ ty;
-} klr_NMOV_t;
+#define OPCODE_THCODE ((kopcode_t)1)
+typedef struct OPTHCODE {
+	KCODE_HEAD;
+	ThreadCodeFunc threadCode;
+} OPTHCODE;
 
-#define OPCODE_NMOVx ((kopcode_t)2)
-typedef struct klr_NMOVx_t {
-	int8_t opcode;
-	int8_t/* rn */ a;
-	int8_t/* ro */ b;
-	uint16_t/* u */ bx;
-	uint16_t/* cid */ ty;
-} klr_NMOVx_t;
+#define OPCODE_ENTER ((kopcode_t)2)
+typedef struct OPENTER {
+	KCODE_HEAD;
+} OPENTER;
 
-#define OPCODE_XNMOV ((kopcode_t)3)
-typedef struct klr_XNMOV_t {
-	int8_t opcode;
-	int8_t/* ro */ a;
-	uint16_t/* u */ ax;
-	int8_t/* rn */ b;
-	uint16_t/* cid */ ty;
-} klr_XNMOV_t;
+#define OPCODE_EXIT ((kopcode_t)3)
+typedef struct OPEXIT {
+	KCODE_HEAD;
+} OPEXIT;
 
-#define OPCODE_NEW ((kopcode_t)4)
-typedef struct klr_NEW_t {
-	int8_t opcode;
-	int8_t/* ro */ a;
-	uint16_t/* u */ p;
-	uint16_t/* cid */ ty;
-} klr_NEW_t;
+#define OPCODE_NSET ((kopcode_t)4)
+typedef struct OPNSET {
+	KCODE_HEAD;
+	kreg_t a;
+	kint_t n;
+	/*KonohaClass* ty;*/
+} OPNSET;
 
-#define OPCODE_NULL ((kopcode_t)5)
-typedef struct klr_NULL_t {
-	int8_t opcode;
-	int8_t/* ro */ a;
-	uint16_t/* cid */ ty;
-} klr_NULL_t;
+#define OPCODE_NMOV ((kopcode_t)5)
+typedef struct OPNMOV {
+	KCODE_HEAD;
+	kreg_t a;
+	kreg_t b;
+	/*KonohaClass* ty;*/
+} OPNMOV;
 
-#define OPCODE_BOX ((kopcode_t)6)
-typedef struct klr_BOX_t {
-	int8_t opcode;
-	int8_t/* ro */ a;
-	int8_t/* rn */ b;
-	uint16_t/* cid */ ty;
-} klr_BOX_t;
+#define OPCODE_NMOVx ((kopcode_t)6)
+typedef struct OPNMOVx {
+	KCODE_HEAD;
+	kreg_t a;
+	kreg_t b;
+	uintptr_t bx;
+	/*KonohaClass* ty;*/
+} OPNMOVx;
 
-#define OPCODE_UNBOX ((kopcode_t)7)
-typedef struct klr_UNBOX_t {
-	int8_t opcode;
-	int8_t/* rn */ a;
-	int8_t/* ro */ b;
-	uint16_t/* cid */ ty;
-} klr_UNBOX_t;
+#define OPCODE_XNMOV ((kopcode_t)7)
+typedef struct OPXNMOV {
+	KCODE_HEAD;
+	kreg_t a;
+	uintptr_t ax __attribute__((packed));
+	kreg_t b;
+	/*KonohaClass* ty;*/
+} OPXNMOV;
 
-#define OPCODE_CALL ((kopcode_t)8)
-typedef struct klr_CALL_t {
-	int8_t opcode;
-	uint16_t/* u */ uline;
-	int8_t/* ro */ thisidx;
-	int8_t/* ro */ espshift;
-	//uint16_t/* co */ tyo;
-} klr_CALL_t;
+#define OPCODE_NEW ((kopcode_t)8)
+typedef struct OPNEW {
+	KCODE_HEAD;
+	kreg_t a;
+	uintptr_t p __attribute__((packed));
+	ktype_t cid __attribute__((packed));
+} OPNEW;
 
-#define OPCODE_BNOT ((kopcode_t)9)
-typedef struct klr_BNOT_t {
-	int8_t opcode;
-	int8_t/* rn */ c;
-	int8_t/* rn */ a;
-} klr_BNOT_t;
-
-#define OPCODE_JMP ((kopcode_t)10)
-typedef struct klr_JMP_t {
-	int8_t opcode;
-	uint16_t jumppc;
-} klr_JMP_t;
-
-#define OPCODE_JMPF ((kopcode_t)11)
-typedef struct klr_JMPF_t {
-	int8_t opcode;
-	uint16_t jumppc;
-	int8_t/* rn */ a;
-} klr_JMPF_t;
-
-#define OPCODE_SAFEPOINT ((kopcode_t)12)
-typedef struct klr_SAFEPOINT_t {
-	int8_t opcode;
-	int8_t uline;
-	int8_t/* ro */ espshift;
-} klr_SAFEPOINT_t;
-
-#define OPCODE_ERROR ((kopcode_t)13)
-typedef struct klr_ERROR_t {
-	int8_t opcode;
-	int8_t uline;
-	//kString* msg;
-	int8_t esp;
-} klr_ERROR_t;
-
-#define OPCODE_bNUL ((kopcode_t)14)
-typedef struct klr_bNUL_t {
-	int8_t opcode;
-	int8_t/* rn */ c;
-	int8_t/* ro */ a;
-} klr_bNUL_t;
-
-#define OPCODE_bNN ((kopcode_t)15)
-typedef struct klr_bNN_t {
-	int8_t opcode;
-	int8_t/* rn */ c;
-	int8_t/* ro */ a;
-} klr_bNN_t;
-
-#define OPCODE_iNEG ((kopcode_t)16)
-typedef struct klr_iNEG_t {
-	int8_t opcode;
-	int8_t/* rn */ c;
-	int8_t/* rn */ a;
-} klr_iNEG_t;
-
-#define OPCODE_fNEG ((kopcode_t)17)
-typedef struct klr_fNEG_t {
-	int8_t opcode;
-	int8_t/* rn */ c;
-	int8_t/* rn */ a;
-} klr_fNEG_t;
-
-#define OPCODE_iADD ((kopcode_t)18)
-typedef struct klr_iADD_t {
-	int8_t opcode;
-	int8_t/* rn */ c;
-	int8_t/* rn */ a;
-	int8_t/* rn */ b;
-} klr_iADD_t;
-
-#define OPCODE_iSUB ((kopcode_t)19)
-typedef struct klr_iSUB_t {
-	int8_t opcode;
-	int8_t/* rn */ c;
-	int8_t/* rn */ a;
-	int8_t/* rn */ b;
-} klr_iSUB_t;
-
-#define OPCODE_iMUL ((kopcode_t)20)
-typedef struct klr_iMUL_t {
-	int8_t opcode;
-	int8_t/* rn */ c;
-	int8_t/* rn */ a;
-	int8_t/* rn */ b;
-} klr_iMUL_t;
-
-#define OPCODE_iDIV ((kopcode_t)21)
-typedef struct klr_iDIV_t {
-	int8_t opcode;
-	int8_t/* rn */ c;
-	int8_t/* rn */ a;
-	int8_t/* rn */ b;
-} klr_iDIV_t;
-
-#define OPCODE_iMOD ((kopcode_t)22)
-typedef struct klr_iMOD_t {
-	int8_t opcode;
-	int8_t/* rn */ c;
-	int8_t/* rn */ a;
-	int8_t/* rn */ b;
-} klr_iMOD_t;
-
-#define OPCODE_iEQ ((kopcode_t)23)
-typedef struct klr_iEQ_t {
-	int8_t opcode;
-	int8_t/* rn */ c;
-	int8_t/* rn */ a;
-	int8_t/* rn */ b;
-} klr_iEQ_t;
-
-#define OPCODE_iNEQ ((kopcode_t)24)
-typedef struct klr_iNEQ_t {
-	int8_t opcode;
-	int8_t/* rn */ c;
-	int8_t/* rn */ a;
-	int8_t/* rn */ b;
-} klr_iNEQ_t;
-
-#define OPCODE_iLT ((kopcode_t)25)
-typedef struct klr_iLT_t {
-	int8_t opcode;
-	int8_t/* rn */ c;
-	int8_t/* rn */ a;
-	int8_t/* rn */ b;
-} klr_iLT_t;
-
-#define OPCODE_iLTE ((kopcode_t)26)
-typedef struct klr_iLTE_t {
-	int8_t opcode;
-	int8_t/* rn */ c;
-	int8_t/* rn */ a;
-	int8_t/* rn */ b;
-} klr_iLTE_t;
-
-#define OPCODE_iGT ((kopcode_t)27)
-typedef struct klr_iGT_t {
-	int8_t opcode;
-	int8_t/* rn */ c;
-	int8_t/* rn */ a;
-	int8_t/* rn */ b;
-} klr_iGT_t;
-
-#define OPCODE_iGTE ((kopcode_t)28)
-typedef struct klr_iGTE_t {
-	int8_t opcode;
-	int8_t/* rn */ c;
-	int8_t/* rn */ a;
-	int8_t/* rn */ b;
-} klr_iGTE_t;
-
-#define OPCODE_fADD ((kopcode_t)29)
-typedef struct klr_fADD_t {
-	int8_t opcode;
-	int8_t/* rn */ c;
-	int8_t/* rn */ a;
-	int8_t/* rn */ b;
-} klr_fADD_t;
-
-#define OPCODE_fSUB ((kopcode_t)30)
-typedef struct klr_fSUB_t {
-	int8_t opcode;
-	int8_t/* rn */ c;
-	int8_t/* rn */ a;
-	int8_t/* rn */ b;
-} klr_fSUB_t;
-
-#define OPCODE_fMUL ((kopcode_t)31)
-typedef struct klr_fMUL_t {
-	int8_t opcode;
-	int8_t/* rn */ c;
-	int8_t/* rn */ a;
-	int8_t/* rn */ b;
-} klr_fMUL_t;
-
-#define OPCODE_fDIV ((kopcode_t)32)
-typedef struct klr_fDIV_t {
-	int8_t opcode;
-	int8_t/* rn */ c;
-	int8_t/* rn */ a;
-	int8_t/* rn */ b;
-} klr_fDIV_t;
-
-#define OPCODE_fEQ ((kopcode_t)33)
-typedef struct klr_fEQ_t {
-	int8_t opcode;
-	int8_t/* rn */ c;
-	int8_t/* rn */ a;
-	int8_t/* rn */ b;
-} klr_fEQ_t;
-
-#define OPCODE_fNEQ ((kopcode_t)34)
-typedef struct klr_fNEQ_t {
-	int8_t opcode;
-	int8_t/* rn */ c;
-	int8_t/* rn */ a;
-	int8_t/* rn */ b;
-} klr_fNEQ_t;
-
-#define OPCODE_fLT ((kopcode_t)35)
-typedef struct klr_fLT_t {
-	int8_t opcode;
-	int8_t/* rn */ c;
-	int8_t/* rn */ a;
-	int8_t/* rn */ b;
-} klr_fLT_t;
-
-#define OPCODE_fLTE ((kopcode_t)36)
-typedef struct klr_fLTE_t {
-	int8_t opcode;
-	int8_t/* rn */ c;
-	int8_t/* rn */ a;
-	int8_t/* rn */ b;
-} klr_fLTE_t;
-
-#define OPCODE_fGT ((kopcode_t)37)
-typedef struct klr_fGT_t {
-	int8_t opcode;
-	int8_t/* rn */ c;
-	int8_t/* rn */ a;
-	int8_t/* rn */ b;
-} klr_fGT_t;
-
-#define OPCODE_fGTE ((kopcode_t)38)
-typedef struct klr_fGTE_t {
-	int8_t opcode;
-	int8_t/* rn */ c;
-	int8_t/* rn */ a;
-	int8_t/* rn */ b;
-} klr_fGTE_t;
-
-#define OPCODE_OSET ((kopcode_t)39)
-typedef struct klr_OSET_t {
-	int8_t opcode;
-	int8_t/* ro */ a;
-	int8_t/* rn */ n;
-} klr_OSET_t;
-
-#define OPCODE_OMOV ((kopcode_t)40)
-typedef struct klr_OMOV_t {
-	int8_t opcode;
-	int8_t/* ro */ a;
-	int8_t/* ro */ b;
-} klr_OMOV_t;
-
-#define OPCODE_SCALL ((kopcode_t)41)
-typedef struct klr_SCALL_t {
-	int8_t opcode;
-	int8_t/* ro */ thisidx;
-	int8_t/* ro */ espshift;
-	union {
-		struct {
-			int8_t/* cid */ cid;
-			int16_t/* mn */ mn;
-		};
-		kMethod* mtd;
-	};
-} klr_SCALL_t;
-
-#define OPCODE_VCALL ((kopcode_t)42)
-typedef struct klr_VCALL_t {
-	int8_t opcode;
-	int8_t/* ro */ thisidx;
-	int8_t/* ro */ espshift;
-	union {
-		struct {
-			int8_t/* cid */ cid;
-			int16_t/* mn */ mn;
-		};
-		kMethod* mtd;
-	};
-} klr_VCALL_t;
-
-#define OPCODE_iCAST ((kopcode_t)43)
-typedef struct klr_iCAST_t {
-	int8_t opcode;
-	int8_t/* rn */ a;
-	int8_t/* rn */ b;
-} klr_iCAST_t;
-
-#define OPCODE_fCAST ((kopcode_t)44)
-typedef struct klr_fCAST_t {
-	int8_t opcode;
-	int8_t/* rn */ a;
-	int8_t/* rn */ b;
-} klr_fCAST_t;
-
-#define OPCODE_RET ((kopcode_t)45)
-typedef struct klr_RET_t {
-	int8_t opcode;
-} klr_RET_t;
-
-#define OPCODE_EXIT ((kopcode_t)46)
-typedef struct klr_EXIT_t {
-	int8_t opcode;
-} klr_EXIT_t;
-
-//#define OPCODE_NGETIDX ((kopcode_t)46)
-//typedef struct klr_NGETIDX_t {
-//	int8_t opcode;
-//	int8_t/* rn */ c;
-//	int8_t/* ro */ a;
-//	int8_t/* rn */ n;
-//} klr_NGETIDX_t;
-//
-//#define OPCODE_NSETIDX ((kopcode_t)47)
-//typedef struct klr_NSETIDX_t {
-//	int8_t opcode;
-//	int8_t/* rn */ c;
-//	int8_t/* ro */ a;
-//	int8_t/* rn */ n;
-//	int8_t/* rn */ v;
-//} klr_NSETIDX_t;
-//
-//#define OPCODE_OGETIDX ((kopcode_t)48)
-//typedef struct klr_OGETIDX_t {
-//	int8_t opcode;
-//	int8_t/* ro */ c;
-//	int8_t/* ro */ a;
-//	int8_t/* rn */ n;
-//} klr_OGETIDX_t;
-//
-//#define OPCODE_OSETIDX ((kopcode_t)49)
-//typedef struct klr_OSETIDX_t {
-//	int8_t opcode;
-//	int8_t/* ro */ c;
-//	int8_t/* ro */ a;
-//	int8_t/* rn */ n;
-//	int8_t/* ro */ v;
-//} klr_OSETIDX_t;
-
-typedef union kopl_u {
-	VirtualMachineInstruction op;
-	klr_NSET_t opNSET;
-	klr_NMOV_t opNMOV;
-	klr_NMOVx_t opNMOVx;
-	klr_XNMOV_t opXNMOV;
-	klr_NEW_t opNEW;
-	klr_NULL_t opNULL;
-	klr_BOX_t opBOX;
-	klr_UNBOX_t opUNBOX;
-	klr_CALL_t opCALL;
-	klr_BNOT_t opBNOT;
-	klr_JMP_t opJMP;
-	klr_JMPF_t opJMPF;
-	klr_SAFEPOINT_t opSAFEPOINT;
-	klr_ERROR_t opERROR;
-	klr_bNUL_t opbNUL;
-	klr_bNN_t opbNN;
-	klr_iNEG_t opiNEG;
-	klr_fNEG_t opfNEG;
-	klr_iADD_t opiADD;
-	klr_iSUB_t opiSUB;
-	klr_iMUL_t opiMUL;
-	klr_iDIV_t opiDIV;
-	klr_iMOD_t opiMOD;
-	klr_iEQ_t opiEQ;
-	klr_iNEQ_t opiNEQ;
-	klr_iLT_t opiLT;
-	klr_iLTE_t opiLTE;
-	klr_iGT_t opiGT;
-	klr_iGTE_t opiGTE;
-	klr_fADD_t opfADD;
-	klr_fSUB_t opfSUB;
-	klr_fMUL_t opfMUL;
-	klr_fDIV_t opfDIV;
-	klr_fEQ_t opfEQ;
-	klr_fNEQ_t opfNEQ;
-	klr_fLT_t opfLT;
-	klr_fLTE_t opfLTE;
-	klr_fGT_t opfGT;
-	klr_fGTE_t opfGTE;
-	klr_OSET_t opOSET;
-	klr_OMOV_t opOMOV;
-	klr_SCALL_t opSCALL;
-	klr_VCALL_t opVCALL;
-	klr_iCAST_t opiCAST;
-	klr_fCAST_t opfCAST;
-	klr_RET_t opRET;
-	klr_EXIT_t opEXIT;
-	//klr_NGETIDX_t opNGETIDX;
-	//klr_NSETIDX_t opNSETIDX;
-	//klr_OGETIDX_t opOGETIDX;
-	//klr_OSETIDX_t opOSETIDX;
-}kopl_u;
-
-typedef struct kconstdata_t {
+#define OPCODE_NULL ((kopcode_t)9)
+typedef struct OPNULL {
+	KCODE_HEAD;
+	kreg_t a;
 	ktype_t cid;
-	void *conf;
-}kconstdata_t;
+} OPNULL;
 
-typedef struct kmethoddecl_t {
-	ktype_t cid;
-	kmethodn_t mn;
-	kconstdata_t *constdata;
-	kopl_u *opline;
-}kmethoddecl_t;
+#define OPCODE_LOOKUP ((kopcode_t)10)
+typedef struct OPLOOKUP {
+	KCODE_HEAD;
+	kreg_t thisidx;
+	kNameSpace* ns;
+	/*kMethod* mtd;*/
+} OPLOOKUP;
 
-#define KOPCODE_MAX ((kopcode_t)47)
+#define OPCODE_CALL ((kopcode_t)11)
+typedef struct OPCALL {
+	KCODE_HEAD;
+	/*uintptr_t uline;*/
+	kreg_t thisidx;
+	kreg_t espshift;
+	kObject* tyo;
+} OPCALL;
 
-#define VMT_VOID     0
-#define VMT_ADDR     1
-#define VMT_R        2
-#define VMT_RN       2
-#define VMT_RO       2
-#define VMT_U        3
-#define VMT_I        4
-#define VMT_CID      5
-#define VMT_CO       6
-#define VMT_INT      7
-#define VMT_FLOAT    8
-#define VMT_HCACHE   9
-#define VMT_F        10/*function*/
-#define VMT_STRING   11
-#define VMT_METHOD   12
-#define VMT_OBJECT   13
-#define VMT_SFPIDX   14
+#define OPCODE_RET ((kopcode_t)12)
+typedef struct OPRET {
+	KCODE_HEAD;
+} OPRET;
 
+#define OPCODE_NCALL ((kopcode_t)13)
+typedef struct OPNCALL {
+	KCODE_HEAD;
+} OPNCALL;
+
+#define OPCODE_BNOT ((kopcode_t)14)
+typedef struct OPBNOT {
+	KCODE_HEAD;
+	kreg_t c;
+	kreg_t a;
+} OPBNOT;
+
+#define OPCODE_JMP ((kopcode_t)15)
+typedef struct OPJMP {
+	KCODE_HEAD;
+	uint16_t jumppc;
+} OPJMP;
+
+#define OPCODE_JMPF ((kopcode_t)16)
+typedef struct OPJMPF {
+	KCODE_HEAD;
+	uint16_t jumppc;
+	kreg_t a;
+} OPJMPF;
+
+#define OPCODE_TRYJMP ((kopcode_t)17)
+typedef struct OPTRYJMP {
+	KCODE_HEAD;
+	VirtualMachineInstruction  *jumppc;
+} OPTRYJMP;
+
+#define OPCODE_YIELD ((kopcode_t)18)
+typedef struct OPYIELD {
+	KCODE_HEAD;
+} OPYIELD;
+
+#define OPCODE_ERROR ((kopcode_t)19)
+typedef struct OPERROR {
+	KCODE_HEAD;
+	/*uintptr_t uline;*/
+	kString* msg __attribute__((packed));
+	kreg_t esp;
+} OPERROR;
+
+#define OPCODE_SAFEPOINT ((kopcode_t)20)
+typedef struct OPSAFEPOINT {
+	KCODE_HEAD;
+	/*uintptr_t uline;*/
+	kreg_t esp;
+} OPSAFEPOINT;
+
+#define OPCODE_CHKSTACK ((kopcode_t)21)
+typedef struct OPCHKSTACK {
+	KCODE_HEAD;
+	/*uintptr_t uline;*/
+} OPCHKSTACK;
+
+#define OPCODE_TRACE ((kopcode_t)22)
+typedef struct OPTRACE {
+	KCODE_HEAD;
+	/*uintptr_t uline;*/
+	kreg_t thisidx;
+	TraceFunc trace;
+} OPTRACE;
+
+	
+#define KOPCODE_MAX ((kopcode_t)23)
+
+#define VMT_VOID       0
+#define VMT_ADDR       1
+#define VMT_R          2
+#define VMT_RN         2
+#define VMT_RO         2
+#define VMT_U          3
+#define VMT_I          4
+#define VMT_CID        5
+#define VMT_CO         6
+#define VMT_INT        7
+#define VMT_FLOAT      8
+#define VMT_HCACHE     9
+#define VMT_F         10/*function*/
+#define VMT_STRING    11
+#define VMT_METHOD    12
+#define VMT_NAMESPACE 13
+
+
+/* ------------------------------------------------------------------------ */
+/* [common] */
 
 /* ------------------------------------------------------------------------ */
 /* [data] */
 
+#define _CONST 1
+#define _JIT   (1<<1)
+#define _DEF   (1<<2)
 typedef struct {
 	const char *name;
+	kshortflag_t   flag;
 	kushort_t size;
 	kushort_t types[6];
 } kOPDATA_t;
 
 static const kOPDATA_t OPDATA[] = {
-	{"NSET", 3, { VMT_RN, VMT_INT, VMT_CID, VMT_VOID}},
-	{"NMOV", 3, { VMT_RN, VMT_RN, VMT_CID, VMT_VOID}},
-	{"NMOVx", 4, { VMT_RN, VMT_RO, VMT_U, VMT_CID, VMT_VOID}},
-	{"XNMOV", 4, { VMT_RO, VMT_U, VMT_RN, VMT_CID, VMT_VOID}},
-	{"NEW", 3, { VMT_RO, VMT_U, VMT_CID, VMT_VOID}},
-	{"NULL", 2, { VMT_RO, VMT_CID, VMT_VOID}},
-	{"BOX", 3, { VMT_RO, VMT_RN, VMT_CID, VMT_VOID}},
-	{"UNBOX", 3, { VMT_RN, VMT_RO, VMT_CID, VMT_VOID}},
-	{"CALL", 4, { VMT_U, VMT_RO, VMT_RO, VMT_CO, VMT_VOID}},
-	{"BNOT", 2, { VMT_RN, VMT_RN, VMT_VOID}},
-	{"JMP", 1, { VMT_ADDR, VMT_VOID}},
-	{"JMPF", 2, { VMT_ADDR, VMT_RN, VMT_VOID}},
-	{"SAFEPOINT", 1, { VMT_RO, VMT_VOID}},
-	{"ERROR", 2, { VMT_RO, VMT_STRING, VMT_VOID}},
-	{"bNUL", 2, { VMT_RN, VMT_RO, VMT_VOID}},
-	{"bNN", 2, { VMT_RN, VMT_RO, VMT_VOID}},
-	{"iNEG", 2, { VMT_RN, VMT_RN, VMT_VOID}},
-	{"fNEG", 2, { VMT_RN, VMT_RN, VMT_VOID}},
-	{"iADD", 3, { VMT_RN, VMT_RN, VMT_RN, VMT_VOID}},
-	{"iSUB", 3, { VMT_RN, VMT_RN, VMT_RN, VMT_VOID}},
-	{"iMUL", 3, { VMT_RN, VMT_RN, VMT_RN, VMT_VOID}},
-	{"iDIV", 3, { VMT_RN, VMT_RN, VMT_RN, VMT_VOID}},
-	{"iMOD", 3, { VMT_RN, VMT_RN, VMT_RN, VMT_VOID}},
-	{"iEQ", 3, { VMT_RN, VMT_RN, VMT_RN, VMT_VOID}},
-	{"iNEQ", 3, { VMT_RN, VMT_RN, VMT_RN, VMT_VOID}},
-	{"iLT", 3, { VMT_RN, VMT_RN, VMT_RN, VMT_VOID}},
-	{"iLTE", 3, { VMT_RN, VMT_RN, VMT_RN, VMT_VOID}},
-	{"iGT", 3, { VMT_RN, VMT_RN, VMT_RN, VMT_VOID}},
-	{"iGTE", 3, { VMT_RN, VMT_RN, VMT_RN, VMT_VOID}},
-	{"fADD", 3, { VMT_RN, VMT_RN, VMT_RN, VMT_VOID}},
-	{"fSUB", 3, { VMT_RN, VMT_RN, VMT_RN, VMT_VOID}},
-	{"fMUL", 3, { VMT_RN, VMT_RN, VMT_RN, VMT_VOID}},
-	{"fDIV", 3, { VMT_RN, VMT_RN, VMT_RN, VMT_VOID}},
-	{"fEQ", 3, { VMT_RN, VMT_RN, VMT_RN, VMT_VOID}},
-	{"fNEQ", 3, { VMT_RN, VMT_RN, VMT_RN, VMT_VOID}},
-	{"fLT", 3, { VMT_RN, VMT_RN, VMT_RN, VMT_VOID}},
-	{"fLTE", 3, { VMT_RN, VMT_RN, VMT_RN, VMT_VOID}},
-	{"fGT", 3, { VMT_RN, VMT_RN, VMT_RN, VMT_VOID}},
-	{"fGTE", 3, { VMT_RN, VMT_RN, VMT_RN, VMT_VOID}},
-	{"OSET", 2, { VMT_RO, VMT_RN, VMT_VOID}},
-	{"OMOV", 2, { VMT_RO, VMT_RO, VMT_VOID}},
-	{"SCALL", 4, { /*VMT_U, */VMT_RO, VMT_RO, VMT_METHOD, VMT_VOID}},
-	{"VCALL", 4, { /*VMT_U, */VMT_RO, VMT_RO, VMT_METHOD, VMT_VOID}},
-	{"iCAST", 2, { VMT_RN, VMT_RN, VMT_VOID}},
-	{"fCAST", 2, { VMT_RN, VMT_RN, VMT_VOID}},
-	{"EXIT", 0, { VMT_VOID}},
-	//{"NGETIDX", 3, { VMT_RN, VMT_RO, VMT_RN, VMT_VOID}},
-	//{"NSETIDX", 4, { VMT_RN, VMT_RO, VMT_RN, VMT_RN, VMT_VOID}},
-	//{"OGETIDX", 3, { VMT_RO, VMT_RO, VMT_RN, VMT_VOID}},
-	//{"OSETIDX", 4, { VMT_RO, VMT_RO, VMT_RN, VMT_RO, VMT_VOID}},
+	{"NOP", 0, 0, { VMT_VOID}}, 
+	{"THCODE", 0, 1, { VMT_F, VMT_VOID}}, 
+	{"ENTER", 0, 0, { VMT_VOID}}, 
+	{"EXIT", 0, 0, { VMT_VOID}}, 
+	{"NSET", 0, 2, { VMT_RN, VMT_INT,/* VMT_CID,*/ VMT_VOID}}, 
+	{"NMOV", 0, 2, { VMT_RN, VMT_RN,/* VMT_CID,*/ VMT_VOID}}, 
+	{"NMOVx", 0, 3, { VMT_RN, VMT_RO, VMT_U,/* VMT_CID,*/ VMT_VOID}}, 
+	{"XNMOV", 0, 3, { VMT_RO, VMT_U, VMT_RN,/* VMT_CID,*/ VMT_VOID}}, 
+	{"NEW", 0, 3, { VMT_RO, VMT_U, VMT_CID, VMT_VOID}}, 
+	{"NULL", 0, 2, { VMT_RO, VMT_CID, VMT_VOID}}, 
+	{"LOOKUP", 0, 3, { VMT_RO, VMT_NAMESPACE,/* VMT_METHOD,*/ VMT_VOID}}, 
+	{"CALL", 0, 3, { /*VMT_U, */VMT_RO, VMT_RO, VMT_CO, VMT_VOID}}, 
+	{"RET", 0, 0, { VMT_VOID}}, 
+	{"NCALL", 0, 0, { VMT_VOID}}, 
+	{"BNOT", 0, 2, { VMT_RN, VMT_RN, VMT_VOID}}, 
+	{"JMP", 0, 1, { VMT_ADDR, VMT_VOID}}, 
+	{"JMPF", 0, 2, { VMT_ADDR, VMT_RN, VMT_VOID}}, 
+	{"TRYJMP", 0, 1, { VMT_ADDR, VMT_VOID}}, 
+	{"YIELD", 0, 0, { VMT_VOID}}, 
+	{"ERROR", 0, 2, { /*VMT_U,*/ VMT_STRING, VMT_RO, VMT_VOID}}, 
+	{"SAFEPOINT", 0, 1, { /*VMT_U,*/ VMT_RO, VMT_VOID}}, 
+	{"CHKSTACK", 0, 0, { /*VMT_U,*/ VMT_VOID}}, 
+	{"TRACE", 0, 2, { /*VMT_U,*/ VMT_RO, VMT_F, VMT_VOID}}, 
 };
 
 static void opcode_check(void)
 {
-	//printf("check %zd %zd\n", sizeof(klr_SCALL_t), sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_NSET_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_NMOV_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_NMOVx_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_XNMOV_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_NEW_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_NULL_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_BOX_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_UNBOX_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_CALL_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_BNOT_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_JMP_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_JMPF_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_SAFEPOINT_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_ERROR_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_bNUL_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_bNN_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_iNEG_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_fNEG_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_iADD_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_iSUB_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_iMUL_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_iDIV_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_iMOD_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_iEQ_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_iNEQ_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_iLT_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_iLTE_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_iGT_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_iGTE_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_fADD_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_fSUB_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_fMUL_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_fDIV_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_fEQ_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_fNEQ_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_fLT_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_fLTE_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_fGT_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_fGTE_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_OSET_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_OMOV_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_SCALL_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_VCALL_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_iCAST_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_fCAST_t) <= sizeof(VirtualMachineInstruction));
-	assert(sizeof(klr_EXIT_t) <= sizeof(VirtualMachineInstruction));
-	//assert(sizeof(klr_NGETIDX_t) <= sizeof(VirtualMachineInstruction));
-	//assert(sizeof(klr_NSETIDX_t) <= sizeof(VirtualMachineInstruction));
-	//assert(sizeof(klr_OGETIDX_t) <= sizeof(VirtualMachineInstruction));
-	//assert(sizeof(klr_OSETIDX_t) <= sizeof(VirtualMachineInstruction));
+	assert(sizeof(OPNOP) <= sizeof(VirtualMachineInstruction));
+	assert(sizeof(OPTHCODE) <= sizeof(VirtualMachineInstruction));
+	assert(sizeof(OPENTER) <= sizeof(VirtualMachineInstruction));
+	assert(sizeof(OPEXIT) <= sizeof(VirtualMachineInstruction));
+	assert(sizeof(OPNSET) <= sizeof(VirtualMachineInstruction));
+	assert(sizeof(OPNMOV) <= sizeof(VirtualMachineInstruction));
+	assert(sizeof(OPNMOVx) <= sizeof(VirtualMachineInstruction));
+	assert(sizeof(OPXNMOV) <= sizeof(VirtualMachineInstruction));
+	assert(sizeof(OPNEW) <= sizeof(VirtualMachineInstruction));
+	assert(sizeof(OPNULL) <= sizeof(VirtualMachineInstruction));
+	assert(sizeof(OPLOOKUP) <= sizeof(VirtualMachineInstruction));
+	assert(sizeof(OPCALL) <= sizeof(VirtualMachineInstruction));
+	assert(sizeof(OPRET) <= sizeof(VirtualMachineInstruction));
+	assert(sizeof(OPNCALL) <= sizeof(VirtualMachineInstruction));
+	assert(sizeof(OPBNOT) <= sizeof(VirtualMachineInstruction));
+	assert(sizeof(OPJMP) <= sizeof(VirtualMachineInstruction));
+	assert(sizeof(OPJMPF) <= sizeof(VirtualMachineInstruction));
+	assert(sizeof(OPTRYJMP) <= sizeof(VirtualMachineInstruction));
+	assert(sizeof(OPYIELD) <= sizeof(VirtualMachineInstruction));
+	assert(sizeof(OPERROR) <= sizeof(VirtualMachineInstruction));
+	assert(sizeof(OPSAFEPOINT) <= sizeof(VirtualMachineInstruction));
+	assert(sizeof(OPCHKSTACK) <= sizeof(VirtualMachineInstruction));
+	assert(sizeof(OPTRACE) <= sizeof(VirtualMachineInstruction));
 }
 
 static const char *T_opcode(kopcode_t opcode)
 {
-	if(opcode < KOPCODE_MAX) {
-		return OPDATA[opcode].name;
-	}
-	else {
-		//fprintf(stderr, "opcode=%d\n", (int)opcode);
-		return "OPCODE_??";
-	}
+	return OPDATA[opcode].name;
 }
+
+#ifdef OLD
+static size_t kopcode_size(kopcode_t opcode)
+{
+	return OPDATA[opcode].size;
+}
+
+static kbool_t kopcode_hasjump(kopcode_t opcode)
+{
+	return (OPDATA[opcode].types[0] == VMT_ADDR);
+}
+#endif
+
+/* ------------------------------------------------------------------------ */
+
+
 
 /* ------------------------------------------------------------------------ */
 /* [exec] */
 
-#define CASE(x)     L_##x :
-#define NEXT_OP     (pc->opcode)
-#define JUMP        *OPJUMP[NEXT_OP]
-#define GOTO_NEXT() goto *OPJUMP[NEXT_OP]
+
+//#if (defined(K_USING_LINUX_) && (defined(__i386__) || defined(__x86_64__)) && (defined(__GNUC__) && __GNUC__ >= 3))
+//#define K_USING_VMASMDISPATCH 1
+//#endif
+
+#ifdef K_USING_THCODE_
+#define CASE(x)  L_##x : 
+#define NEXT_OP   (OPJUMP[pc->opcode])
+#define JUMP      *(NEXT_OP)
+#ifdef K_USING_VMASMDISPATCH
+#define GOTO_NEXT()     \
+	asm volatile("jmp *%0;": : "g"(NEXT_OP));\
+	goto *(NEXT_OP)
+
+#else
+#define GOTO_NEXT()     goto *(NEXT_OP)
+#endif
+#define TC(c) 
 #define DISPATCH_START(pc) goto *OPJUMP[pc->opcode]
 #define DISPATCH_END(pc)
 #define GOTO_PC(pc)        GOTO_NEXT()
+#else/*K_USING_THCODE_*/
+#define OPJUMP      NULL
+#define CASE(x)     case OPCODE_##x : 
+#define NEXT_OP     L_HEAD
+#define GOTO_NEXT() goto NEXT_OP
+#define JUMP        L_HEAD
+#define TC(c)
+#define DISPATCH_START(pc) L_HEAD:;switch(pc->opcode) {
+#define DISPATCH_END(pc)   } /*KNH_DIE("unknown opcode=%d", (int)pc->opcode)*/; 
+#define GOTO_PC(pc)         GOTO_NEXT()
+#endif/*K_USING_THCODE_*/
 
-static VirtualMachineInstruction* VirtualMachine_run(KonohaContext *kctx, KonohaStack *sfp0, VirtualMachineInstruction *pc)
+static VirtualMachineInstruction* KonohaVirtualMachine_run(KonohaContext *kctx, KonohaStack *sfp0, VirtualMachineInstruction *pc)
 {
+#ifdef K_USING_THCODE_
 	static void *OPJUMP[] = {
+		&&L_NOP, &&L_THCODE, &&L_ENTER, &&L_EXIT, 
 		&&L_NSET, &&L_NMOV, &&L_NMOVx, &&L_XNMOV, 
-		&&L_NEW, &&L_NULL, &&L_BOX, &&L_UNBOX, 
-		&&L_CALL, &&L_BNOT, &&L_JMP, &&L_JMPF, 
-		&&L_SAFEPOINT, &&L_ERROR, &&L_bNUL, &&L_bNN, 
-		&&L_iNEG, &&L_fNEG, &&L_iADD, &&L_iSUB, 
-		&&L_iMUL, &&L_iDIV, &&L_iMOD, &&L_iEQ, 
-		&&L_iNEQ, &&L_iLT, &&L_iLTE, &&L_iGT, 
-		&&L_iGTE, &&L_fADD, &&L_fSUB, &&L_fMUL, 
-		&&L_fDIV, &&L_fEQ, &&L_fNEQ, &&L_fLT, 
-		&&L_fLTE, &&L_fGT, &&L_fGTE, &&L_OSET, 
-		&&L_OMOV,
-		&&L_SCALL, &&L_VCALL, &&L_iCAST, &&L_fCAST, 
-		&&L_RET, &&L_EXIT,
-		//&&L_NGETIDX, &&L_NSETIDX, &&L_OGETIDX, &&L_OSETIDX, 
+		&&L_NEW, &&L_NULL, &&L_LOOKUP, &&L_CALL, 
+		&&L_RET, &&L_NCALL, &&L_BNOT, &&L_JMP, 
+		&&L_JMPF, &&L_TRYJMP, &&L_YIELD, &&L_ERROR, 
+		&&L_SAFEPOINT, &&L_CHKSTACK, &&L_TRACE, 
 	};
+#endif
 	krbp_t *rbp = (krbp_t*)sfp0;
 	DISPATCH_START(pc);
 
+	CASE(NOP) {
+		OPNOP *op = (OPNOP*)pc;
+		OPEXEC_NOP(); pc++;
+		GOTO_NEXT();
+	} 
+	CASE(THCODE) {
+		OPTHCODE *op = (OPTHCODE*)pc;
+		OPEXEC_THCODE(op->threadCode); pc++;
+		GOTO_NEXT();
+	} 
+	CASE(ENTER) {
+		OPENTER *op = (OPENTER*)pc;
+		OPEXEC_ENTER(); pc++;
+		GOTO_NEXT();
+	} 
+	CASE(EXIT) {
+		OPEXIT *op = (OPEXIT*)pc;
+		OPEXEC_EXIT(); pc++;
+		GOTO_NEXT();
+	} 
 	CASE(NSET) {
-		klr_NSET_t *op = (klr_NSET_t*)pc;
-		OPEXEC_NSET(op->a, op->n, op->ty); pc++;
+		OPNSET *op = (OPNSET*)pc;
+		OPEXEC_NSET(op->a, op->n/*, op->ty*/); pc++;
 		GOTO_NEXT();
 	} 
 	CASE(NMOV) {
-		klr_NMOV_t *op = (klr_NMOV_t*)pc;
-		OPEXEC_NMOV(op->a, op->b, op->ty); pc++;
+		OPNMOV *op = (OPNMOV*)pc;
+		OPEXEC_NMOV(op->a, op->b/*, op->ty*/); pc++;
 		GOTO_NEXT();
 	} 
 	CASE(NMOVx) {
-		klr_NMOVx_t *op = (klr_NMOVx_t*)pc;
-		OPEXEC_NMOVx(op->a, op->b, op->bx, op->ty); pc++;
+		OPNMOVx *op = (OPNMOVx*)pc;
+		OPEXEC_NMOVx(op->a, op->b, op->bx/*, op->ty*/); pc++;
 		GOTO_NEXT();
 	} 
 	CASE(XNMOV) {
-		klr_XNMOV_t *op = (klr_XNMOV_t*)pc;
-		OPEXEC_XNMOV(op->a, op->ax, op->b, op->ty); pc++;
+		OPXNMOV *op = (OPXNMOV*)pc;
+		OPEXEC_XNMOV(op->a, op->ax, op->b/*, op->ty*/); pc++;
 		GOTO_NEXT();
 	} 
 	CASE(NEW) {
-		klr_NEW_t *op = (klr_NEW_t*)pc;
-		OPEXEC_NEW(op->a, (intptr_t)op->p, CT_(op->ty)); pc++;
+		OPNEW *op = (OPNEW*)pc;
+		OPEXEC_NEW(op->a, op->p, op->cid); pc++;
 		GOTO_NEXT();
 	} 
 	CASE(NULL) {
-		klr_NULL_t *op = (klr_NULL_t*)pc;
-		OPEXEC_NULL(op->a, CT_(op->ty)); pc++;
+		OPNULL *op = (OPNULL*)pc;
+		OPEXEC_NULL(op->a, op->cid); pc++;
 		GOTO_NEXT();
 	} 
-	CASE(BOX) {
-		klr_BOX_t *op = (klr_BOX_t*)pc;
-		OPEXEC_BOX(op->a, op->b, CT_(op->ty)); pc++;
-		GOTO_NEXT();
-	} 
-	CASE(UNBOX) {
-		klr_UNBOX_t *op = (klr_UNBOX_t*)pc;
-		OPEXEC_UNBOX(op->a, op->b, op->ty); pc++;
+	CASE(LOOKUP) {
+		OPLOOKUP *op = (OPLOOKUP*)pc;
+		OPEXEC_LOOKUP(op->thisidx, op->ns, op->mtd); pc++;
 		GOTO_NEXT();
 	} 
 	CASE(CALL) {
-		klr_CALL_t *op = (klr_CALL_t*)pc;
-		//OPEXEC_CALL(op->uline, op->thisidx, op->espshift, knull(CT_(op->tyo))); pc++;
+		OPCALL *op = (OPCALL*)pc;
+		OPEXEC_CALL(0, op->thisidx, op->espshift, op->tyo); pc++;
+		GOTO_NEXT();
+	} 
+	CASE(RET) {
+		OPRET *op = (OPRET*)pc;
+		OPEXEC_RET(); pc++;
+		GOTO_NEXT();
+	} 
+	CASE(NCALL) {
+		OPNCALL *op = (OPNCALL*)pc;
+		OPEXEC_NCALL(); pc++;
 		GOTO_NEXT();
 	} 
 	CASE(BNOT) {
-		klr_BNOT_t *op = (klr_BNOT_t*)pc;
+		OPBNOT *op = (OPBNOT*)pc;
 		OPEXEC_BNOT(op->c, op->a); pc++;
 		GOTO_NEXT();
 	} 
 	CASE(JMP) {
-		klr_JMP_t *op = (klr_JMP_t*)pc;
+		OPJMP *op = (OPJMP*)pc;
 		kMethod *mtd = rbp[K_MTDIDX*2].mtdNC;
 		OPEXEC_JMP(pc = mtd->pc_start + op->jumppc, JUMP); pc++;
 		GOTO_NEXT();
 	} 
 	CASE(JMPF) {
-		klr_JMPF_t *op = (klr_JMPF_t*)pc;
+		OPJMPF *op = (OPJMPF*)pc;
 		kMethod *mtd = rbp[K_MTDIDX*2].mtdNC;
 		OPEXEC_JMPF(pc = mtd->pc_start + op->jumppc, JUMP, op->a); pc++;
 		GOTO_NEXT();
 	} 
-	CASE(SAFEPOINT) {
-		klr_SAFEPOINT_t *op = (klr_SAFEPOINT_t*)pc;
-		OPEXEC_SAFEPOINT(op->uline, op->espshift); pc++;
+	CASE(TRYJMP) {
+		OPTRYJMP *op = (OPTRYJMP*)pc;
+		OPEXEC_TRYJMP(pc = op->jumppc, JUMP); pc++;
+		GOTO_NEXT();
+	} 
+	CASE(YIELD) {
+		OPYIELD *op = (OPYIELD*)pc;
+		OPEXEC_YIELD(); pc++;
 		GOTO_NEXT();
 	} 
 	CASE(ERROR) {
-		klr_ERROR_t *op = (klr_ERROR_t*)pc;
-		OPEXEC_ERROR(op->uline, NULL/*op->msg*/, op->esp); pc++;
+		OPERROR *op = (OPERROR*)pc;
+		OPEXEC_ERROR(0, op->msg, op->esp); pc++;
 		GOTO_NEXT();
 	} 
-	CASE(bNUL) {
-		klr_bNUL_t *op = (klr_bNUL_t*)pc;
-		OPEXEC_bNUL(op->c, op->a); pc++;
+	CASE(SAFEPOINT) {
+		OPSAFEPOINT *op = (OPSAFEPOINT*)pc;
+		OPEXEC_SAFEPOINT(0, op->esp); pc++;
 		GOTO_NEXT();
 	} 
-	CASE(bNN) {
-		klr_bNN_t *op = (klr_bNN_t*)pc;
-		OPEXEC_bNN(op->c, op->a); pc++;
+	CASE(CHKSTACK) {
+		OPCHKSTACK *op = (OPCHKSTACK*)pc;
+		OPEXEC_CHKSTACK(0); pc++;
 		GOTO_NEXT();
 	} 
-	CASE(iNEG) {
-		klr_iNEG_t *op = (klr_iNEG_t*)pc;
-		OPEXEC_iNEG(op->c, op->a); pc++;
+	CASE(TRACE) {
+		OPTRACE *op = (OPTRACE*)pc;
+		OPEXEC_TRACE(0, op->thisidx, op->trace); pc++;
 		GOTO_NEXT();
 	} 
-	CASE(fNEG) {
-		klr_fNEG_t *op = (klr_fNEG_t*)pc;
-		OPEXEC_fNEG(op->c, op->a); pc++;
-		GOTO_NEXT();
-	} 
-	CASE(iADD) {
-		klr_iADD_t *op = (klr_iADD_t*)pc;
-		OPEXEC_iADD(op->c, op->a, op->b); pc++;
-		GOTO_NEXT();
-	} 
-	CASE(iSUB) {
-		klr_iSUB_t *op = (klr_iSUB_t*)pc;
-		OPEXEC_iSUB(op->c, op->a, op->b); pc++;
-		GOTO_NEXT();
-	} 
-	CASE(iMUL) {
-		klr_iMUL_t *op = (klr_iMUL_t*)pc;
-		OPEXEC_iMUL(op->c, op->a, op->b); pc++;
-		GOTO_NEXT();
-	} 
-	CASE(iDIV) {
-		klr_iDIV_t *op = (klr_iDIV_t*)pc;
-		OPEXEC_iDIV(op->c, op->a, op->b); pc++;
-		GOTO_NEXT();
-	} 
-	CASE(iMOD) {
-		klr_iMOD_t *op = (klr_iMOD_t*)pc;
-		OPEXEC_iMOD(op->c, op->a, op->b); pc++;
-		GOTO_NEXT();
-	} 
-	CASE(iEQ) {
-		klr_iEQ_t *op = (klr_iEQ_t*)pc;
-		OPEXEC_iEQ(op->c, op->a, op->b); pc++;
-		GOTO_NEXT();
-	} 
-	CASE(iNEQ) {
-		klr_iNEQ_t *op = (klr_iNEQ_t*)pc;
-		OPEXEC_iNEQ(op->c, op->a, op->b); pc++;
-		GOTO_NEXT();
-	} 
-	CASE(iLT) {
-		klr_iLT_t *op = (klr_iLT_t*)pc;
-		OPEXEC_iLT(op->c, op->a, op->b); pc++;
-		GOTO_NEXT();
-	} 
-	CASE(iLTE) {
-		klr_iLTE_t *op = (klr_iLTE_t*)pc;
-		OPEXEC_iLTE(op->c, op->a, op->b); pc++;
-		GOTO_NEXT();
-	} 
-	CASE(iGT) {
-		klr_iGT_t *op = (klr_iGT_t*)pc;
-		OPEXEC_iGT(op->c, op->a, op->b); pc++;
-		GOTO_NEXT();
-	} 
-	CASE(iGTE) {
-		klr_iGTE_t *op = (klr_iGTE_t*)pc;
-		OPEXEC_iGTE(op->c, op->a, op->b); pc++;
-		GOTO_NEXT();
-	} 
-	CASE(fADD) {
-		klr_fADD_t *op = (klr_fADD_t*)pc;
-		OPEXEC_fADD(op->c, op->a, op->b); pc++;
-		GOTO_NEXT();
-	} 
-	CASE(fSUB) {
-		klr_fSUB_t *op = (klr_fSUB_t*)pc;
-		OPEXEC_fSUB(op->c, op->a, op->b); pc++;
-		GOTO_NEXT();
-	} 
-	CASE(fMUL) {
-		klr_fMUL_t *op = (klr_fMUL_t*)pc;
-		OPEXEC_fMUL(op->c, op->a, op->b); pc++;
-		GOTO_NEXT();
-	} 
-	CASE(fDIV) {
-		klr_fDIV_t *op = (klr_fDIV_t*)pc;
-		OPEXEC_fDIV(op->c, op->a, op->b); pc++;
-		GOTO_NEXT();
-	} 
-	CASE(fEQ) {
-		klr_fEQ_t *op = (klr_fEQ_t*)pc;
-		OPEXEC_fEQ(op->c, op->a, op->b); pc++;
-		GOTO_NEXT();
-	} 
-	CASE(fNEQ) {
-		klr_fNEQ_t *op = (klr_fNEQ_t*)pc;
-		OPEXEC_fNEQ(op->c, op->a, op->b); pc++;
-		GOTO_NEXT();
-	} 
-	CASE(fLT) {
-		klr_fLT_t *op = (klr_fLT_t*)pc;
-		OPEXEC_fLT(op->c, op->a, op->b); pc++;
-		GOTO_NEXT();
-	} 
-	CASE(fLTE) {
-		klr_fLTE_t *op = (klr_fLTE_t*)pc;
-		OPEXEC_fLTE(op->c, op->a, op->b); pc++;
-		GOTO_NEXT();
-	} 
-	CASE(fGT) {
-		klr_fGT_t *op = (klr_fGT_t*)pc;
-		OPEXEC_fGT(op->c, op->a, op->b); pc++;
-		GOTO_NEXT();
-	} 
-	CASE(fGTE) {
-		klr_fGTE_t *op = (klr_fGTE_t*)pc;
-		OPEXEC_fGTE(op->c, op->a, op->b); pc++;
-		GOTO_NEXT();
-	} 
-	CASE(OSET) {
-		klr_OSET_t *op = (klr_OSET_t*)pc;
-		OPEXEC_OSET(op->a, op->n); pc++;
-		GOTO_NEXT();
-	} 
-	CASE(OMOV) {
-		klr_OMOV_t *op = (klr_OMOV_t*)pc;
-		OPEXEC_OMOV(op->a, op->b); pc++;
-		GOTO_NEXT();
-	} 
-	CASE(SCALL) {
-		klr_SCALL_t *op = (klr_SCALL_t*)pc;
-		//kMethod *mtd = kKonohaSpace_getMethodNULL(NULL, op->cid, op->mn);
-		OPEXEC_SCALL(op->thisidx, op->espshift, op->mtd);
-		pc++;
-		GOTO_NEXT();
-	} 
-	CASE(VCALL) {
-		klr_VCALL_t *op = (klr_VCALL_t*)pc;
-		//kMethod *mtd = kKonohaSpace_getMethodNULL(NULL, op->cid, op->mn);
-		if (op->mtd != NULL) {
-			OPEXEC_VCALL(op->thisidx, op->espshift, op->mtd);
-		}
-		pc++;
-		GOTO_NEXT();
-	} 
-	CASE(iCAST) {
-		klr_iCAST_t *op = (klr_iCAST_t*)pc;
-		OPEXEC_iCAST(op->a, op->b); pc++;
-		GOTO_NEXT();
-	} 
-	CASE(fCAST) {
-		klr_fCAST_t *op = (klr_fCAST_t*)pc;
-		OPEXEC_fCAST(op->a, op->b); pc++;
-		GOTO_NEXT();
-	} 
-	CASE(RET) {
-		klr_RET_t *op = (klr_RET_t*)pc;
-		OPEXEC_RET(); pc++;
-		GOTO_NEXT();
-	}
-	CASE(EXIT) {
-		klr_EXIT_t *op = (klr_EXIT_t*)pc;
-		OPEXEC_EXIT(); pc++;
-		GOTO_NEXT();
-	}
-	//CASE(NGETIDX) {
-	//	klr_NGETIDX_t *op = (klr_NGETIDX_t*)pc;
-	//	OPEXEC_NGETIDX(op->c, op->a, op->n); pc++;
-	//	GOTO_NEXT();
-	//} 
-	//CASE(NSETIDX) {
-	//	klr_NSETIDX_t *op = (klr_NSETIDX_t*)pc;
-	//	OPEXEC_NSETIDX(op->c, op->a, op->n, op->v); pc++;
-	//	GOTO_NEXT();
-	//} 
-	//CASE(OGETIDX) {
-	//	klr_OGETIDX_t *op = (klr_OGETIDX_t*)pc;
-	//	OPEXEC_OGETIDX(op->c, op->a, op->n); pc++;
-	//	GOTO_NEXT();
-	//} 
-	//CASE(OSETIDX) {
-	//	klr_OSETIDX_t *op = (klr_OSETIDX_t*)pc;
-	//	OPEXEC_OSETIDX(op->c, op->a, op->n, op->v); pc++;
-	//	GOTO_NEXT();
-	//} 
 	DISPATCH_END(pc);
 	L_RETURN:;
 	return pc;
 }
 
-#endif /* TINYVM_OPCODES_H */
+#endif /* MINIVM_H */

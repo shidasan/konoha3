@@ -23,6 +23,7 @@
  ***************************************************************************/
 
 //#include <minikonoha/minikonoha.h>
+//#include <minikonoha/sugar.h>
 
 #ifndef KONOHA_VM_H_
 #define KONOHA_VM_H_
@@ -71,10 +72,10 @@ typedef struct {
 /* KCODE */
 
 typedef uintptr_t  kopcode_t;
-typedef intptr_t   kreg_t;
-typedef intptr_t   ksfpidx_t;
-typedef intptr_t   kregO_t;
-typedef intptr_t   kregN_t;
+typedef int8_t   kreg_t;
+typedef int8_t   ksfpidx_t;
+typedef int8_t   kregO_t;
+typedef int8_t   kregN_t;
 typedef struct ksfx_t {
 	ksfpidx_t i;
 	ksfpidx_t n;
@@ -88,36 +89,28 @@ typedef struct {
 	ktype_t typeId; kparamid_t signature;
 } kMethodInlineCache;
 
-#if defined(K_USING_THCODE_)
-#define KCODE_HEAD \
-	void *codeaddr; \
-	size_t count; \
-	kushort_t opcode; \
-	kushort_t line
+//#if defined(K_USING_THCODE_)
+//#define KCODE_HEAD \
+//	void *codeaddr; \
+//	size_t count; \
+//	kushort_t opcode; \
+//	kushort_t line
+//
+//#else
+//#define KCODE_HEAD \
+//	size_t count; \
+//	kopcode_t opcode; \
+//	uintptr_t line \
+//
+//#endif/*K_USING_THCODE_*/
 
-#else
-#define KCODE_HEAD \
-	size_t count; \
-	kopcode_t opcode; \
-	uintptr_t line \
-
-#endif/*K_USING_THCODE_*/
+#define KCODE_HEAD int8_t opcode
 
 typedef struct VirtualMachineInstruction {
-	uint8_t opcode;
+	KCODE_HEAD;
 	uint8_t data[3];
 	void *ptr;
 } VirtualMachineInstruction;
-//typedef struct VirtualMachineInstruction {
-//	KCODE_HEAD;
-//	union {
-//		intptr_t data[5];
-//		void *p[5];
-//		kObject *o[5];
-//		KonohaClass *ct[5];
-//		char *u[5];
-//	};
-//} VirtualMachineInstruction;
 
 /* ------------------------------------------------------------------------ */
 
@@ -144,21 +137,19 @@ struct kByteCodeVar {
 
 //-------------------------------------------------------------------------
 
-//static void kNameSpace_lookupMethodWithInlineCache(KonohaContext *kctx, KonohaStack *sfp, kNameSpace *ns, kMethod **cache)
-//{
-//	ktype_t typeId = O_typeId(sfp[0].asObject);
-//	kMethod *mtd = cache[0];
-//	if(mtd->typeId != typeId) {
-//		mtd = KLIB kNameSpace_getMethodNULL(kctx, ns, typeId, mtd->mn, mtd->paramdom, MPOL_LATEST|MPOL_SIGNATURE);
-//		cache[0] = mtd;
-//	}
-//	sfp[K_MTDIDX].mtdNC = mtd;
-//}
-//
-//static VirtualMachineInstruction* KonohaVirtualMachine_run(KonohaContext *, KonohaStack *, VirtualMachineInstruction *);
-//
-//static VirtualMachineInstruction *KonohaVirtualMachine_tryJump(KonohaContext *kctx, KonohaStack *sfp, VirtualMachineInstruction *pc)
-//{
+static void kNameSpace_lookupMethodWithInlineCache(KonohaContext *kctx, KonohaStack *sfp, kNameSpace *ns, kMethod **cache)
+{
+	ktype_t typeId = O_typeId(sfp[0].asObject);
+	kMethod *mtd = cache[0];
+	if(mtd->typeId != typeId) {
+		mtd = KLIB kNameSpace_getMethodNULL(kctx, ns, typeId, mtd->mn, 0, MPOL_LATEST|MPOL_SIGNATURE);
+		cache[0] = mtd;
+	}
+	sfp[K_MTDIDX].mtdNC = mtd;
+}
+
+static VirtualMachineInstruction *KonohaVirtualMachine_tryJump(KonohaContext *kctx, KonohaStack *sfp, VirtualMachineInstruction *pc)
+{
 //	int jmpresult;
 //	INIT_GCSTACK();
 //	KonohaStackRuntimeVar *base = kctx->stack;
@@ -178,8 +169,8 @@ struct kByteCodeVar {
 //	memcpy(base->evaljmpbuf, &lbuf, sizeof(jmpbuf_i));
 //	RESET_GCSTACK();
 //	return pc;
-//}
-//
+}
+
 static void KonohaVirtualMachine_onSafePoint(KonohaContext *kctx, KonohaStack *sfp, kfileline_t pline)
 {
 
@@ -226,24 +217,57 @@ static void KonohaVirtualMachine_onSafePoint(KonohaContext *kctx, KonohaStack *s
 		goto L_RETURN;\
 	}\
 
-#define OPEXEC_NSET(A, N, CT) rbp[(A)].unboxValue = N
-#define OPEXEC_NMOV(A, B, CT) rbp[(A)].unboxValue = rbp[(B)].unboxValue
-#define OPEXEC_NMOVx(A, B, BX, CT) rbp[(A)].o = (rbp[(B)].asObjectVar)->fieldObjectItems[(BX)]
-#define OPEXEC_XNMOV(A, AX, B, CT) (rbp[(A)].asObjectVar)->fieldObjectItems[AX] = rbp[(B)].o
+//#define OPEXEC_NSET(A, N, CT) rbp[(A)].unboxValue = N
+//#define OPEXEC_NMOV(A, B, CT) rbp[(A)].unboxValue = rbp[(B)].unboxValue
+//#define OPEXEC_NMOVx(A, B, BX, CT) rbp[(A)].o = (rbp[(B)].asObjectVar)->fieldObjectItems[(BX)]
+//#define OPEXEC_XNMOV(A, AX, B, CT) (rbp[(A)].asObjectVar)->fieldObjectItems[AX] = rbp[(B)].o
+//#define OPEXEC_NEW(A, P, CT)   KSETv_AND_WRITE_BARRIER(NULL, rbp[(A)].o, KLIB new_kObject(kctx, CT, P), GC_NO_WRITE_BARRIER)
+//#define OPEXEC_NULL(A, CT)     KSETv_AND_WRITE_BARRIER(NULL, rbp[(A)].o, KLIB Knull(kctx, CT), GC_NO_WRITE_BARRIER)
+#define OPEXEC_NSET(A, N) rbp[(A)].unboxValue = N
+#define OPEXEC_NMOV(A, B) rbp[(A)].unboxValue = rbp[(B)].unboxValue
+#define OPEXEC_NMOVx(A, B, BX) rbp[(A)].o = (rbp[(B)].asObjectVar)->fieldObjectItems[(BX)]
+#define OPEXEC_XNMOV(A, AX, B) (rbp[(A)].asObjectVar)->fieldObjectItems[AX] = rbp[(B)].o
 
-#define OPEXEC_NEW(A, P, CT)   KSETv_AND_WRITE_BARRIER(NULL, rbp[(A)].o, KLIB new_kObject(kctx, CT, P), GC_NO_WRITE_BARRIER)
-#define OPEXEC_NULL(A, CT)     KSETv_AND_WRITE_BARRIER(NULL, rbp[(A)].o, KLIB Knull(kctx, CT), GC_NO_WRITE_BARRIER)
+#define OPEXEC_NEW(A, P, CID)   KSETv_AND_WRITE_BARRIER(NULL, rbp[(A)].o, KLIB new_kObject(kctx, CT_(CID), P), GC_NO_WRITE_BARRIER)
+#define OPEXEC_NULL(A, CID)     KSETv_AND_WRITE_BARRIER(NULL, rbp[(A)].o, KLIB Knull(kctx, CT_(CID)), GC_NO_WRITE_BARRIER)
 #define OPEXEC_BOX(A, B, CT)   KSETv_AND_WRITE_BARRIER(NULL, rbp[(A)].o, KLIB new_kObject(kctx, CT, rbp[(B)].intValue), GC_NO_WRITE_BARRIER)
 #define OPEXEC_UNBOX(A, B, CT) rbp[(A)].unboxValue = N_toint(rbp[B].o)
 
 #define PC_NEXT(pc)   pc+1
 
 #define OPEXEC_LOOKUP(THIS, NS, MTD) { \
-		kNameSpace_lookupMethodWithInlineCache(kctx, SFP(rshift(rbp, THIS)), NS, (kMethod**)&MTD);\
+		/*kNameSpace_lookupMethodWithInlineCache(kctx, SFP(rshift(rbp, THIS)), NS, (kMethod**)&MTD);*/\
 	} \
 
 #define OPEXEC_CALL(UL, THIS, espshift, CTO) { \
 		kMethod *mtd_ = rbp[THIS+K_MTDIDX2].mtdNC;\
+		KonohaStack *sfp_ = SFP(rshift(rbp, THIS)); \
+		sfp_[K_RTNIDX].o = CTO;\
+		/*sfp_[K_RTNIDX].uline = UL;*/\
+		sfp_[K_SHIFTIDX].shift = THIS; \
+		sfp_[K_PCIDX].pc = PC_NEXT(pc);\
+		sfp_[K_MTDIDX].mtdNC = mtd_;\
+		klr_setesp(kctx, SFP(rshift(rbp, espshift)));\
+		(mtd_)->invokeMethodFunc(kctx, sfp_); \
+		sfp_[K_MTDIDX].mtdNC = NULL;\
+	} \
+
+#define OPEXEC_VCALL(UL, THIS, espshift, mtdO, CTO) { \
+		kMethod *mtd_ = mtdO;\
+		klr_setesp(kctx, SFP(rshift(rbp, espshift)));\
+		OPEXEC_CHKSTACK(UL);\
+		rbp = rshift(rbp, THIS);\
+		rbp[K_ULINEIDX2-1].o = CTO;\
+		rbp[K_ULINEIDX2].uline = UL;\
+		rbp[K_SHIFTIDX2].shift = THIS;\
+		rbp[K_PCIDX2].pc = PC_NEXT(pc);\
+		pc = (mtd_)->pc_start;\
+		GOTO_PC(pc); \
+	} \
+
+#define OPEXEC_SCALL(UL, THIS, espshift, mtdO, CTO) { \
+		kMethod *mtd_ = mtdO;\
+		/*prefetch((mtd_)->invokeMethodFunc);*/\
 		KonohaStack *sfp_ = SFP(rshift(rbp, THIS)); \
 		sfp_[K_RTNIDX].o = CTO;\
 		sfp_[K_RTNIDX].uline = UL;\
@@ -254,56 +278,6 @@ static void KonohaVirtualMachine_onSafePoint(KonohaContext *kctx, KonohaStack *s
 		(mtd_)->invokeMethodFunc(kctx, sfp_); \
 		sfp_[K_MTDIDX].mtdNC = NULL;\
 	} \
-
-#define OPEXEC_VCALL(THIS, espshift, mtdO/*, CTO*/) { \
-		kMethod *mtd_ = mtdO;\
-		klr_setesp(kctx, SFP(rshift(rbp, espshift)));\
-		OPEXEC_CHKSTACK(0);\
-		rbp = rshift(rbp, THIS);\
-		rbp[K_SHIFTIDX2].shift = THIS;\
-		rbp[K_PCIDX2].pc = PC_NEXT(pc);\
-		rbp[K_MTDIDX*2].mtdNC = mtd_;\
-		pc = (mtd_)->pc_start;\
-		GOTO_PC(pc); \
-	} \
-
-#define OPEXEC_SCALL(thisidx, espshift, mtdO/*, CTO*/) { \
-		kMethod *mtd_ = mtdO;\
-		KonohaStack *sfp_ = SFP(rshift(rbp, thisidx)); \
-		sfp_[K_SHIFTIDX].shift = thisidx; \
-		sfp_[K_PCIDX].pc = PC_NEXT(pc);\
-		sfp_[K_MTDIDX].mtdNC = mtd_;\
-		klr_setesp(kctx, SFP(rshift(rbp, espshift)));\
-		(mtd_)->invokeMethodFunc(kctx, sfp_); \
-		sfp_[K_MTDIDX].mtdNC = NULL;\
-	} \
-
-//#define OPEXEC_VCALL(UL, THIS, espshift, mtdO, CTO) { \
-//		kMethod *mtd_ = mtdO;\
-//		klr_setesp(kctx, SFP(rshift(rbp, espshift)));\
-//		OPEXEC_CHKSTACK(UL);\
-//		rbp = rshift(rbp, THIS);\
-//		rbp[K_ULINEIDX2-1].o = CTO;\
-//		rbp[K_ULINEIDX2].uline = UL;\
-//		rbp[K_SHIFTIDX2].shift = THIS;\
-//		rbp[K_PCIDX2].pc = PC_NEXT(pc);\
-//		pc = (mtd_)->pc_start;\
-//		GOTO_PC(pc); \
-//	} \
-//
-//#define OPEXEC_SCALL(UL, THIS, espshift, mtdO, CTO) { \
-//		kMethod *mtd_ = mtdO;\
-//		/*prefetch((mtd_)->invokeMethodFunc);*/\
-//		KonohaStack *sfp_ = SFP(rshift(rbp, THIS)); \
-//		sfp_[K_RTNIDX].o = CTO;\
-//		sfp_[K_RTNIDX].uline = UL;\
-//		sfp_[K_SHIFTIDX].shift = THIS; \
-//		sfp_[K_PCIDX].pc = PC_NEXT(pc);\
-//		sfp_[K_MTDIDX].mtdNC = mtd_;\
-//		klr_setesp(kctx, SFP(rshift(rbp, espshift)));\
-//		(mtd_)->invokeMethodFunc(kctx, sfp_); \
-//		sfp_[K_MTDIDX].mtdNC = NULL;\
-//	} \
 
 
 #define OPEXEC_RET() { \
@@ -375,9 +349,11 @@ static void KonohaVirtualMachine_onSafePoint(KonohaContext *kctx, KonohaStack *s
 		ldmtd(ctx, SFP(rbp), op);\
 	} \
 
-/* ------------------------------------------------------------------------ */
 
+#ifdef OPOLD
+/* ------------------------------------------------------------------------ */
 /* KCODE */
+
 #define R_NEXTIDX (K_NEXTIDX)
 #define Rn_(x)    (rshift(rbp,x)->unboxValue)
 #define Ri_(x)    (rshift(rbp,x)->intValue)
@@ -389,156 +365,128 @@ static void KonohaVirtualMachine_onSafePoint(KonohaContext *kctx, KonohaStack *s
 #define Ra_(x)    (rshift(rbp,x)->a)
 #define Rx_(x)    (rshift(rbp,x)->ox)
 
-#define RXo_(x)    (Rx_(x.i)->fields[x.n])
+#define RXo_(x)    (Rx_(x.i)->fieldObjectItems[x.n])
+//#define RXd_(x)   (*((kunbox_t*) Rx_(x.i)->fields+x.n))
+#define RXd_(x)   (*((kint_t*) Rx_(x.i)->fields+x.n))
+#define SFP(rbp)  ((KonohaStack*)(rbp))
+#define SFPIDX(n) ((n)/2)
+#define RBP(sfp)  ((krbp_t*)(sfp))
 
-/* ------------------------------------------------------------------------ */
+#define PC_PREV(pc)   pc-1
 
-#define OPEXEC_bNOT(ctx, c, a)     Rb_(c) = !(Rb_(a))
 
-#define OPEXEC_iINC(a)       Ri_(a)++
-#define OPEXEC_iDEC(a)       Ri_(a)--
+/* [HALT] */
 
-#define OPEXEC_iNEG(c, a)     Ri_(c) = -(Ri_(a))
-#define OPEXEC_iTR(c, a, f)      Ri_(c) = f((long)Ri_(a))
-#define OPEXEC_iADD(c, a, b)  Ri_(c) = (Ri_(a) + Ri_(b))
-#define OPEXEC_iADDC(c, a, n) Ri_(c) = (Ri_(a) + n)
-#define OPEXEC_iSUB(c, a, b)  Ri_(c) = (Ri_(a) - Ri_(b))
-#define OPEXEC_iSUBC(c, a, n) Ri_(c) = (Ri_(a) - n)
-#define OPEXEC_iMUL(c, a, b)  Ri_(c) = (Ri_(a) * Ri_(b))
-#define OPEXEC_iMULC(c, a, n) Ri_(c) = (Ri_(a) * n)
-#define OPEXEC_iDIV(c, a, b)  Ri_(c) = (Ri_(a) / Ri_(b));
-#define OPEXEC_iDIV2(ctx, c, a, b)  { \
-		SYSLOG_iZERODIV(ctx, sfp, Ri_(b)); \
-		Ri_(c) = (Ri_(a) / Ri_(b)); \
-	} \
+#define KLR_HALT() {\
+	THROW_Halt(kctx, SFP(rbp), "HALT"); \
+	goto L_RETURN;\
+}\
 
-#define OPEXEC_iDIVC(c, a, n)  Ri_(c) = (Ri_(a) / n)
-#define OPEXEC_iMOD(c, a, b)  Ri_(c) = (Ri_(a) % Ri_(b))
-#define OPEXEC_iMOD2(c, a, b)  { \
-		SYSLOG_iZERODIV(ctx, sfp, Ri_(b)); \
-		Ri_(c) = (Ri_(a) % Ri_(b)); \
-	} \
+/* [MOV, SET] */
 
-#define OPEXEC_iMODC(c, a, n)  Ri_(c) = (Ri_(a) % n)
-#define OPEXEC_iEQ(c, a, b)  Rb_(c) = (Ri_(a) == Ri_(b));
-#define OPEXEC_iEQC(c, a, n)  Rb_(c) = (Ri_(a) == n);
-#define OPEXEC_iNEQ(c, a, b)  Rb_(c) = (Ri_(a) != Ri_(b));
-#define OPEXEC_iNEQC(c, a, n)  Rb_(c) = (Ri_(a) != n);
-#define OPEXEC_iLT(c, a, b)  Rb_(c) = (Ri_(a) < Ri_(b));
-#define OPEXEC_iLTC(c, a, n)  Rb_(c) = (Ri_(a) < n);
-#define OPEXEC_iLTE(c, a, b)  Rb_(c) = (Ri_(a) <= Ri_(b));
-#define OPEXEC_iLTEC(c, a, n)  Rb_(c) = (Ri_(a) <= n);
-#define OPEXEC_iGT(c, a, b)  Rb_(c) = (Ri_(a) > Ri_(b));
-#define OPEXEC_iGTC(c, a, n)  Rb_(c) = (Ri_(a) > n);
-#define OPEXEC_iGTE(c, a, b)  Rb_(c) = (Ri_(a) >= Ri_(b));
-#define OPEXEC_iGTEC(c, a, n)  Rb_(c) = (Ri_(a) >= n);
+/* NSET */
 
-#define OPEXEC_iANDC(c, a, n)  Ri_(c) = (Ri_(a) & (n))
-#define OPEXEC_iORC(c, a, n)   Ri_(c) = (Ri_(a) | (n))
-#define OPEXEC_iXORC(c, a, n)  Ri_(c) = (Ri_(a) ^ (n))
-#define OPEXEC_iLSFTC(c, a, n) Ri_(c) = (Ri_(a) << (n))
-#define OPEXEC_iRSFTC(c, a, n) Ri_(c) = (Ri_(a) >> (n))
-#define OPEXEC_iAND(c, a, b)   OPEXEC_iANDC(c, a, Ri_(b))
-#define OPEXEC_iOR(c, a, b)    OPEXEC_iORC(c, a, Ri_(b))
-#define OPEXEC_iXOR(c, a, b)   OPEXEC_iXORC(c, a, Ri_(b))
-#define OPEXEC_iLSFT(c, a, b)  OPEXEC_iLSFTC(c, a, Ri_(b))
-#define OPEXEC_iRSFT(c, a, b)  OPEXEC_iRSFTC(c, a, Ri_(b))
+#define OPEXEC_NNMOV(a, b, c, d) {\
+		Rn_(a) = Rn_(b);\
+		Rn_(c) = Rn_(d);\
+	}\
 
-#define BR_(EXPR, PC, JUMP) if(EXPR) {} else {OPEXEC_JMP(PC, JUMP); }
+#define OPEXEC_NSET2(a, n, n2) {\
+		Rn_(a) = n;\
+		Rn_(a+R_NEXTIDX) = n2;\
+	}\
 
-#define OPEXEC_bJNUL(PC, JUMP, a)    BR_(IS_NULL(Ro_(a)), PC, JUMP)
-#define OPEXEC_bJNN(PC, JUMP, a)     BR_(IS_NOTNULL(Ro_(a)), PC, JUMP)
-#define OPEXEC_bJNOT(PC, JUMP, a)     BR_(!Rb_(a), PC, JUMP)
-#define OPEXEC_iJEQ(PC, JUMP, a, b)   BR_((Ri_(a) == Ri_(b)), PC, JUMP)
-#define OPEXEC_iJEQC(PC, JUMP, a, n)  BR_((Ri_(a) == n), PC, JUMP)
-#define OPEXEC_iJNEQ(PC, JUMP, a, b)  BR_((Ri_(a) != Ri_(b)), PC, JUMP)
-#define OPEXEC_iJNEQC(PC, JUMP, a, n) BR_((Ri_(a) != n), PC, JUMP)
-#define OPEXEC_iJLT(PC, JUMP, a, b)   BR_((Ri_(a) < Ri_(b)), PC, JUMP)
-#define OPEXEC_iJLTC(PC, JUMP, a, n)  BR_((Ri_(a) < n), PC, JUMP)
-#define OPEXEC_iJLTE(PC, JUMP, a, b)  BR_((Ri_(a) <= Ri_(b)), PC, JUMP)
-#define OPEXEC_iJLTEC(PC, JUMP, a, n) BR_((Ri_(a) <= n), PC, JUMP)
-#define OPEXEC_iJGT(PC, JUMP, a, b)   BR_((Ri_(a) > Ri_(b)), PC, JUMP)
-#define OPEXEC_iJGTC(PC, JUMP, a, n)  BR_((Ri_(a) > n), PC, JUMP)
-#define OPEXEC_iJGTE(PC, JUMP, a, b)  BR_((Ri_(a) >= Ri_(b)), PC, JUMP)
-#define OPEXEC_iJGTEC(PC, JUMP, a, n) BR_((Ri_(a) >= n), PC, JUMP)
+#define OPEXEC_NSET3(a, n, n2, n3) {\
+		Rn_(a) = n;\
+		Rn_(a+R_NEXTIDX) = n2;\
+		Rn_(a+R_NEXTIDX+R_NEXTIDX) = n3;\
+	}\
 
-/* ------------------------------------------------------------------------ */
+#define OPEXEC_NSET4(a, n, n2, n3, n4) {\
+		Rn_(a) = n;\
+		Rn_(a+R_NEXTIDX) = n2;\
+		Rn_(a+R_NEXTIDX+R_NEXTIDX) = n3;\
+		Rn_(a+R_NEXTIDX+R_NEXTIDX+R_NEXTIDX) = n4;\
+	}\
 
-#define OPEXEC_fNEG(c, a)     Rf_(c) = -(Rf_(a))
-#define OPEXEC_fTR(c, a, f)      Rf_(c) = f((double)Rf_(a))
-#define OPEXEC_fADD(c, a, b)  Rf_(c) = (Rf_(a) + Rf_(b))
-#define OPEXEC_fADDC(c, a, n) Rf_(c) = (Rf_(a) + n)
-#define OPEXEC_fSUB(c, a, b)  Rf_(c) = (Rf_(a) - Rf_(b))
-#define OPEXEC_fSUBC(c, a, n) Rf_(c) = (Rf_(a) - n)
-#define OPEXEC_fMUL(c, a, b)  Rf_(c) = (Rf_(a) * Rf_(b))
-#define OPEXEC_fMULC(c, a, n) Rf_(c) = (Rf_(a) * n)
-#define OPEXEC_fDIV(c, a, b)  Rf_(c) = (Rf_(a) / Rf_(b))
-#define OPEXEC_fDIV2(ctx, c, a, b)  { \
-		SYSLOG_fZERODIV2(ctx, sfp, Rf_(b)); \
-		Rf_(c) = (Rf_(a) / Rf_(b)); \
-	} \
+#define OPEXEC_XNSET(a, b)    RXd_(a) = b
+#define OPEXEC_XNMOVx(a, b)   RXd_(a) = RXd_(b)
 
-#define OPEXEC_fDIVC(c, a, n)  Rf_(c) = (Rf_(a) / n)
-#define OPEXEC_fEQ(c, a, b) Rb_(c) = (Rf_(a) == Rf_(b))
-#define OPEXEC_fEQC(c, a, n) Rb_(c) = (Rf_(a) == n)
-#define OPEXEC_fNEQ(c, a, b)  Rb_(c) = (Rf_(a) != Rf_(b))
-#define OPEXEC_fNEQC(c, a, n)  Rb_(c) = (Rf_(a) != n)
-#define OPEXEC_fLT(c, a, b)  Rb_(c) = (Rf_(a) < Rf_(b))
-#define OPEXEC_fLTC(c, a, n)  Rb_(c) = (Rf_(a) < n)
+/* OSET */
+#define knh_Object_RCinc(v_) ((void)v_)
+#define knh_Object_RCdec(v_) ((void)v_)
+#define Object_isRC0(v_) (false)
+#define knh_Object_RCfree(kctx, v_) ((void)v_)
 
-#define OPEXEC_fLTE(c, a, b)  Rb_(c) = (Rf_(a) <= Rf_(b))
-#define OPEXEC_fLTEC(c, a, n) Rb_(c) = (Rf_(a) <= n)
-#define OPEXEC_fGT(c, a, b)  Rb_(c) = (Rf_(a) > Rf_(b))
-#define OPEXEC_fGTC(c, a, n)  Rb_(c) = (Rf_(a) > n)
-#define OPEXEC_fGTE(c, a, b)  Rb_(c) = (Rf_(a) >= Rf_(b))
-#define OPEXEC_fGTEC(c, a, n)  Rb_(c) = (Rf_(a) >= n)
+#define OPEXEC_RCINC(a) {\
+		RCGC_(kObject *v_ = Ro_(a);)\
+		knh_Object_RCinc(v_);\
+	}\
 
-#define OPEXEC_fJEQ(PC, JUMP, a, b)   BR_((Rf_(a) == Rf_(b)), PC, JUMP)
-#define OPEXEC_fJEQC(PC, JUMP, a, n)  BR_((Rf_(a) == n), PC, JUMP)
-#define OPEXEC_fJNEQ(PC, JUMP, a, b)  BR_((Rf_(a) != Rf_(b)), PC, JUMP)
-#define OPEXEC_fJNEQC(PC, JUMP, a, n) BR_((Rf_(a) != n), PC, JUMP)
-#define OPEXEC_fJLT(PC, JUMP, a, b)   BR_((Rf_(a) < Rf_(b)), PC, JUMP)
-#define OPEXEC_fJLTC(PC, JUMP, a, n)  BR_((Rf_(a) < n), PC, JUMP)
-#define OPEXEC_fJLTE(PC, JUMP, a, b)  BR_((Rf_(a) <= Rf_(b)), PC, JUMP)
-#define OPEXEC_fJLTEC(PC, JUMP, a, n) BR_((Rf_(a) <= n), PC, JUMP)
-#define OPEXEC_fJGT(PC, JUMP, a, b)   BR_((Rf_(a) > Rf_(b)), PC, JUMP)
-#define OPEXEC_fJGTC(PC, JUMP, a, n)  BR_((Rf_(a) > n), PC, JUMP)
-#define OPEXEC_fJGTE(PC, JUMP, a, b)  BR_((Rf_(a) >= Rf_(b)), PC, JUMP)
-#define OPEXEC_fJGTEC(PC, JUMP, a, n) BR_((Rf_(a) >= n), PC, JUMP)
+#define OPEXEC_RCDEC(a) {\
+		kObject *v_ = Ro_(a);\
+		knh_Object_RCinc(v_);\
+		knh_Object_RCdec(v_);\
+		if(Object_isRC0(v_)) {\
+			knh_Object_RCfree(kctx, v_);\
+		}\
+	}\
 
-/* ------------------------------------------------------------------------ */
+#define OPEXEC_RCINCx(a) {\
+		RCGC_(kObject *v_ = RXo_(a);)\
+		knh_Object_RCinc(v_);\
+	}\
+
+#define OPEXEC_RCDECx(a) {\
+		kObject *v_ = RXo_(a);\
+		knh_Object_RCdec(v_);\
+		if(Object_isRC0(v_)) {\
+			knh_Object_RCfree(kctx, v_);\
+		}\
+	}\
+
+#ifdef K_USING_GENGC
+#define klr_xmov(parent, v1, v2) {\
+	kObject *v1_ = (kObject*)v1;\
+	kObject *v2_ = (kObject*)v2;\
+	knh_Object_RCinc(v2_);\
+	knh_Object_RCdec(v1_);\
+	if(Object_isRC0(v1_)) {\
+		knh_Object_RCfree(ctx, v1_);\
+	}\
+	knh_writeBarrier(parent, v2_);\
+	v1 = v2_;\
+}\
+
+#define klr_mov(ctx, v1, v2) {\
+	kObject *v1_ = (kObject*)v1;\
+	kObject *v2_ = (kObject*)v2;\
+	knh_Object_RCinc(v2_);\
+	knh_Object_RCdec(v1_);\
+	if(Object_isRC0(v1_)) {\
+		knh_Object_RCfree(ctx, v1_);\
+	}\
+	v1 = v2_;\
+}\
+
+#else
 
 #define klr_mov(v1, v2) {\
 	kObject *v1_ = (kObject*)v1;\
 	kObject *v2_ = (kObject*)v2;\
+	knh_Object_RCinc(v2_);\
+	knh_Object_RCdec(v1_);\
+	if(Object_isRC0(v1_)) {\
+		knh_Object_RCfree(ctx, v1_);\
+	}\
 	v1 = v2_;\
 }\
 
-#define OPEXEC_bNUL(c, a)  Rb_(c) = IS_NULL(Ro_(a))
-#define OPEXEC_bNN(c, a)   Rb_(c) = IS_NOTNULL(Ro_(a))
+#endif
 
-#define OPEXEC_iCAST(c, a) {\
-	Ri_(c) = (kint_t)Rf_(a); \
+#define OPEXEC_OSET(a, v) {\
+	klr_mov(Ro_(a), v);\
 }\
-
-#define OPEXEC_fCAST(c, a) {\
-	Rf_(c) = (kfloat_t)Ri_(a); \
-}\
-
-
-#define OPEXEC_EXIT() {\
-		(void)op;\
-		pc = NULL; \
-		goto L_RETURN;\
-	}\
-
-#define OPEXEC_OSET(a, i) {\
-	klr_mov(Ro_(a), kctx->share->constData->objectItems[i]);\
-}\
-
-//#define OPEXEC_OSET(a, v) {\
-//	klr_mov(Ro_(a), v);\
-//}\
 
 #define OPEXEC_OSET2(a, v, v2) {\
 	OPEXEC_OSET(a, v);\
@@ -611,6 +559,11 @@ static void KonohaVirtualMachine_onSafePoint(KonohaContext *kctx, KonohaStack *s
 
 
 #define OPEXEC_JMP_(PC, JUMP)   OPEXEC_RET()
+
+#define OPEXEC_YIELD(espidx) {\
+		klr_setesp(kctx, SFP(rshift(rbp,espidx)));\
+		goto L_RETURN;\
+	}\
 
 #define OPEXEC_LDMTD(thisidx, ldmtd, hc, mtdO) { \
 		ldmtd(kctx, SFP(rbp), op);\
@@ -1030,6 +983,8 @@ static void KonohaVirtualMachine_onSafePoint(KonohaContext *kctx, KonohaStack *s
 	}\
 
 #define OPEXEC_NSETIDX(cidx, aidx, nidx, vidx) OPEXEC_NSETIDXC(cidx, aidx, Ri_(nidx), vidx)
+
+#endif
 
 #ifdef __cplusplus
 }

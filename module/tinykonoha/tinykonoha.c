@@ -327,60 +327,60 @@ static KonohaContext *new_context(size_t stacksize)
 	return &kctx;
 }
 
-static void loadByteCode(KonohaContext *kctx)
-{
-	size_t i, j, declsize = sizeof(decls) / sizeof(decls[0]);
-	for (i = 0; i < declsize; i++) {
-		j = 0;
-		kmethoddecl_t *def = decls[i];
-		kconstdata_t *data = def->constdata;
-		while (data[j].cid != CLASS_Tvoid) {
-			KonohaClass *ct = CT_(data[j].cid);
-			if (ct) {
-				KLIB kArray_add(kctx, kctx->share->constData, KLIB new_kObject(kctx, ct, (uintptr_t)data->conf));
-			} else {
-				KLIB kArray_add(kctx, kctx->share->constData, kctx->share->constNull);
-			}
-			j++;
-		}
-		if (def->cid != 0 && def->mn != 0) {
-			uintptr_t flag = 0;
-			kMethod *mtd = KLIB new_kMethod(kctx, flag, def->cid, def->mn, (MethodFunc)def->opline);
-			CT_addMethod(kctx, (KonohaClassVar*)CT_(def->cid), mtd);
-		}
-	}
-	for (i = 0; i < declsize; i++) {
-		kmethoddecl_t *def = decls[i];
-		VirtualMachineInstruction *pc = (VirtualMachineInstruction*)def->opline;
-		while (pc->opcode != OPCODE_RET) {
-			if (pc->opcode == OPCODE_SCALL) {
-				klr_SCALL_t *_pc = (klr_SCALL_t*)pc;
-				kMethod *mtd = KonohaSpace_getMethodNULL(kctx, NULL, _pc->cid, _pc->mn, 0, 0);
-				_pc->mtd = mtd;
-				if (mtd == NULL || (mtd != NULL && !Method_isStatic(mtd))) {
-					_pc->opcode = OPCODE_VCALL;
-				}
-			}
-			pc++;
-		}
-	}
-}
-
-static void execTopLevelExpression(KonohaContext *kctx)
-{
-	klr_EXIT_t opEXIT = {OPCODE_EXIT};
-	size_t i, declsize = sizeof(decls) / sizeof(decls[0]);
-	for (i = 0; i < declsize; i++) {
-		kmethoddecl_t *def = decls[i];
-		if (def->cid == 0 && def->mn == 0) {
-			kopl_u *pc = def->opline;
-			krbp_t *rbp = (krbp_t*)kctx->esp;
-			rbp[K_PCIDX2].pc = (VirtualMachineInstruction*)&opEXIT;
-			rbp[K_SHIFTIDX2].shift = 0;
-			VirtualMachine_run(kctx, kctx->esp, (VirtualMachineInstruction*)pc);
-		}
-	}
-}
+//static void loadByteCode(KonohaContext *kctx)
+//{
+//	size_t i, j, declsize = sizeof(decls) / sizeof(decls[0]);
+//	for (i = 0; i < declsize; i++) {
+//		j = 0;
+//		kmethoddecl_t *def = decls[i];
+//		kconstdata_t *data = def->constdata;
+//		while (data[j].cid != CLASS_Tvoid) {
+//			KonohaClass *ct = CT_(data[j].cid);
+//			if (ct) {
+//				KLIB kArray_add(kctx, kctx->share->constData, KLIB new_kObject(kctx, ct, (uintptr_t)data->conf));
+//			} else {
+//				KLIB kArray_add(kctx, kctx->share->constData, kctx->share->constNull);
+//			}
+//			j++;
+//		}
+//		if (def->cid != 0 && def->mn != 0) {
+//			uintptr_t flag = 0;
+//			kMethod *mtd = KLIB new_kMethod(kctx, flag, def->cid, def->mn, (MethodFunc)def->opline);
+//			CT_addMethod(kctx, (KonohaClassVar*)CT_(def->cid), mtd);
+//		}
+//	}
+//	for (i = 0; i < declsize; i++) {
+//		kmethoddecl_t *def = decls[i];
+//		VirtualMachineInstruction *pc = (VirtualMachineInstruction*)def->opline;
+//		while (pc->opcode != OPCODE_RET) {
+//			if (pc->opcode == OPCODE_SCALL) {
+//				klr_SCALL_t *_pc = (klr_SCALL_t*)pc;
+//				kMethod *mtd = KonohaSpace_getMethodNULL(kctx, NULL, _pc->cid, _pc->mn, 0, 0);
+//				_pc->mtd = mtd;
+//				if (mtd == NULL || (mtd != NULL && !Method_isStatic(mtd))) {
+//					_pc->opcode = OPCODE_VCALL;
+//				}
+//			}
+//			pc++;
+//		}
+//	}
+//}
+//
+//static void execTopLevelExpression(KonohaContext *kctx)
+//{
+//	klr_EXIT_t opEXIT = {OPCODE_EXIT};
+//	size_t i, declsize = sizeof(decls) / sizeof(decls[0]);
+//	for (i = 0; i < declsize; i++) {
+//		kmethoddecl_t *def = decls[i];
+//		if (def->cid == 0 && def->mn == 0) {
+//			kopl_u *pc = def->opline;
+//			krbp_t *rbp = (krbp_t*)kctx->esp;
+//			rbp[K_PCIDX2].pc = (VirtualMachineInstruction*)&opEXIT;
+//			rbp[K_SHIFTIDX2].shift = 0;
+//			VirtualMachine_run(kctx, kctx->esp, (VirtualMachineInstruction*)pc);
+//		}
+//	}
+//}
 
 #ifdef K_USING_TOPPERS
 
@@ -433,7 +433,7 @@ void cyc0(VP_INT exinf)
 void TaskMain(VP_INT exinf)
 {
 	struct KonohaContext *kctx = new_context(K_STACK_SIZE);
-	loadByteCode(kctx);
+	//loadByteCode(kctx);
 
 	mstate = MWAIT;
 	ecrobot_set_light_sensor_active(NXT_PORT_S3);
@@ -445,7 +445,7 @@ void TaskMain(VP_INT exinf)
 	nxt_motor_set_count(NXT_PORT_C, 0);
 	nxt_motor_set_count(NXT_PORT_B, 0);
 	sta_cyc(CYC0);
-	execTopLevelExpression(kctx);
+	//execTopLevelExpression(kctx);
 	//act_tsk(TASK0);
 }
 
@@ -510,8 +510,8 @@ int main(int argc, char **args)
 	opcode_check();
 	KonohaContext *kctx = NULL;
 	kctx = new_context(K_STACK_SIZE);
-	loadByteCode(kctx);
-	execTopLevelExpression(kctx);
+	//loadByteCode(kctx);
+	//execTopLevelExpression(kctx);
 	return 0;
 }
 #endif
