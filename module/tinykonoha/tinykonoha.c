@@ -23,12 +23,6 @@
  ***************************************************************************/
 
 #ifdef K_USING_TOPPERS
-#include "tinykonoha_config.h"
-#include "kernel_id.h"
-#include "ecrobot_base.h"
-#include "ecrobot_interface.h"
-#include "balancer.h"
-
 #define TDBG_i(KEY, VALUE)						\
     display_clear(0);							\
     display_goto_xy(0, 0);						\
@@ -56,6 +50,12 @@
 		dly_tsk(1000U);							\
     }											\
 
+#include "tinykonoha_config.h"
+#include "kernel_id.h"
+#include "ecrobot_base.h"
+#include "ecrobot_interface.h"
+#include "balancer.h"
+#include "loader.h"
 #else
 #include "stdio.h"
 #endif
@@ -353,91 +353,6 @@ static KonohaContext *new_context(size_t stacksize)
 	KRUNTIME_init(&kctx, &kctx, stacksize);
 	KCLASSTABLE_loadMethod(&kctx);
 	return &kctx;
-}
-
-static char *receive_buf(unsigned char *buf)
-{
-	int er;
-	while ((er = bluetooth_receive(CONSOLE_PORTID, buf)) <= 0) {
-		dly_tsk(2);
-	}
-	int pos = 0;
-	for (; buf[pos] != ' '; pos++) ;
-	pos++; //eat ' '
-	return buf + pos;
-}
-
-void undefCode(KonohaContext *kctx, char *buf)
-{
-	TDBG_i("undefined", buf[0]);
-}
-void genNSET(KonohaContext *kctx, char *buf)
-{
-	TDBG_i("NSEt", buf[0]);
-}
-void genNMOV(KonohaContext *kctx, char *buf)
-{
-	TDBG_i("NMOV", buf[0]);
-}
-void genCALL(KonohaContext *kctx, char *buf)
-{
-	TDBG_i("CALL", buf[0]);
-}
-void genRET(KonohaContext *kctx, char *buf)
-{
-	TDBG_i("RET", buf[0]);
-}
-void genJMP(KonohaContext *kctx, char *buf)
-{
-	TDBG_i("JMP", buf[0]);
-}
-void genJMPF(KonohaContext *kctx, char *buf)
-{
-	TDBG_i("JMPF", buf[0]);
-}
-
-typedef void (*genByteCode)(KonohaContext *, char *);
-genByteCode genCode[] = {NULL, NULL, NULL, NULL,
-	                     genNSET, genNMOV, NULL, NULL, 
-						 NULL, NULL, NULL, genCALL,
-						 genRET, NULL, NULL, genJMP,
-						 genJMPF, NULL, NULL, NULL,
-						 NULL, NULL, NULL};
-
-static void loadByteCode(KonohaContext *kctx)
-{
-	TDBG_s("load");
-	char buf[128] = {0};
-	do {
-		bluetooth_connect();
-	} while (bluetooth_get_connect_state(CONSOLE_PORTID) == 0);
-	int8_t magicValue = 0;
-
-	/* method loading loop*/
-	while (1) {
-		char *data = receive_buf(buf);
-		magicValue = data[0];
-		data++;// eat magicValue
-		if (magicValue != -1) {
-			TDBG_s("method loop end");
-			break;
-		}
-		int opsize = (int32_t)*data;
-		TDBG_i("opsize", opsize);
-		int i = 0;
-		
-		/* bytecode loading loop */
-		for (; i < opsize; i++) {
-			data = receive_buf(buf);
-			int8_t opcode = data[0];
-			if (genCode[opcode] != NULL) {
-				genCode[opcode](kctx, data);
-			} else {
-				undefCode(kctx, data);
-			}
-		}
-	}
-	TDBG_abort("load end");
 }
 
 //static void loadByteCode(KonohaContext *kctx)

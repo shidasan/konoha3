@@ -124,6 +124,8 @@ static void sendBluetooth(KonohaContext *kctx, kMethod *mtd)
 	printf("5");
 	int8_t magicValue = -1;
 	int32_t opsize = 0;
+	int16_t cid = mtd->typeId;
+	int16_t mn = mtd->mn;
 
 	while (mtd->pc_start[opsize].opcode != OPCODE_RET) {
 		opsize++;
@@ -133,6 +135,8 @@ static void sendBluetooth(KonohaContext *kctx, kMethod *mtd)
 	opsize++; // OPCODE_RET
 	bt_buffer_append(kctx, writebuf, &magicValue, sizeof(int8_t));
 	bt_buffer_append(kctx, writebuf, &opsize, sizeof(int32_t));
+	bt_buffer_append(kctx, writebuf, &cid, sizeof(int16_t));
+	bt_buffer_append(kctx, writebuf, &mn, sizeof(int16_t));
 	printf("7");
 	sendBuf(kctx, hComm, writebuf);
 	VirtualMachineInstruction *pc = NULL;
@@ -166,7 +170,6 @@ static void sendBluetooth(KonohaContext *kctx, kMethod *mtd)
 				break;
 			}
 			}
-			sendBuf(kctx, hComm, writebuf);
 			break;
 		}
 		case OPCODE_NMOV: {
@@ -176,7 +179,6 @@ static void sendBluetooth(KonohaContext *kctx, kMethod *mtd)
 			int8_t b = op->b;
 			bt_buffer_append(kctx, writebuf, &a, sizeof(int8_t));
 			bt_buffer_append(kctx, writebuf, &b, sizeof(int8_t));
-			sendBuf(kctx, hComm, writebuf);
 			break;
 		}
 		case OPCODE_CALL: {
@@ -186,27 +188,23 @@ static void sendBluetooth(KonohaContext *kctx, kMethod *mtd)
 			int8_t espshift = op->espshift;
 			bt_buffer_append(kctx, writebuf, &thisidx, sizeof(int8_t));
 			bt_buffer_append(kctx, writebuf, &espshift, sizeof(int8_t));
-			sendBuf(kctx, hComm, writebuf);
 			break;
 		}
 		case OPCODE_RET: {
 			OPRET *op = (OPRET*)pc;
 			printf("RET\n");
-			sendBuf(kctx, hComm, writebuf);
 			break;
 		}
 		case OPCODE_JMP: {
 			OPRET *op = (OPRET*)pc;
 			printf("TODO\n");
 			assert(0);
-			sendBuf(kctx, hComm, writebuf);
 			break;
 		}
 		case OPCODE_JMPF: {
 			OPRET *op = (OPRET*)pc;
 			printf("TODO\n");
 			assert(0);
-			sendBuf(kctx, hComm, writebuf);
 			break;
 		}
 		default: {
@@ -216,6 +214,7 @@ static void sendBluetooth(KonohaContext *kctx, kMethod *mtd)
 			break;
 		}
 		}
+		sendBuf(kctx, hComm, writebuf);
 	}
 	printf("8");
 	bt_buffer_free(kctx, writebuf);

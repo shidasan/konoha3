@@ -138,7 +138,7 @@ void tiny_free(void* ptr)
 
 void *tiny_malloc(size_t size)
 {
-	//size = size + ((4 - size % 4) % 4);
+	size = size + ((4 - size % 4) % 4);
 	total_malloced+=size + sizeof(heap_header);
 	//if (total_malloced > HEAP_SIZE / 10 * 9) {
 	//	TDBG_i("total mallocked", total_malloced);
