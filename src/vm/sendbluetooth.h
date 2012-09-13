@@ -80,7 +80,7 @@ static void sendBuf(KonohaContext *kctx, HANDLE hComm, bt_buffer_t *writebuf)
 	usleep(USLEEP_PARAM);
 }
 
-static void sendBluetooth(KonohaContext *kctx, kMethod *mtd)
+static HANDLE bluetooth_connect(KonohaContext *kctx)
 {
 	printf("sendBluetooth\n");
 	HANDLE hComm;
@@ -118,13 +118,17 @@ static void sendBluetooth(KonohaContext *kctx, kMethod *mtd)
 		CloseHandle(hComm);
 		KLIB KonohaRuntime_raise(kctx, EXPT_("Invalid handle value"), NULL, 0, NULL);
 	}
-	printf("4");
+	return hComm;
+}
 
+static void sendBluetooth(KonohaContext *kctx, kMethod *mtd)
+{
+	HANDLE hComm = bluetooth_connect(kctx);
 	bt_buffer_t *writebuf = bt_buffer_new(kctx);
-	printf("5");
 	int8_t magicValue = -1;
 	int32_t opsize = 0;
 	int16_t cid = mtd->typeId;
+	printf("cid %d\n", cid);
 	int16_t mn = mtd->mn;
 
 	while (mtd->pc_start[opsize].opcode != OPCODE_RET) {
@@ -168,6 +172,13 @@ static void sendBluetooth(KonohaContext *kctx, kMethod *mtd)
 				bt_buffer_append(kctx, writebuf, &length, sizeof(int8_t));
 				bt_buffer_append(kctx, writebuf, str->text, length+1);
 				break;
+			}
+			case TY_Method: {
+				kMethod *mtd = (kMethod*)op->n;
+				int16_t cid = mtd->typeId;
+				int16_t mn = mtd->mn;
+				bt_buffer_append(kctx, writebuf, &cid, sizeof(int16_t));
+				bt_buffer_append(kctx, writebuf, &mn, sizeof(int16_t));
 			}
 			}
 			break;

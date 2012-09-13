@@ -29,6 +29,7 @@
 static char *receive_buf(unsigned char *buf)
 {
 	int er;
+	dly_tsk(500);
 	while ((er = bluetooth_receive(CONSOLE_PORTID, buf)) <= 0) {
 		dly_tsk(2);
 	}
@@ -44,7 +45,7 @@ static char *receive_buf(unsigned char *buf)
 static void undefCode(KonohaContext *kctx, char *buf, VirtualMachineInstruction *pc, int pos)
 {
 	OPNOP *op = (OPNOP*)(pc + pos);
-	TDBG_i("undefined", buf[0]);
+	//TDBG_i("undefined", buf[0]);
 }
 static void genNSET(KonohaContext *kctx, char *buf, VirtualMachineInstruction *pc, int pos)
 {
@@ -55,41 +56,53 @@ static void genNSET(KonohaContext *kctx, char *buf, VirtualMachineInstruction *p
 	switch(ty) {
 	case TY_Int: {
 		op->n = (int32_t)buf[0];
-		TDBG_i("ivalue", op->n);
+		//TDBG_i("ivalue", op->n);
 		break;
 	}
 	case TY_String: {
 		size_t strsize = buf[0]; buf++; //eat strsize
-		TDBG_i("strsize", strsize);
+		//TDBG_i("strsize", strsize);
 		char *str = (char *)KLIB Kmalloc(kctx, strsize+1);
 		memcpy(str, buf, strsize);
 		str[strsize] = '\0';
 		kStringVar *string = (kStringVar*)KLIB new_kObject(kctx, CT_(TY_String), (uintptr_t)str);
 		op->n = (int32_t)string;
-		TDBG_s(str);
+		//TDBG_s(str);
 		break;
+	}
+	case TY_Method: {
+		int16_t cid = (int16_t)buf[0]; buf+=2; //eat cid
+		int16_t mn = (int16_t)buf[0]; buf+=2; //eat mn
+		kMethod *mtd = KLIB kNameSpace_getMethodNULL(kctx, NULL, cid, mn, 0, 0);
+		op->n = (int32_t)mtd;
+		//TDBG_i("method", (int32_t)mtd);
 	}
 	}
 }
 static void genNMOV(KonohaContext *kctx, char *buf, VirtualMachineInstruction *pc, int pos)
 {
-	TDBG_i("NMOV", buf[0]);
+	//TDBG_i("NMOV", buf[0]);
 }
 static void genCALL(KonohaContext *kctx, char *buf, VirtualMachineInstruction *pc, int pos)
 {
-	TDBG_i("CALL", buf[0]);
+	OPCALL *op = (OPCALL*)(pc + pos);
+	buf++; //eat opcode
+	op->thisidx = buf[0]; buf++;//eat thisidx
+	op->espshift = buf[0]; buf++;//eat espshift
+	op->tyo = kctx->share->constNull;
+	//TDBG_i("CALL", buf[0]);
 }
 static void genRET(KonohaContext *kctx, char *buf, VirtualMachineInstruction *pc, int pos)
 {
-	TDBG_i("RET", buf[0]);
+	//TDBG_i("RET", buf[0]);
 }
 static void genJMP(KonohaContext *kctx, char *buf, VirtualMachineInstruction *pc, int pos)
 {
-	TDBG_i("JMP", buf[0]);
+	//TDBG_i("JMP", buf[0]);
 }
 static void genJMPF(KonohaContext *kctx, char *buf, VirtualMachineInstruction *pc, int pos)
 {
-	TDBG_i("JMPF", buf[0]);
+	//TDBG_i("JMPF", buf[0]);
 }
 
 typedef void (*genByteCode)(KonohaContext *, char *, VirtualMachineInstruction *pc, int pos);
@@ -102,7 +115,7 @@ genByteCode genCode[] = {NULL, NULL, NULL, NULL,
 
 static void loadByteCode(KonohaContext *kctx)
 {
-	TDBG_s("load");
+	//TDBG_s("load");
 	int i = 0;
 	char buf[128] = {0};
 	do {
@@ -116,13 +129,13 @@ static void loadByteCode(KonohaContext *kctx)
 		magicValue = data[0];
 		data++;// eat magicValue
 		if (magicValue != -1) {
-			TDBG_s("method loop end");
+			//TDBG_s("method loop end");
 			break;
 		}
 		int opsize = (int32_t)*data; data += 4;//eat opsize
 		int16_t cid = (int16_t)*data; data += 2;//eat cid
 		int16_t mn = (int16_t)*data; data += 2;//eat cid
-		TDBG_i("opsize", opsize);
+		//TDBG_i("opsize", opsize);
 		
 		/* bytecode loading loop */
 		VirtualMachineInstruction *pc = (VirtualMachineInstruction*)KLIB Kmalloc(kctx, sizeof(VirtualMachineInstruction) * opsize);
@@ -136,6 +149,15 @@ static void loadByteCode(KonohaContext *kctx)
 				undefCode(kctx, data, pc, i);
 			}
 		}
+		//TDBG_i("cid", cid);
+		//TDBG_i("mn", mn);
+		if (cid == 0 && mn == 0) {
+			OPEXIT opEXIT = {OPCODE_EXIT};
+			//TDBG_s("toplevel");
+			krbp_t *rbp = (krbp_t*)kctx->esp;
+			rbp[K_PCIDX2].pc = (VirtualMachineInstruction*)&opEXIT;
+			rbp[K_SHIFTIDX2].shift = 0;
+			KonohaVirtualMachine_run(kctx, kctx->esp, pc);
+		}
 	}
-	TDBG_abort("load end");
 }

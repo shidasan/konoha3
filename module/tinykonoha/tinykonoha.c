@@ -57,6 +57,17 @@
 #include "balancer.h"
 #include "loader.h"
 #else
+
+#define TDBG_i(KEY, VALUE)						\
+	printf("%s %d\n", KEY, VALUE)               \
+
+#define TDBG_s(KEY)								\
+	printf("%s\n", KEY)                         \
+
+#define TDBG_abort(MSG)							\
+	printf("%s\n", MSG);                        \
+    assert(0)                                   \
+
 #include "stdio.h"
 #endif
 
@@ -205,6 +216,10 @@ static void Kreport(KonohaContext *kctx, int level, const char *msg)
 
 static void Kreportf(KonohaContext *kctx, kinfotag_t level, kfileline_t pline, const char *fmt, ...)
 {
+	va_list ap;
+	va_start(ap, fmt);
+	const char *str = va_arg(ap, const char*);
+	TDBG_s(str);
 	/* TODO */
 	//printf("hi\n");
 }

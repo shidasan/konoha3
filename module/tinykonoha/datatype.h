@@ -605,7 +605,7 @@ static void KCLASSTABLE_initKonohaLib(KonohaLibVar *l)
 	l->kMethod_setFunc = Method_setFunc;
 	l->kArray_add = Array_add;
 	l->Konoha_defineClass = Konoha_defineClass;
-	//l->kNameSpace_getMethodNULL = kNameSpace_getMethodNULL;
+	l->kNameSpace_getMethodNULL = KonohaSpace_getMethodNULL;
 }
 
 void KonohaClass_setName(KonohaContext *kctx, KonohaClassVar *ct, kfileline_t pline)
