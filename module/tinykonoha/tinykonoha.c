@@ -23,33 +23,36 @@
  ***************************************************************************/
 
 #ifdef K_USING_TOPPERS
-#define TDBG_i(KEY, VALUE)						\
-    display_clear(0);							\
-    display_goto_xy(0, 0);						\
-    display_string(KEY);						\
-    display_goto_xy(0, 1);						\
-    display_int(VALUE, 1);						\
-    display_update();							\
-	dly_tsk(500);								\
-
-#define TDBG_s(KEY)								\
-    display_clear(0);							\
-    display_goto_xy(0, 0);						\
-    display_string(KEY);						\
-    display_update();							\
-	dly_tsk(500);								\
-
-#define TDBG_abort(MSG)							\
-    display_clear(0);							\
-    display_goto_xy(0, 0);						\
-    display_string("abort");					\
-    display_goto_xy(0, 1);						\
-    display_string(MSG);						\
-    display_update();							\
-    while (1) {									\
-		dly_tsk(1000U);							\
-    }											\
-
+void TDBG_i(const char *key, int value)
+{
+	display_clear(0);
+	display_goto_xy(0, 0);
+	display_string(key);
+	display_goto_xy(0, 1);
+	display_int(value, 1);
+	display_update();
+	dly_tsk(500);
+}
+void TDBG_s(const char *key)
+{
+	display_clear(0);
+	display_goto_xy(0, 0);
+	display_string(key);
+	display_update();
+	dly_tsk(500);
+}
+void TDBG_abort(const char *msg)
+{
+	display_clear(0);
+	display_goto_xy(0, 0);
+	display_string("abort");
+	display_goto_xy(0, 1);
+	display_string(msg);
+	display_update();
+	while (1) {
+		dly_tsk(1000U);
+	}
+}
 #include "tinykonoha_config.h"
 #include "kernel_id.h"
 #include "ecrobot_base.h"

@@ -241,15 +241,17 @@ static void KonohaVirtualMachine_onSafePoint(KonohaContext *kctx, KonohaStack *s
 
 #define OPEXEC_CALL(UL, THIS, espshift, CTO) { \
 		kMethod *mtd_ = rbp[THIS+K_MTDIDX2].mtdNC;\
-		KonohaStack *sfp_ = SFP(rshift(rbp, THIS)); \
-		sfp_[K_RTNIDX].o = CTO;\
-		/*sfp_[K_RTNIDX].uline = UL;*/\
-		sfp_[K_SHIFTIDX].shift = THIS; \
-		sfp_[K_PCIDX].pc = PC_NEXT(pc);\
-		sfp_[K_MTDIDX].mtdNC = mtd_;\
-		klr_setesp(kctx, SFP(rshift(rbp, espshift)));\
-		(mtd_)->invokeMethodFunc(kctx, sfp_); \
-		sfp_[K_MTDIDX].mtdNC = NULL;\
+		if (IS_Method(mtd_)) { \
+			KonohaStack *sfp_ = SFP(rshift(rbp, THIS)); \
+			sfp_[K_RTNIDX].o = CTO;\
+			/*sfp_[K_RTNIDX].uline = UL;*/\
+			sfp_[K_SHIFTIDX].shift = THIS; \
+			sfp_[K_PCIDX].pc = PC_NEXT(pc);\
+			sfp_[K_MTDIDX].mtdNC = mtd_;\
+			klr_setesp(kctx, SFP(rshift(rbp, espshift)));\
+			(mtd_)->invokeMethodFunc(kctx, sfp_); \
+			sfp_[K_MTDIDX].mtdNC = NULL;\
+		} \
 	} \
 
 #define OPEXEC_VCALL(UL, THIS, espshift, mtdO, CTO) { \

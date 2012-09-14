@@ -45,6 +45,7 @@ static char *receive_buf(unsigned char *buf)
 static void undefCode(KonohaContext *kctx, char *buf, VirtualMachineInstruction *pc, int pos)
 {
 	OPNOP *op = (OPNOP*)(pc + pos);
+	op->opcode = OPCODE_NOP;
 	//TDBG_i("undefined", buf[0]);
 }
 static void genNSET(KonohaContext *kctx, char *buf, VirtualMachineInstruction *pc, int pos)
@@ -73,15 +74,32 @@ static void genNSET(KonohaContext *kctx, char *buf, VirtualMachineInstruction *p
 	case TY_Method: {
 		int16_t cid = (int16_t)buf[0]; buf+=2; //eat cid
 		int16_t mn = (int16_t)buf[0]; buf+=2; //eat mn
+		TDBG_i("cid", cid);
+		TDBG_i("mn", mn);
 		kMethod *mtd = KLIB kNameSpace_getMethodNULL(kctx, NULL, cid, mn, 0, 0);
-		op->n = (int32_t)mtd;
+		if (mtd != NULL) {
+			op->n = (int32_t)mtd;
+		} else {
+			op->n = kctx->share->constNull;
+			TDBG_s("mtd undefined");
+		}
 		//TDBG_i("method", (int32_t)mtd);
+		break;
+	}
+	default: {
+		TDBG_i("undefined type", ty);
+		op->n = (int32_t)kctx->share->constNull;
+		break;
 	}
 	}
 }
 static void genNMOV(KonohaContext *kctx, char *buf, VirtualMachineInstruction *pc, int pos)
 {
-	//TDBG_i("NMOV", buf[0]);
+	TDBG_s("gennmov");
+	OPNMOV *op = (OPNMOV*)(pc + pos);
+	int8_t opcode = buf[0]; buf++; //eat opcode
+	op->a = buf[0]; buf++;
+	op->b = buf[0]; buf++;
 }
 static void genCALL(KonohaContext *kctx, char *buf, VirtualMachineInstruction *pc, int pos)
 {
@@ -153,11 +171,12 @@ static void loadByteCode(KonohaContext *kctx)
 		//TDBG_i("mn", mn);
 		if (cid == 0 && mn == 0) {
 			OPEXIT opEXIT = {OPCODE_EXIT};
-			//TDBG_s("toplevel");
 			krbp_t *rbp = (krbp_t*)kctx->esp;
 			rbp[K_PCIDX2].pc = (VirtualMachineInstruction*)&opEXIT;
 			rbp[K_SHIFTIDX2].shift = 0;
+			TDBG_s("toplevel");
 			KonohaVirtualMachine_run(kctx, kctx->esp, pc);
+			TDBG_s("toplevel end");
 		}
 	}
 }
