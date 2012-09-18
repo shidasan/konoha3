@@ -544,18 +544,19 @@ struct KonohaRuntimeVar {
 	kString                  *emptyString;
 	kArray                   *emptyArray;
 	kArray                   *constData;
+	kArray                   *topLevelMethodList;
 
-	kmutex_t          *filepackMutex;
+	//kmutex_t          *filepackMutex;
 	kArray                   *fileidList;    // file, http://
 	KUtilsHashMap            *fileidMapNN;   //
 	kArray                   *packList;
 	KUtilsHashMap            *packMapNN;
 
-	kmutex_t          *symbolMutex;
+	//kmutex_t          *symbolMutex;
 	kArray                   *symbolList;  // NAME, Name, INT_MAX Int_MAX
 	KUtilsHashMap            *symbolMapNN;
 
-	kmutex_t          *paramMutex;
+	//kmutex_t          *paramMutex;
 	kArray                   *paramList;
 	KUtilsHashMap            *paramMapNN;
 	kArray                   *paramdomList;

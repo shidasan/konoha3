@@ -31,7 +31,7 @@ void TDBG_i(const char *key, int value)
 	display_goto_xy(0, 1);
 	display_int(value, 1);
 	display_update();
-	dly_tsk(500);
+	//dly_tsk(500);
 }
 void TDBG_s(const char *key)
 {
@@ -39,7 +39,7 @@ void TDBG_s(const char *key)
 	display_goto_xy(0, 0);
 	display_string(key);
 	display_update();
-	dly_tsk(500);
+	//dly_tsk(500);
 }
 void TDBG_abort(const char *msg)
 {
@@ -227,7 +227,7 @@ static void Kreportf(KonohaContext *kctx, kinfotag_t level, kfileline_t pline, c
 	//printf("hi\n");
 }
 
-static void CT_addMethod(KonohaContext *kctx, KonohaClassVar *ct, kMethod *mtd)
+void CT_addMethod(KonohaContext *kctx, KonohaClassVar *ct, kMethod *mtd)
 {
 	if(ct->methodList == K_EMPTYARRAY) {
 		KINITv(((KonohaClassVar*)ct)->methodList, new_(MethodArray, 8));
@@ -372,61 +372,6 @@ static KonohaContext *new_context(size_t stacksize)
 	KCLASSTABLE_loadMethod(&kctx);
 	return &kctx;
 }
-
-//static void loadByteCode(KonohaContext *kctx)
-//{
-//	size_t i, j, declsize = sizeof(decls) / sizeof(decls[0]);
-//	for (i = 0; i < declsize; i++) {
-//		j = 0;
-//		kmethoddecl_t *def = decls[i];
-//		kconstdata_t *data = def->constdata;
-//		while (data[j].cid != CLASS_Tvoid) {
-//			KonohaClass *ct = CT_(data[j].cid);
-//			if (ct) {
-//				KLIB kArray_add(kctx, kctx->share->constData, KLIB new_kObject(kctx, ct, (uintptr_t)data->conf));
-//			} else {
-//				KLIB kArray_add(kctx, kctx->share->constData, kctx->share->constNull);
-//			}
-//			j++;
-//		}
-//		if (def->cid != 0 && def->mn != 0) {
-//			uintptr_t flag = 0;
-//			kMethod *mtd = KLIB new_kMethod(kctx, flag, def->cid, def->mn, (MethodFunc)def->opline);
-//			CT_addMethod(kctx, (KonohaClassVar*)CT_(def->cid), mtd);
-//		}
-//	}
-//	for (i = 0; i < declsize; i++) {
-//		kmethoddecl_t *def = decls[i];
-//		VirtualMachineInstruction *pc = (VirtualMachineInstruction*)def->opline;
-//		while (pc->opcode != OPCODE_RET) {
-//			if (pc->opcode == OPCODE_SCALL) {
-//				klr_SCALL_t *_pc = (klr_SCALL_t*)pc;
-//				kMethod *mtd = KonohaSpace_getMethodNULL(kctx, NULL, _pc->cid, _pc->mn, 0, 0);
-//				_pc->mtd = mtd;
-//				if (mtd == NULL || (mtd != NULL && !Method_isStatic(mtd))) {
-//					_pc->opcode = OPCODE_VCALL;
-//				}
-//			}
-//			pc++;
-//		}
-//	}
-//}
-//
-//static void execTopLevelExpression(KonohaContext *kctx)
-//{
-//	klr_EXIT_t opEXIT = {OPCODE_EXIT};
-//	size_t i, declsize = sizeof(decls) / sizeof(decls[0]);
-//	for (i = 0; i < declsize; i++) {
-//		kmethoddecl_t *def = decls[i];
-//		if (def->cid == 0 && def->mn == 0) {
-//			kopl_u *pc = def->opline;
-//			krbp_t *rbp = (krbp_t*)kctx->esp;
-//			rbp[K_PCIDX2].pc = (VirtualMachineInstruction*)&opEXIT;
-//			rbp[K_SHIFTIDX2].shift = 0;
-//			VirtualMachine_run(kctx, kctx->esp, (VirtualMachineInstruction*)pc);
-//		}
-//	}
-//}
 
 #ifdef K_USING_TOPPERS
 

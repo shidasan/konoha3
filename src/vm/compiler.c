@@ -1081,7 +1081,7 @@ void dumpCidMn(KonohaContext *kctx)
 			} else if (Method_isCast(mtd)) {
 				DUMP_P("#define MN_%s_as%s %d\n", ct_toText(kctx, ct), ct_toText(kctx, CT_(SYM_UNMASK(mtd->mn))), mtd->mn);
 			} else {
-				DUMP_P("#define MN_%s_%s %d\n", ct_toText(kctx, ct), mn_toText(kctx, mtd->mn), mtd->mn);
+				DUMP_P("#define MN_%s_%s %d\n", ct_toText(kctx, ct), mn_toText(kctx, mtd->mn), SYM_UNMASK(mtd->mn));
 			}
 		}
 	}
@@ -1364,6 +1364,7 @@ static void kmodcode_reftrace(KonohaContext *kctx, struct KonohaModule *baseh)
 
 static void kmodcode_free(KonohaContext *kctx, struct KonohaModule *baseh)
 {
+	bt_close(kctx);
 	KFREE(baseh, sizeof(KModuleByteCode));
 }
 

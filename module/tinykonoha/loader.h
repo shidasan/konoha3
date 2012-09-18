@@ -29,8 +29,8 @@
 static char *receive_buf(unsigned char *buf)
 {
 	int er;
-	dly_tsk(500);
-	while ((er = bluetooth_receive(CONSOLE_PORTID, buf)) <= 0) {
+	//dly_tsk(500);
+	while ((er = bluetooth_receive(CONSOLE_PORTID, buf)) <= 0 || er < 97 || er > 107) {
 		dly_tsk(2);
 	}
 	if (er < 97 || er > 107) {
@@ -147,7 +147,7 @@ static void loadByteCode(KonohaContext *kctx)
 		magicValue = data[0];
 		data++;// eat magicValue
 		if (magicValue != -1) {
-			//TDBG_s("method loop end");
+			TDBG_s("method loop end");
 			break;
 		}
 		int opsize = (int32_t)*data; data += 4;//eat opsize
@@ -176,7 +176,15 @@ static void loadByteCode(KonohaContext *kctx)
 			rbp[K_SHIFTIDX2].shift = 0;
 			TDBG_s("toplevel");
 			KonohaVirtualMachine_run(kctx, kctx->esp, pc);
+			dly_tsk(1000);
 			TDBG_s("toplevel end");
+			KLIB Kfree(kctx, pc, sizeof(VirtualMachineInstruction) * opsize);
+			KLIB kArray_add(kctx, kctx->share->topLevelMethodList, pc);
+		} else {
+			uintptr_t flag = kMethod_Static|kMethod_Public;
+			kMethodVar *mtd = KLIB new_kMethod(kctx, flag, cid, mn, KonohaVirtualMachine_run);
+			mtd->pc_start = pc;
+			CT_addMethod(kctx, CT_(cid), mtd);
 		}
 	}
 }

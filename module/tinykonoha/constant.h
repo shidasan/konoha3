@@ -1,6 +1,4 @@
-//#ifdef _TINYKONOHA_CONSTANT_H_
-//#define _TINYKONOHA_CONSTANT_H_
-#define MN_Object_String -1073741781
+#define MN_Object_String 43
 #define MN_boolean_opNOT 28
 #define MN_boolean_opEQ 24
 #define MN_boolean_opNEQ 25
@@ -17,11 +15,11 @@
 #define MN_int_opLTE 21
 #define MN_int_opGT 22
 #define MN_int_opGTE 23
-#define MN_int_String -1073741781
+#define MN_int_String 43
 #define MN_int_box 56
 #define MN_String_opEQ 24
 #define MN_String_opNEQ 25
-#define MN_String_int -1073741790
+#define MN_String_int 34
 #define MN_String_opADD 18
 #define MN_Func_new 40
 #define MN_Func_invoke 57
@@ -30,6 +28,8 @@
 #define MN_System_gc 61
 #define MN_NameSpace_import 62
 #define MN_NameSpace_load 64
+
+#define TY_float 22
 
 #define MN_int_opADD 18
 #define MN_int_opSUB 19
@@ -41,8 +41,8 @@
 #define MN_int_opLTE 21
 #define MN_int_opGT 22
 #define MN_int_opGTE 23
-#define MN_int_float -1073741756
-#define MN_String_float -1073741756
+#define MN_int_float 68
+#define MN_String_float 68
 #define MN_float_opADD 18
 #define MN_float_opADD 18
 #define MN_float_opSUB 19
@@ -54,15 +54,15 @@
 #define MN_float_opLTE 21
 #define MN_float_opGT 22
 #define MN_float_opGTE 23
-#define MN_float_int -1073741790
-#define MN_float_String -1073741781
+#define MN_float_int 34
+#define MN_float_String 43
 #define MN_float_opSUB 19
 
-#define MN_Array_get 1073741824
-#define MN_Array_set 536870912
+#define MN_Array_get 0
+#define MN_Array_set 0
 #define MN_Array_removeAt 75
-#define MN_Array_getSize 1073741900
-#define MN_Array_getlength 1073741901
+#define MN_Array_getSize 76
+#define MN_Array_getlength 77
 #define MN_Array_add 78
 #define MN_Array_push 79
 #define MN_Array_pop 80
@@ -72,7 +72,7 @@
 #define MN_Array_concat 84
 #define MN_Array_indexOf 86
 #define MN_Array_lastIndexOf 87
-#define MN_Array_String -1073741781
+#define MN_Array_String 43
 #define MN_Array_new 40
 #define MN_Array_newArray 89
 #define MN_Array_newList 90
@@ -95,4 +95,3 @@
 #define MN_System_staCyc 107
 #define MN_System_waiSem 108
 
-//#endif //_TINYKONOHA_CONSTANT_H_

@@ -29,7 +29,8 @@
 
 #define PORT         "COM5:"
 #define BUFSIZE      128
-#define USLEEP_PARAM 2000000
+#define USLEEP_PARAM 200000
+//#define USLEEP_PARAM 2000000
 
 typedef struct bt_buffer_t {
 	char buf[BUFSIZE];
@@ -72,18 +73,19 @@ static void sendBuf(KonohaContext *kctx, HANDLE hComm, bt_buffer_t *writebuf)
 	buf[strsize + writebuf->size] = '\r';
 	buf[strsize + writebuf->size + 1] = '\n';
 	//printf("%s\n", buf);
-	if (!WriteFile(hComm, buf, BUFSIZE, &readsize, NULL)) {
-		CloseHandle(hComm);
-		printf("cannot send buffer\n");
-		KLIB KonohaRuntime_raise(kctx, EXPT_("Cannnot send buffer"), NULL, 0, NULL);
-	}
 	usleep(USLEEP_PARAM);
+	while (!WriteFile(hComm, buf, BUFSIZE, &readsize, NULL)) {
+		//CloseHandle(hComm);
+		//printf("cannot send buffer\n");
+		//KLIB KonohaRuntime_raise(kctx, EXPT_("Cannnot send buffer"), NULL, 0, NULL);
+	}
 }
 
+static HANDLE hComm = NULL;
 static HANDLE bluetooth_connect(KonohaContext *kctx)
 {
+	if (hComm != NULL) return hComm;
 	printf("sendBluetooth\n");
-	HANDLE hComm;
 	char port[] = PORT;
 	char *portStr = port;
 	printf("-\n");
@@ -134,7 +136,7 @@ static void sendBluetooth(KonohaContext *kctx, kMethod *mtd)
 	while (mtd->pc_start[opsize].opcode != OPCODE_RET) {
 		opsize++;
 	}
-	usleep(USLEEP_PARAM);
+	//usleep(USLEEP_PARAM);
 	printf("6");
 	opsize++; // OPCODE_RET
 	bt_buffer_append(kctx, writebuf, &magicValue, sizeof(int8_t));
@@ -229,4 +231,16 @@ static void sendBluetooth(KonohaContext *kctx, kMethod *mtd)
 	}
 	printf("8");
 	bt_buffer_free(kctx, writebuf);
+}
+
+static void bt_close(KonohaContext *kctx)
+{
+	printf("bt_close\n");
+	bt_buffer_t writebuf;
+	bt_buffer_clear(kctx, &writebuf);
+	int8_t i = 0;
+	bt_buffer_append(kctx, &writebuf, &i, sizeof(int8_t));
+	sendBuf(kctx, hComm, &writebuf);
+	printf("bt_close end\n");
+	CloseHandle(hComm);
 }
