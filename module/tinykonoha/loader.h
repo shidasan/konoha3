@@ -174,11 +174,11 @@ static void loadByteCode(KonohaContext *kctx)
 			krbp_t *rbp = (krbp_t*)kctx->esp;
 			rbp[K_PCIDX2].pc = (VirtualMachineInstruction*)&opEXIT;
 			rbp[K_SHIFTIDX2].shift = 0;
-			TDBG_s("toplevel");
-			KonohaVirtualMachine_run(kctx, kctx->esp, pc);
-			dly_tsk(1000);
-			TDBG_s("toplevel end");
-			KLIB Kfree(kctx, pc, sizeof(VirtualMachineInstruction) * opsize);
+			//TDBG_s("toplevel");
+			//KonohaVirtualMachine_run(kctx, kctx->esp, pc);
+			//dly_tsk(1000);
+			//TDBG_s("toplevel end");
+			//KLIB Kfree(kctx, pc, sizeof(VirtualMachineInstruction) * opsize);
 			KLIB kArray_add(kctx, kctx->share->topLevelMethodList, pc);
 		} else {
 			uintptr_t flag = kMethod_Static|kMethod_Public;

@@ -1186,6 +1186,7 @@ static void Method_threadCode(KonohaContext *kctx, kMethod *mtd, kByteCode *kcod
 #ifdef TINYVM_CODEGEN
 	tinyvm_dump(kctx, mtd);
 #elif defined TINYVM_SEND_BLUETOOTH
+	KLIB kNameSpace_compileAllDefinedMethods(kctx);
 	sendBluetooth(kctx, mtd);
 #else
 	if (verbose_code) {
