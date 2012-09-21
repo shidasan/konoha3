@@ -914,6 +914,7 @@ kObject *MODGC_omalloc(KonohaContext *kctx, size_t size)
 void Kgc_invoke(KonohaContext *kctx, KonohaStack *esp)
 {
 	//TODO : stop the world
+	TDBG_abort("gc start");
 	gc_init(kctx);
 	gc_mark(kctx);
 	gc_sweep(kctx);

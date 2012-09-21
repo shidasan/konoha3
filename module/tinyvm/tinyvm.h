@@ -241,7 +241,7 @@ static void KonohaVirtualMachine_onSafePoint(KonohaContext *kctx, KonohaStack *s
 
 #define OPEXEC_CALL(UL, THIS, espshift, CTO) { \
 		kMethod *mtd_ = rbp[THIS+K_MTDIDX2].mtdNC;\
-		if (IS_Method(mtd_)) { \
+		if (mtd_ != kctx->share->constNull && mtd_->invokeMethodFunc != NULL) { \
 			KonohaStack *sfp_ = SFP(rshift(rbp, THIS)); \
 			sfp_[K_RTNIDX].o = CTO;\
 			/*sfp_[K_RTNIDX].uline = UL;*/\
@@ -249,7 +249,11 @@ static void KonohaVirtualMachine_onSafePoint(KonohaContext *kctx, KonohaStack *s
 			sfp_[K_PCIDX].pc = PC_NEXT(pc);\
 			sfp_[K_MTDIDX].mtdNC = mtd_;\
 			klr_setesp(kctx, SFP(rshift(rbp, espshift)));\
-			(mtd_)->invokeMethodFunc(kctx, sfp_); \
+			if (Method_isNativeMethod(mtd_)) { \
+				(mtd_)->invokeMethodFunc(kctx, sfp_); \
+			} else { \
+				KonohaVirtualMachine_run(kctx, sfp_, mtd_->pc_start); \
+			} \
 			sfp_[K_MTDIDX].mtdNC = NULL;\
 		} \
 	} \
@@ -294,7 +298,7 @@ static void KonohaVirtualMachine_onSafePoint(KonohaContext *kctx, KonohaStack *s
 
 #define OPEXEC_JMP(PC, JUMP) {\
 	PC; \
-	goto JUMP; \
+	GOTO_NEXT(); \
 }\
 
 #define OPEXEC_JMPT(PC, JUMP, N) \

@@ -1186,7 +1186,6 @@ static void Method_threadCode(KonohaContext *kctx, kMethod *mtd, kByteCode *kcod
 #ifdef TINYVM_CODEGEN
 	tinyvm_dump(kctx, mtd);
 #elif defined TINYVM_SEND_BLUETOOTH
-	KLIB kNameSpace_compileAllDefinedMethods(kctx);
 	sendBluetooth(kctx, mtd);
 #else
 	if (verbose_code) {
@@ -1210,6 +1209,9 @@ static void BUILD_compile(KonohaContext *kctx, kMethod *mtd, kBasicBlock *beginB
 	kByteCode *kcode = new_ByteCode(kctx, beginBlock, endBlock);
 	Method_threadCode(kctx, mtd, kcode);
 	KLIB kArray_clear(kctx, ctxcode->codeList, 0);
+#ifdef TINYVM_SEND_BLUETOOTH
+	KLIB kNameSpace_compileAllDefinedMethods(kctx);
+#endif
 }
 
 static void kMethod_genCode(KonohaContext *kctx, kMethod *mtd, kBlock *bk)
@@ -1365,7 +1367,9 @@ static void kmodcode_reftrace(KonohaContext *kctx, struct KonohaModule *baseh)
 
 static void kmodcode_free(KonohaContext *kctx, struct KonohaModule *baseh)
 {
+#ifdef TINYVM_SEND_BLUETOOTH
 	bt_close(kctx);
+#endif
 	KFREE(baseh, sizeof(KModuleByteCode));
 }
 

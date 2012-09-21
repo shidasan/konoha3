@@ -303,6 +303,10 @@ static kbool_t kopcode_hasjump(kopcode_t opcode)
 //#define K_USING_VMASMDISPATCH 1
 //#endif
 
+//#define NEXT_OP     (pc->opcode)
+//#define JUMP        *OPJUMP[NEXT_OP]
+//#define GOTO_NEXT() goto *OPJUMP[NEXT_OP]
+
 #ifdef K_USING_THCODE_
 #define CASE(x)  L_##x : 
 #define NEXT_OP   (OPJUMP[pc->opcode])
@@ -423,13 +427,13 @@ static VirtualMachineInstruction* KonohaVirtualMachine_run(KonohaContext *kctx, 
 	} 
 	CASE(JMP) {
 		OPJMP *op = (OPJMP*)pc;
-		kMethod *mtd = rbp[K_MTDIDX*2].mtdNC;
+		kMethod *mtd = sfp0[K_MTDIDX].mtdNC;
 		OPEXEC_JMP(pc = mtd->pc_start + op->jumppc, JUMP); pc++;
 		GOTO_NEXT();
 	} 
 	CASE(JMPF) {
 		OPJMPF *op = (OPJMPF*)pc;
-		kMethod *mtd = rbp[K_MTDIDX*2].mtdNC;
+		kMethod *mtd = sfp0[K_MTDIDX].mtdNC;
 		OPEXEC_JMPF(pc = mtd->pc_start + op->jumppc, JUMP, op->a); pc++;
 		GOTO_NEXT();
 	} 

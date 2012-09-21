@@ -22,14 +22,15 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***************************************************************************/
 
+#include <minikonoha/float.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <windows.h>
 #include <winuser.h>
 
-#define PORT         "COM5:"
+#define PORT         "COM9:"
 #define BUFSIZE      128
-#define USLEEP_PARAM 200000
+#define USLEEP_PARAM 50000
 //#define USLEEP_PARAM 2000000
 
 typedef struct bt_buffer_t {
@@ -76,7 +77,7 @@ static void sendBuf(KonohaContext *kctx, HANDLE hComm, bt_buffer_t *writebuf)
 	usleep(USLEEP_PARAM);
 	while (!WriteFile(hComm, buf, BUFSIZE, &readsize, NULL)) {
 		//CloseHandle(hComm);
-		//printf("cannot send buffer\n");
+		printf("cannot send buffer\n");
 		//KLIB KonohaRuntime_raise(kctx, EXPT_("Cannnot send buffer"), NULL, 0, NULL);
 	}
 }
@@ -120,6 +121,7 @@ static HANDLE bluetooth_connect(KonohaContext *kctx)
 		CloseHandle(hComm);
 		KLIB KonohaRuntime_raise(kctx, EXPT_("Invalid handle value"), NULL, 0, NULL);
 	}
+	usleep(USLEEP_PARAM * 5);
 	return hComm;
 }
 
@@ -136,14 +138,12 @@ static void sendBluetooth(KonohaContext *kctx, kMethod *mtd)
 	while (mtd->pc_start[opsize].opcode != OPCODE_RET) {
 		opsize++;
 	}
-	//usleep(USLEEP_PARAM);
-	printf("6");
+	usleep(USLEEP_PARAM * 2);
 	opsize++; // OPCODE_RET
 	bt_buffer_append(kctx, writebuf, &magicValue, sizeof(int8_t));
 	bt_buffer_append(kctx, writebuf, &opsize, sizeof(int32_t));
 	bt_buffer_append(kctx, writebuf, &cid, sizeof(int16_t));
 	bt_buffer_append(kctx, writebuf, &mn, sizeof(int16_t));
-	printf("7");
 	sendBuf(kctx, hComm, writebuf);
 	VirtualMachineInstruction *pc = NULL;
 	int i = 0;
@@ -181,6 +181,12 @@ static void sendBluetooth(KonohaContext *kctx, kMethod *mtd)
 				int16_t mn = mtd->mn;
 				bt_buffer_append(kctx, writebuf, &cid, sizeof(int16_t));
 				bt_buffer_append(kctx, writebuf, &mn, sizeof(int16_t));
+				break;
+			}
+			default: {
+				if (KonohaContext_getFloatModule(kctx) != NULL && pc->opcode == TY_float) {
+					bt_buffer_append(kctx, writebuf, &n, sizeof(int32_t));
+				}
 			}
 			}
 			break;
@@ -209,15 +215,21 @@ static void sendBluetooth(KonohaContext *kctx, kMethod *mtd)
 			break;
 		}
 		case OPCODE_JMP: {
-			OPRET *op = (OPRET*)pc;
-			printf("TODO\n");
-			assert(0);
+			OPJMP *op = (OPJMP*)pc;
+			printf("JMP\n");
+			int16_t jumppc = op->jumppc - mtd->pc_start;
+			printf("jumppc %d\n", jumppc);
+			bt_buffer_append(kctx, writebuf, &jumppc, sizeof(int16_t));
 			break;
 		}
 		case OPCODE_JMPF: {
-			OPRET *op = (OPRET*)pc;
-			printf("TODO\n");
-			assert(0);
+			OPJMPF *op = (OPJMPF*)pc;
+			printf("JMPF\n");
+			int16_t jumppc = op->jumppc - mtd->pc_start;
+			printf("jumppc %d\n", jumppc);
+			int8_t a = op->a;
+			bt_buffer_append(kctx, writebuf, &jumppc, sizeof(int16_t));
+			bt_buffer_append(kctx, writebuf, &a, sizeof(int8_t));
 			break;
 		}
 		default: {

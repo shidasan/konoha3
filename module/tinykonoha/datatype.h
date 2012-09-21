@@ -335,7 +335,10 @@ static void Method_reftrace(KonohaContext *kctx, kObject *o)
 static kMethod* new_Method(KonohaContext *kctx, uintptr_t flag, ktype_t cid, kmethodn_t mn, MethodFunc func)
 {
 #define CT_MethodVar CT_Method
-	kMethodVar* mtd = new_(MethodVar, NULL);
+	kMethodVar *mtd = (kMethodVar*)KLIB kNameSpace_getMethodNULL(kctx, NULL, cid, mn, 0, 0);
+	if (mtd == NULL) {
+		mtd = new_(MethodVar, NULL);
+	}
 	mtd->flag  = flag;
 	mtd->typeId     = cid;
 	mtd->mn      = mn;
@@ -521,17 +524,17 @@ static void loadInitStructData(KonohaContext *kctx)
 //	return (KonohaClass*)ct;
 //}
 
-static KMETHOD Fmethod_abstract(KonohaContext *kctx, KonohaStack *sfp)
-{
-	//kMethod *mtd = sfp[K_MTDIDX].mtdNC;
-	//char mbuf[128];
-	//kreportf(WARN_, sfp[K_RTNIDX].uline, "calling abstract method: %s.%s", T_cid(mtd->cid), T_mn(mbuf, mtd->mn));
-	RETURNi_(0); //necessary
-}
-
+//static KMETHOD Fmethod_abstract(KonohaContext *kctx, KonohaStack *sfp)
+//{
+//	//kMethod *mtd = sfp[K_MTDIDX].mtdNC;
+//	//char mbuf[128];
+//	//kreportf(WARN_, sfp[K_RTNIDX].uline, "calling abstract method: %s.%s", T_cid(mtd->cid), T_mn(mbuf, mtd->mn));
+//	RETURNi_(0); //necessary
+//}
+//
 static void Method_setFunc(KonohaContext *kctx, kMethod *mtd, MethodFunc func)
 {
-	func = (func == NULL) ? Fmethod_abstract : func;
+	func = (func == NULL) ? NULL : func;
 	((kMethodVar*)mtd)->invokeMethodFunc = func;
 	//((kMethodVar*)mtd)->pc_start = CODE_NCALL;
 
@@ -648,12 +651,11 @@ static void KCLASSTABLE_init(KonohaContextVar *kctx)
 	loadInitStructData(kctx);
 	KINITv(share.constNull, new_(Object, NULL));
 	kObject_setNullObject(share.constNull, 1);
-	//
 	KINITv(share.constData, new_(Array, 0));
 	KINITv(share.topLevelMethodList, new_(Array, 0));
 	KINITv(share.emptyArray, new_(Array, 0));
 	initStructData(kctx);
-	tinykonoha_floatMethodInit(kctx, NULL);
+	//tinykonoha_floatMethodInit(kctx, NULL);
 	tinykonoha_nxtMethodInit(kctx, NULL);
 	tinykonoha_arrayMethodInit(kctx, NULL);
 }

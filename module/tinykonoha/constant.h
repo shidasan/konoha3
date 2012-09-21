@@ -94,4 +94,5 @@
 #define MN_System_nxtMotorGetCount 106
 #define MN_System_staCyc 107
 #define MN_System_waiSem 108
+#define MN_System_ecrobotGetSonarSensor 109
 

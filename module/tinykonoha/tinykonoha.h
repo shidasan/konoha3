@@ -102,12 +102,12 @@ typedef struct KonohaLibVar          KonohaLibVar;
 typedef const struct KonohaPackageHandlerVar KonohaPackageHandler;
 typedef KonohaPackageHandler* (*PackageLoadFunc)(void);
 
-#ifndef jmpbuf_i
-#include <setjmp.h>
-#define jmpbuf_i jmp_buf
-#define ksetjmp  setjmp
-#define klongjmp longjmp
-#endif /*jmpbuf_i*/
+//#ifndef jmpbuf_i
+//#include <setjmp.h>
+//#define jmpbuf_i jmp_buf
+//#define ksetjmp  setjmp
+//#define klongjmp longjmp
+//#endif /*jmpbuf_i*/
 
 #ifndef K_USE_PTHREAD
 typedef void kmutex_t;
@@ -178,8 +178,8 @@ struct PlatformApiVar {
 	void    (*free_i)(void *);
 
 	// setjmp
-	int     (*setjmp_i)(jmpbuf_i);
-	void    (*longjmp_i)(jmpbuf_i, int);
+	///int     (*setjmp_i)(jmpbuf_i);
+	///void    (*longjmp_i)(jmpbuf_i, int);
 
 	// iconv + system path
 	uintptr_t   (*iconv_open_i)(const char* tocode, const char* fromcode);
@@ -588,7 +588,7 @@ struct KonohaStackRuntimeVar {
 	kushort_t                  evalidx;
 	kfileline_t                thrownScriptLine;
 	kString                   *optionalErrorMessage;
-	jmpbuf_i                  *evaljmpbuf;
+	//jmpbuf_i                  *evaljmpbuf;
 	KonohaStack               *jump_bottom;
 };
 
@@ -1076,6 +1076,7 @@ struct kParamVar {
 #define kMethod_Abstract             ((uintptr_t)(1<<10))
 #define kMethod_Coercion             ((uintptr_t)(1<<11))
 #define kMethod_SmartReturn          ((uintptr_t)(1<<12))
+#define kMethod_NativeMethod         ((uintptr_t)(1<<13))
 //#define kMethod_CALLCC               ((uintptr_t)(1<<8))
 //#define kMethod_FASTCALL             ((uintptr_t)(1<<9))
 //#define kMethod_D                    ((uintptr_t)(1<<10))
@@ -1101,6 +1102,8 @@ struct kParamVar {
 #define Method_isTransCast(mtd)    MN_isTOCID(mtd->mn)
 #define Method_isCast(mtd)         MN_isASCID(mtd->mn)
 #define Method_isCoercion(mtd)    (TFLAG_is(uintptr_t, (mtd)->flag,kMethod_Coercion))
+
+#define Method_isNativeMethod(o)         (TFLAG_is(uintptr_t, (o)->flag,kMethod_NativeMethod))
 
 
 #define Method_param(mtd)        kctx->share->paramList->paramItems[mtd->paramid]

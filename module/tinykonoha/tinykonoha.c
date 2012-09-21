@@ -59,6 +59,7 @@ void TDBG_abort(const char *msg)
 #include "ecrobot_interface.h"
 #include "balancer.h"
 #include "loader.h"
+#include "nxt.h"
 #else
 
 #define TDBG_i(KEY, VALUE)						\
@@ -75,7 +76,6 @@ void TDBG_abort(const char *msg)
 #endif
 
 #include "tinykonoha.h"
-//#include "../../include/konoha2/konoha2.h"
 #include "allocate.h"
 #include "../tinyvm/tinyvm_gen.h"
 #include "bytecode.h"
@@ -222,9 +222,14 @@ static void Kreportf(KonohaContext *kctx, kinfotag_t level, kfileline_t pline, c
 	va_list ap;
 	va_start(ap, fmt);
 	const char *str = va_arg(ap, const char*);
-	TDBG_s(str);
-	/* TODO */
-	//printf("hi\n");
+	//TDBG_s("reportf");
+	//dly_tsk(1000);
+	//TDBG_s(fmt);
+	//dly_tsk(1000);
+	if (fmt[0] == '%' && fmt[1] == 's') {
+		TDBG_s(str);
+		dly_tsk(1000);
+	}
 }
 
 void CT_addMethod(KonohaContext *kctx, KonohaClassVar *ct, kMethod *mtd)
@@ -248,7 +253,7 @@ static void kNameSpace_loadMethodData(KonohaContext *kctx, kNameSpace *ks, intpt
 	static int mn_count = 0;
 	intptr_t *d = data;
 	while(d[0] != -1) {
-		uintptr_t flag = kMethod_Static|kMethod_Public;
+		uintptr_t flag = kMethod_Static|kMethod_Public|kMethod_NativeMethod;
 		MethodFunc f = (MethodFunc)d[0];
 		ktype_t rtype = 0;
 		ktype_t cid = (ktype_t)d[1];
@@ -352,7 +357,6 @@ static void KRUNTIME_free(KonohaContext *kctx, KonohaContext *ctx)
 	KFREE(kctx->stack, sizeof(KonohaStackRuntimeVar));
 }
 
-extern tinykonoha_floatInit(KonohaContext, kNameSpace);
 static KonohaContext *new_context(size_t stacksize)
 {
 	heap_init();
@@ -366,8 +370,6 @@ static KonohaContext *new_context(size_t stacksize)
 	kctx.klib = &lib2;
 	MODGC_init(&kctx, &kctx);
 	KCLASSTABLE_init(&kctx);
-	//FLOAT_init(&kctx, NULL);
-	//tinykonoha_floatMethodInit(&kctx, NULL);
 	KRUNTIME_init(&kctx, &kctx, stacksize);
 	KCLASSTABLE_loadMethod(&kctx);
 	return &kctx;
@@ -387,7 +389,6 @@ static KonohaContext *new_context(size_t stacksize)
 
 static char mstate;				/* 走行体の状態 */
 static char keystate;			/* タッチセンサーの状態 */
-static S32  sonar_value;
 
 static void tail_control(signed int angle)
 {
@@ -403,6 +404,21 @@ static void tail_control(signed int angle)
 int ecrobotIsRunning()
 {
 	return mstate < MPREWAIT;
+}
+
+static void execTopLevelExpression(KonohaContext *kctx)
+{
+	kArray *array = kctx->share->topLevelMethodList;
+	size_t i, size = kArray_size(array);
+	//TDBG_i("size", size);
+	for (i = 4; i < size; i++) {
+		OPEXIT opEXIT = {OPCODE_EXIT};
+		krbp_t *rbp = (krbp_t*)kctx->esp;
+		rbp[K_PCIDX2].pc = (VirtualMachineInstruction*)&opEXIT;
+		rbp[K_SHIFTIDX2].shift = 0;
+		VirtualMachineInstruction *pc = (VirtualMachineInstruction*)array->objectItems[i];
+		KonohaVirtualMachine_run(kctx, kctx->esp, pc);
+	}
 }
 
 void manipulate_tail()
@@ -424,21 +440,24 @@ void cyc0(VP_INT exinf)
 
 void TaskMain(VP_INT exinf)
 {
-	struct KonohaContext *kctx = new_context(K_STACK_SIZE);
-	loadByteCode(kctx);
-	TDBG_s("load end");
+	struct KonohaContext *kctx = (struct KonohaContext *)new_context(K_STACK_SIZE);
+	//TDBG_s("hi"); dly_tsk(1000);
+	loadByteCode((KonohaContext*)kctx);
 
 	mstate = MWAIT;
 	ecrobot_set_light_sensor_active(NXT_PORT_S3);
 	while (mstate != MRUNNING) {
+		//TDBG_i("invoke ptr", (int32_t)MethodFunc_runVirtualMachine);
 		tail_control(TAIL_ANGLE_STAND_UP);
-		dly_tsk(10);
+		gyro_offset = ecrobot_get_gyro_sensor(NXT_PORT_S1);
+		TDBG_i("gyro_offset", gyro_offset);
+		dly_tsk(1);
 	}
 	balance_init();
 	nxt_motor_set_count(NXT_PORT_C, 0);
 	nxt_motor_set_count(NXT_PORT_B, 0);
 	sta_cyc(CYC0);
-	//execTopLevelExpression(kctx);
+	execTopLevelExpression((KonohaContext*)kctx);
 	//act_tsk(TASK0);
 }
 
@@ -461,8 +480,8 @@ void TaskDisp(VP_INT exinf)
 	keystate = ecrobot_get_touch_sensor(NXT_PORT_S4);
 	nxt_motor_set_count(NXT_PORT_A, 0);		/* 完全停止用モータエンコーダリセット */
 	act_tsk(TASK0);
-	//mstate = MWAIT;
-	//wtime = STOPWAIT;
+	mstate = MWAIT;
+	wtime = STOPWAIT;
 	while(1){
 		ecrobot_poll_nxtstate();
 		sonar_value = ecrobot_get_sonar_sensor(NXT_PORT_S2);
