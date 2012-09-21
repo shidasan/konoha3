@@ -182,6 +182,14 @@ static KMETHOD System_balanceControl(KonohaContext *kctx, KonohaStack *sfp)
 #endif
 }
 
+extern S32 sonar_value;
+static KMETHOD System_getSonarSensor(KonohaContext *kctx, KonohaStack *sfp)
+{
+#ifdef K_USING_TOPPERS
+	return sonar_value;
+#endif
+}
+
 #define _Public   kMethod_Public
 #define _Const    kMethod_Const
 #define _F(F)   (intptr_t)(F)
@@ -243,6 +251,7 @@ static	kbool_t nxt_initPackage(KonohaContext *kctx, kNameSpace *ks, int argc, co
 			_Public|_Const, _F(System_nxtMotorGetCount), TY_int, TY_System, MN_("nxtMotorGetCount"), 1, TY_int, FN_x, 
 			_Public|_Const, _F(System_staCyc), TY_void, TY_System, MN_("staCyc"), 0,
 			_Public|_Const, _F(System_waiSem), TY_void, TY_System, MN_("waiSem"), 0,
+			_Public|_Const, _F(System_getSonarSensor), TY_int, TY_System, MN_("ecrobotGetSonarSensor"), 0,
 			DEND,
 	};
 	KLIB kNameSpace_loadMethodData(kctx, ks, MethodData);

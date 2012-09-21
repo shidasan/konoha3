@@ -387,6 +387,7 @@ static KonohaContext *new_context(size_t stacksize)
 
 static char mstate;				/* 走行体の状態 */
 static char keystate;			/* タッチセンサーの状態 */
+static S32  sonar_value;
 
 static void tail_control(signed int angle)
 {
@@ -464,6 +465,7 @@ void TaskDisp(VP_INT exinf)
 	//wtime = STOPWAIT;
 	while(1){
 		ecrobot_poll_nxtstate();
+		sonar_value = ecrobot_get_sonar_sensor(NXT_PORT_S2);
 		ercd = serial_ref_por(CONSOLE_PORTID, &rpor);
 		if(ercd == E_OK && rpor.reacnt){
 			serial_rea_dat(CONSOLE_PORTID, buf, 1);
