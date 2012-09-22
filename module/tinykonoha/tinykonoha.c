@@ -389,6 +389,12 @@ static KonohaContext *new_context(size_t stacksize)
 
 static char mstate;				/* 走行体の状態 */
 static char keystate;			/* タッチセンサーの状態 */
+static U16 gyro_offset_value;
+
+U16 getGyroOffset()
+{
+	return gyro_offset_value;
+}
 
 static void tail_control(signed int angle)
 {
@@ -449,8 +455,8 @@ void TaskMain(VP_INT exinf)
 	while (mstate != MRUNNING) {
 		//TDBG_i("invoke ptr", (int32_t)MethodFunc_runVirtualMachine);
 		tail_control(TAIL_ANGLE_STAND_UP);
-		gyro_offset = ecrobot_get_gyro_sensor(NXT_PORT_S1);
-		TDBG_i("gyro_offset", gyro_offset);
+		gyro_offset_value = ecrobot_get_gyro_sensor(NXT_PORT_S1);
+		//TDBG_i("gyro_offset", gyro_offset);
 		dly_tsk(1);
 	}
 	balance_init();
@@ -486,15 +492,15 @@ void TaskDisp(VP_INT exinf)
 		ecrobot_poll_nxtstate();
 		sonar_value = ecrobot_get_sonar_sensor(NXT_PORT_S2);
 		ercd = serial_ref_por(CONSOLE_PORTID, &rpor);
-		if(ercd == E_OK && rpor.reacnt){
-			serial_rea_dat(CONSOLE_PORTID, buf, 1);
-			if(buf[0] == 'g' && mstate == MWAIT)
-				mstate = MRUNNING;
-			else if(buf[0] == 's' && mstate == MRUNNING){
-				mstate = MSTOP1;
-				wtime = STOPWAIT;
-			}
-		}
+		//if(ercd == E_OK && rpor.reacnt){
+		//	serial_rea_dat(CONSOLE_PORTID, buf, 1);
+		//	if(buf[0] == 'g' && mstate == MWAIT)
+		//		mstate = MRUNNING;
+		//	else if(buf[0] == 's' && mstate == MRUNNING){
+		//		mstate = MSTOP1;
+		//		wtime = STOPWAIT;
+		//	}
+		//}
 		key = ecrobot_get_touch_sensor(NXT_PORT_S4);
 		if(key != keystate){	/* KEYセンサーの検知 */
 			if(key != 0){

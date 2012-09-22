@@ -163,20 +163,15 @@ static KMETHOD System_waiSem(KonohaContext *kctx, KonohaStack *sfp)
 	wai_sem(EVT_SEM);
 #endif
 }
+static signed char pwm_L, pwm_R;
 static KMETHOD System_balanceControl(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
-	static int bc_count = 0;
-	bc_count++;
-	TDBG_i("balance control", bc_count);
-	static signed char pwm_L, pwm_R;
 	balance_control(
-			50,
-			0,
-			//(float)Int_to(int, sfp[1]),
-			//(float)Int_to(int, sfp[2]),
+			Int_to(int, sfp[1]),
+			Int_to(int, sfp[2]),
 			ecrobot_get_gyro_sensor(NXT_PORT_S1),
-			/*gyro_offset*/599,
+			getGyroOffset(),
 			nxt_motor_get_count(NXT_PORT_C),
 			nxt_motor_get_count(NXT_PORT_B),
 			ecrobot_get_battery_voltage(),
