@@ -344,7 +344,8 @@ typedef struct {
 #define TY_newid        ((ktype_t)-1)
 #define TY_unknown         ((ktype_t)-2)
 
-#define CT_(t)              (kctx->share->classTable.classItems[t])
+//#define CT_(t)              (kctx->share->classTable.classItems[t])
+#define CT_(t)              (KLIB kType_getClass(kctx, (ktype_t)t))
 #define CT_cparam(CT)       (kctx->share->paramdomList->paramItems[(CT)->cparamdom])
 #define TY_isUnbox(t)       FLAG_is(CT_(t)->cflag, kClass_UnboxType)
 #define CT_isUnbox(C)       FLAG_is(C->cflag, kClass_UnboxType)
@@ -1290,6 +1291,7 @@ struct KonohaLibVar {
 	kString*        (*KonohaClass_shortName)(KonohaContext*, KonohaClass *ct);
 	KonohaClass*    (*KonohaClass_Generics)(KonohaContext*, KonohaClass *ct, ktype_t rty, int psize, kparamtype_t *p);
 	kbool_t         (*KonohaClass_isSubtype)(KonohaContext*, KonohaClass *, KonohaClass *);
+	KonohaClass*    (*kType_getClass)(KonohaContext*, ktype_t);
 
 	kObject*        (*new_kObject)(KonohaContext*, KonohaClass *, uintptr_t);  // GCUNSAFE
 	kObject*        (*new_kObjectOnGCSTACK)(KonohaContext*, KonohaClass *, uintptr_t);

@@ -259,6 +259,7 @@ kbool_t tinykonoha_floatMethodInit(KonohaContext *kctx, kNameSpace *ks)
 		STRUCTNAME(Float),
 		.cflag = CFLAG_Int,
 		.init = Float_init,
+		.typeId = TY_float,
 	};
 
 	base->cFloat = KLIB Konoha_defineClass(kctx, 0, PN_konoha, NULL, &defFloat, 0);

@@ -443,17 +443,15 @@ void cyc0(VP_INT exinf)
 {
 	isig_sem(EVT_SEM);
 }
-
 void TaskMain(VP_INT exinf)
 {
 	struct KonohaContext *kctx = (struct KonohaContext *)new_context(K_STACK_SIZE);
-	//TDBG_s("hi"); dly_tsk(1000);
 	loadByteCode((KonohaContext*)kctx);
 
 	mstate = MWAIT;
 	ecrobot_set_light_sensor_active(NXT_PORT_S3);
 	while (mstate != MRUNNING) {
-		//TDBG_i("invoke ptr", (int32_t)MethodFunc_runVirtualMachine);
+		TDBG_i("invoke ptr", (int32_t)MethodFunc_runVirtualMachine);
 		tail_control(TAIL_ANGLE_STAND_UP);
 		gyro_offset_value = ecrobot_get_gyro_sensor(NXT_PORT_S1);
 		//TDBG_i("gyro_offset", gyro_offset);

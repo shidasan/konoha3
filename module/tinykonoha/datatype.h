@@ -243,13 +243,14 @@ static KonohaClassVar *new_KonohaClass(KonohaContext *kctx, KonohaClass *bct, KD
 	if (bct != NULL) {
 		DBG_ASSERT(s == NULL);
 		memcpy(ct, bct, offsetof(KonohaClass, methodList));
-		ct->typeId = newid;
+		TDBG_abort("bct not supported");
+		//ct->typeId = s->typeId;
 		//if (ct->fnull == DEFAULT_fnull) ct->fnull = DEFAULT_fnullinit;
 	} else {
 		DBG_ASSERT(s != NULL);
 		ct->cflag = s->cflag;
-		ct->typeId = newid;
-		ct->baseTypeId = newid;
+		ct->typeId = s->typeId;
+		ct->baseTypeId = s->typeId;
 		ct->superTypeId = (s->superTypeId == 0) ? TY_Object : s->superTypeId;
 		ct->fieldItems = s->fieldItems;
 		ct->fieldsize = s->fieldsize;
@@ -424,15 +425,18 @@ static void loadInitStructData(KonohaContext *kctx)
 {
 	KDEFINE_CLASS defTvoid = {
 		TYPENAME(void),
+		.typeId = TY_void,
 	};
 	KDEFINE_CLASS defTvar = {
 		TYPENAME(var),
+		.typeId = TY_var,
 	};
 	KDEFINE_CLASS defObject = {
 		CLASSNAME(Object),
 		.init = Object_init,
 		.reftrace = Object_reftrace,
 		.initdef = Object_initdef,
+		.typeId = TY_Object,
 	};
 	KDEFINE_CLASS defBoolean = {
 		CLASSNAME(Boolean),
@@ -440,19 +444,22 @@ static void loadInitStructData(KonohaContext *kctx)
 		.unbox = Number_unbox,
 		.p    = Boolean_p,
 		.fnull = Boolean_fnull,
+		.typeId = TY_Boolean,
 	};
 	KDEFINE_CLASS defInt = {
 		CLASSNAME(Int),
 		.init  = Number_init,
 		.unbox = Number_unbox,
 		.p     = Int_p,
+		.typeId = TY_Int,
 	};
 	KDEFINE_CLASS defString = {
 		CLASSNAME(String),
 		.init = String_init,
 		.free = String_free,
 		.p    = String_p,
-		.unbox = String_unbox
+		.unbox = String_unbox,
+		.typeId = TY_String,
 	};
 	kparamtype_t ArrayCparam = {TY_Object, 1};
 	KDEFINE_CLASS defArray = {
@@ -461,29 +468,35 @@ static void loadInitStructData(KonohaContext *kctx)
 		.reftrace = Array_reftrace,
 		.free = Array_free,
 //		.psize = 1, .cparams = &ArrayCparam,
+		.typeId = TY_Array,
 	};
 	KDEFINE_CLASS defParam = {
 		CLASSNAME(Param),
 		.init = Param_init,
+		.typeId = TY_Param,
 	};
 	KDEFINE_CLASS defMethod = {
 		CLASSNAME(Method),
 		.init = Method_init,
 		.reftrace = Method_reftrace,
+		.typeId = TY_Method,
 	};
 	KDEFINE_CLASS defFunc = {
 		CLASSNAME(Func),
 		.init = Func_init,
 		.reftrace = Func_reftrace,
+		.typeId = TY_Func,
 	};
 	KDEFINE_CLASS defSystem = {
 		CLASSNAME(System),
 		.init = DEFAULT_init,
+		.typeId = TY_System,
 	};
 	KDEFINE_CLASS defT0 = {
 		TYPENAME(0),
 		.init = DEFAULT_init,
 		.realtype = T_realtype,
+		.typeId = TY_0,
 	};
 	KDEFINE_CLASS *DATATYPES[] = {
 		&defTvoid,
@@ -502,7 +515,7 @@ static void loadInitStructData(KonohaContext *kctx)
 	};
 	KDEFINE_CLASS **dd = DATATYPES;
 	while(dd[0] != NULL) {
-		new_KonohaClass(kctx, NULL, dd[0], 0);
+		KonohaClassVar *newclass = new_KonohaClass(kctx, NULL, dd[0], 0);
 		dd++;
 	}
 	KonohaClassVar *ct = (KonohaClassVar *)CT_Array;
@@ -583,6 +596,17 @@ static kMethod* CT_findMethodNULL(KonohaContext *kctx, KonohaClass *ct, kmethodn
 	return NULL;
 }
 
+static KonohaClass* kType_getClass(KonohaContext* kctx, ktype_t cid)
+{
+	KUtilsGrowingArray *classTable = &(kctx->share->classTable);
+	size_t i, size = kctx->share->classTable.bytesize / sizeof(KonohaClassVar*);
+	for (i = 0; i < size; i++) {
+		KonohaClass *ct = classTable->classItems[i];
+		if (ct->typeId == cid) return ct;
+	}
+	return NULL;
+}
+
 #define kNameSpace_getStaticMethodNULL(ns, mn)   KonohaSpace_getStaticMethodNULL(kctx, ns, mn)
 
 static kMethod* KonohaSpace_getMethodNULL(KonohaContext *kctx, kNameSpace *ks, ktype_t cid, kmethodn_t mn, int option, int policy)
@@ -609,6 +633,7 @@ static void KCLASSTABLE_initKonohaLib(KonohaLibVar *l)
 	l->kArray_add = Array_add;
 	l->Konoha_defineClass = Konoha_defineClass;
 	l->kNameSpace_getMethodNULL = KonohaSpace_getMethodNULL;
+	l->kType_getClass = kType_getClass;
 }
 
 void KonohaClass_setName(KonohaContext *kctx, KonohaClassVar *ct, kfileline_t pline)
@@ -655,7 +680,7 @@ static void KCLASSTABLE_init(KonohaContextVar *kctx)
 	KINITv(share.topLevelMethodList, new_(Array, 0));
 	KINITv(share.emptyArray, new_(Array, 0));
 	initStructData(kctx);
-	//tinykonoha_floatMethodInit(kctx, NULL);
+	tinykonoha_floatMethodInit(kctx, NULL);
 	tinykonoha_nxtMethodInit(kctx, NULL);
 	tinykonoha_arrayMethodInit(kctx, NULL);
 }

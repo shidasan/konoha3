@@ -209,7 +209,9 @@ static void loadByteCode(KonohaContext *kctx)
 			uintptr_t flag = kMethod_Static|kMethod_Public;
 			kMethodVar *mtd = (kMethodVar*)KLIB new_kMethod(kctx, flag, cid, mn, MethodFunc_runVirtualMachine);
 			mtd->pc_start = pc;
-			CT_addMethod(kctx, (KonohaClassVar*)CT_(cid), (kMethod*)mtd);
+			if (CT_(cid) != NULL) {
+				CT_addMethod(kctx, (KonohaClassVar*)CT_(cid), (kMethod*)mtd);
+			}
 		}
 	}
 }
