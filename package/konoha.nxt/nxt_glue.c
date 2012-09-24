@@ -41,30 +41,44 @@
 #include "nxt.h"
 #endif
 
+typedef struct {
+	KonohaObjectHeader h;
+} kNXT;
+
+static void kNXT_init(KonohaContext *kctx, kObject *o, void *conf)
+{
+
+}
+
+static void kNXT_free(KonohaContext *kctx, kObject *o)
+{
+
+}
+
 #define Int_to(T, a)               ((T)a.intValue)
 #define Float_to(T, a)             ((T)a.floatValue)
 
-static KMETHOD System_balanceInit(KonohaContext *kctx, KonohaStack *sfp)
+static KMETHOD NXT_balanceInit(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
 	TDBG_s("balance init");
 	balance_init();
 #endif
 }
-static KMETHOD System_dly(KonohaContext *kctx, KonohaStack *sfp)
+static KMETHOD NXT_dly(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
 	int delay = Int_to(int, sfp[1]);
 	dly_tsk(delay);
 #endif
 }
-static KMETHOD System_actMainTask(KonohaContext *kctx, KonohaStack *sfp)
+static KMETHOD NXT_actMainTask(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
 	act_tsk(TASK0);
 #endif
 }
-static KMETHOD System_ecrobotIsRunning(KonohaContext *kctx, KonohaStack *sfp)
+static KMETHOD NXT_ecrobotIsRunning(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
 	RETURNb_(ecrobotIsRunning());
@@ -72,7 +86,7 @@ static KMETHOD System_ecrobotIsRunning(KonohaContext *kctx, KonohaStack *sfp)
 	RETURNb_(0);
 #endif
 }
-static KMETHOD System_tailControl(KonohaContext *kctx, KonohaStack *sfp)
+static KMETHOD NXT_tailControl(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
 #define P_GAIN 2.5F
@@ -87,32 +101,32 @@ static KMETHOD System_tailControl(KonohaContext *kctx, KonohaStack *sfp)
 	nxt_motor_set_speed(NXT_PORT_A, (signed char)pwm, 1);
 #endif
 }
-static KMETHOD System_manipulateTail(KonohaContext *kctx, KonohaStack *sfp)
+static KMETHOD NXT_manipulateTail(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
 	manipulate_tail();
 #endif
 }
-static KMETHOD System_ecrobotInitNxtstate(KonohaContext *kctx, KonohaStack *sfp)
+static KMETHOD NXT_ecrobotInitNxtstate(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
 	syscall(serial_ctl_por(CONSOLE_PORTID, (IOCTL_CRLF | IOCTL_FCSND | IOCTL_FCRCV)));
 	ecrobot_init_nxtstate();
 #endif
 }
-static KMETHOD System_ecrobotInitSensors(KonohaContext *kctx, KonohaStack *sfp)
+static KMETHOD NXT_ecrobotInitSensors(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
 	ecrobot_init_sensors();
 #endif
 }
-static KMETHOD System_ecrobotSetLightSensorActive(KonohaContext *kctx, KonohaStack *sfp)
+static KMETHOD NXT_ecrobotSetLightSensorActive(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
 	ecrobot_set_light_sensor_active(NXT_PORT_S3);
 #endif
 }
-static KMETHOD System_ecrobotGetGyroSensor(KonohaContext *kctx, KonohaStack *sfp)
+static KMETHOD NXT_ecrobotGetGyroSensor(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
 	RETURNi_(ecrobot_get_gyro_sensor(NXT_PORT_S1));
@@ -120,7 +134,7 @@ static KMETHOD System_ecrobotGetGyroSensor(KonohaContext *kctx, KonohaStack *sfp
 	RETURNi_(0);
 #endif
 }
-static KMETHOD System_ecrobotGetLightSensor(KonohaContext *kctx, KonohaStack *sfp)
+static KMETHOD NXT_ecrobotGetLightSensor(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
 	RETURNi_(ecrobot_get_light_sensor(NXT_PORT_S3));
@@ -128,21 +142,21 @@ static KMETHOD System_ecrobotGetLightSensor(KonohaContext *kctx, KonohaStack *sf
 	RETURNi_(0);
 #endif
 }
-static KMETHOD System_nxtMotorSetSpeed(KonohaContext *kctx, KonohaStack *sfp)
+static KMETHOD NXT_nxtMotorSetSpeed(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
 	int i = Int_to(int, sfp[1]);
 	nxt_motor_set_speed((i == 1) ? NXT_PORT_C : NXT_PORT_B, Int_to(int, sfp[2]), 1);
 #endif
 }
-static KMETHOD System_nxtMotorSetCount(KonohaContext *kctx, KonohaStack *sfp)
+static KMETHOD NXT_nxtMotorSetCount(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
 	int i = Int_to(int, sfp[1]);
 	nxt_motor_set_count((i == 1) ? NXT_PORT_C : NXT_PORT_B, Int_to(int, sfp[2]));
 #endif
 }
-static KMETHOD System_nxtMotorGetCount(KonohaContext *kctx, KonohaStack *sfp)
+static KMETHOD NXT_nxtMotorGetCount(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
 	int i = Int_to(int, sfp[1]);
@@ -151,20 +165,20 @@ static KMETHOD System_nxtMotorGetCount(KonohaContext *kctx, KonohaStack *sfp)
 	RETURNi_(0);
 #endif
 }
-static KMETHOD System_staCyc(KonohaContext *kctx, KonohaStack *sfp)
+static KMETHOD NXT_staCyc(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
 	//sta_cyc(CYC0);
 #endif
 }
-static KMETHOD System_waiSem(KonohaContext *kctx, KonohaStack *sfp)
+static KMETHOD NXT_waiSem(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
 	wai_sem(EVT_SEM);
 #endif
 }
 static signed char pwm_L, pwm_R;
-static KMETHOD System_balanceControl(KonohaContext *kctx, KonohaStack *sfp)
+static KMETHOD NXT_balanceControl(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
 	balance_control(
@@ -182,7 +196,7 @@ static KMETHOD System_balanceControl(KonohaContext *kctx, KonohaStack *sfp)
 #endif
 }
 
-static KMETHOD System_getSonarSensor(KonohaContext *kctx, KonohaStack *sfp)
+static KMETHOD NXT_getSonarSensor(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
 	RETURNi_(sonar_value);
@@ -198,24 +212,24 @@ static KMETHOD System_getSonarSensor(KonohaContext *kctx, KonohaStack *sfp)
 kbool_t tinykonoha_nxtMethodInit(KonohaContext *kctx, kNameSpace *ks)
 {
 	intptr_t MethodData[] = {
-		_F(System_balanceInit), TY_System, MN_(System_balanceInit),
-		_F(System_dly), TY_System, MN_(System_dly),
-		_F(System_actMainTask), TY_System, MN_(System_actMainTask),
-		_F(System_ecrobotIsRunning), TY_System, MN_(System_ecrobotIsRunning),
-		_F(System_tailControl), TY_System, MN_(System_tailControl),
-		_F(System_manipulateTail), TY_System, MN_(System_manipulateTail),
-		_F(System_ecrobotInitNxtstate), TY_System, MN_(System_ecrobotInitNxtstate),
-		_F(System_ecrobotInitSensors), TY_System, MN_(System_ecrobotInitSensors),
-		_F(System_ecrobotSetLightSensorActive), TY_System, MN_(System_ecrobotSetLightSensorActive),
-		_F(System_ecrobotGetGyroSensor), TY_System, MN_(System_ecrobotGetGyroSensor),
-		_F(System_ecrobotGetLightSensor), TY_System, MN_(System_ecrobotGetLightSensor),
-		_F(System_nxtMotorSetSpeed), TY_System, MN_(System_nxtMotorSetSpeed),
-		_F(System_nxtMotorSetCount), TY_System, MN_(System_nxtMotorSetCount),
-		_F(System_nxtMotorGetCount), TY_System, MN_(System_nxtMotorGetCount),
-		_F(System_staCyc), TY_System, MN_(System_staCyc),
-		_F(System_waiSem), TY_System, MN_(System_waiSem),
-		_F(System_balanceControl), TY_System, MN_(System_balanceControl),
-		_F(System_getSonarSensor), TY_System, MN_(System_ecrobotGetSonarSensor),
+		_F(NXT_balanceInit), TY_System, MN_(NXT_balanceInit),
+		_F(NXT_dly), TY_System, MN_(NXT_dly),
+		_F(NXT_actMainTask), TY_System, MN_(NXT_actMainTask),
+		_F(NXT_ecrobotIsRunning), TY_System, MN_(NXT_ecrobotIsRunning),
+		_F(NXT_tailControl), TY_System, MN_(NXT_tailControl),
+		_F(NXT_manipulateTail), TY_System, MN_(NXT_manipulateTail),
+		_F(NXT_ecrobotInitNxtstate), TY_System, MN_(NXT_ecrobotInitNxtstate),
+		_F(NXT_ecrobotInitSensors), TY_System, MN_(NXT_ecrobotInitSensors),
+		_F(NXT_ecrobotSetLightSensorActive), TY_System, MN_(NXT_ecrobotSetLightSensorActive),
+		_F(NXT_ecrobotGetGyroSensor), TY_System, MN_(NXT_ecrobotGetGyroSensor),
+		_F(NXT_ecrobotGetLightSensor), TY_System, MN_(NXT_ecrobotGetLightSensor),
+		_F(NXT_nxtMotorSetSpeed), TY_System, MN_(NXT_nxtMotorSetSpeed),
+		_F(NXT_nxtMotorSetCount), TY_System, MN_(NXT_nxtMotorSetCount),
+		_F(NXT_nxtMotorGetCount), TY_System, MN_(NXT_nxtMotorGetCount),
+		_F(NXT_staCyc), TY_System, MN_(NXT_staCyc),
+		_F(NXT_waiSem), TY_System, MN_(NXT_waiSem),
+		_F(NXT_balanceControl), TY_System, MN_(NXT_balanceControl),
+		_F(NXT_getSonarSensor), TY_System, MN_(NXT_getsonarSensor),
 		DEND,
 	};
 	KLIB kNameSpace_loadMethodData(kctx, ks, MethodData);
@@ -226,33 +240,35 @@ kbool_t tinykonoha_nxtMethodInit(KonohaContext *kctx, kNameSpace *ks)
 
 static	kbool_t nxt_initPackage(KonohaContext *kctx, kNameSpace *ks, int argc, const char**args, kfileline_t pline)
 {
-	//KREQUIRE_PACKAGE("konoha.float", pline);
-	//static KDEFINE_CLASS MathDef = {
-	//		.structname = "Math"/*structname*/,
-	//		.cid = CLASS_newid/*cid*/,
-	//};
-	//kclass_t *cMath = Konoha_addClassDef(ks->packid, ks->packdom, NULL, &MathDef, pline);
+	KDEFINE_CLASS defNXT = {
+		STRUCTNAME(NXT),
+		.cflag = kClass_Final,
+		.init  = kNXT_init,
+		.free  = kNXT_free,
+	};
+	KonohaClass *cNXT = KLIB kNameSpace_defineClass(kctx, ks, NULL, &defNXT, pline);
+	ktype_t TY_NXT = cNXT->typeId;
 	int FN_x = FN_("x");
 	int FN_y = FN_("y");
 	intptr_t MethodData[] = {
-			_Public|_Static|_Imm, _F(System_balanceControl), TY_void, TY_System, MN_("balanceControl"), 2, TY_int, FN_x, TY_int, FN_y, 
-			_Public|_Static|_Imm, _F(System_balanceInit), TY_void, TY_System, MN_("balanceInit"), 0,
-			_Public|_Static|_Imm, _F(System_dly), TY_void, TY_System, MN_("dly"), 1, TY_int, FN_x, 
-			_Public|_Static|_Imm, _F(System_actMainTask), TY_void, TY_System, MN_("actMainTask"), 0, 
-			_Public|_Static|_Imm, _F(System_ecrobotIsRunning), TY_boolean, TY_System, MN_("ecrobotIsRunning"), 0, 
-			_Public|_Static|_Imm, _F(System_tailControl), TY_void, TY_System, MN_("tailControl"), 1, TY_int, FN_x, 
-			_Public|_Static|_Imm, _F(System_manipulateTail), TY_void, TY_System, MN_("manipulateTail"), 0,
-			_Public|_Static|_Imm, _F(System_ecrobotInitNxtstate), TY_void, TY_System, MN_("ecrobotInitNxtstate"), 0,
-			_Public|_Static|_Imm, _F(System_ecrobotInitSensors), TY_void, TY_System, MN_("ecrobotInitSensors"), 0,
-			_Public|_Static|_Imm, _F(System_ecrobotSetLightSensorActive), TY_void, TY_System, MN_("ecrobotSetLightSensorActive"), 0,
-			_Public|_Static|_Imm, _F(System_ecrobotGetGyroSensor), TY_int, TY_System, MN_("ecrobotGetGyroSensor"), 0,
-			_Public|_Static|_Imm, _F(System_ecrobotGetLightSensor), TY_int, TY_System, MN_("ecrobotGetLightSensor"), 0,
-			_Public|_Static|_Imm, _F(System_nxtMotorSetSpeed), TY_void, TY_System, MN_("nxtMotorSetSpeed"), 2, TY_int, FN_x, TY_int, FN_y,
-			_Public|_Static|_Imm, _F(System_nxtMotorSetCount), TY_void, TY_System, MN_("nxtMotorSetCount"), 2, TY_int, FN_x, TY_int, FN_y,
-			_Public|_Static|_Imm, _F(System_nxtMotorGetCount), TY_int, TY_System, MN_("nxtMotorGetCount"), 1, TY_int, FN_x, 
-			_Public|_Static|_Imm, _F(System_staCyc), TY_void, TY_System, MN_("staCyc"), 0,
-			_Public|_Static|_Imm, _F(System_waiSem), TY_void, TY_System, MN_("waiSem"), 0,
-			_Public|_Static|_Imm, _F(System_getSonarSensor), TY_int, TY_System, MN_("ecrobotGetSonarSensor"), 0,
+			_Public|_Static|_Imm, _F(NXT_balanceControl), TY_void, TY_NXT, MN_("balanceControl"), 2, TY_int, FN_x, TY_int, FN_y, 
+			_Public|_Static|_Imm, _F(NXT_balanceInit), TY_void, TY_NXT, MN_("balanceInit"), 0,
+			_Public|_Static|_Imm, _F(NXT_dly), TY_void, TY_NXT, MN_("dly"), 1, TY_int, FN_x, 
+			_Public|_Static|_Imm, _F(NXT_actMainTask), TY_void, TY_NXT, MN_("actMainTask"), 0, 
+			_Public|_Static|_Imm, _F(NXT_ecrobotIsRunning), TY_boolean, TY_NXT, MN_("ecrobotIsRunning"), 0, 
+			_Public|_Static|_Imm, _F(NXT_tailControl), TY_void, TY_NXT, MN_("tailControl"), 1, TY_int, FN_x, 
+			_Public|_Static|_Imm, _F(NXT_manipulateTail), TY_void, TY_NXT, MN_("manipulateTail"), 0,
+			_Public|_Static|_Imm, _F(NXT_ecrobotInitNxtstate), TY_void, TY_NXT, MN_("ecrobotInitNxtstate"), 0,
+			_Public|_Static|_Imm, _F(NXT_ecrobotInitSensors), TY_void, TY_NXT, MN_("ecrobotInitSensors"), 0,
+			_Public|_Static|_Imm, _F(NXT_ecrobotSetLightSensorActive), TY_void, TY_NXT, MN_("ecrobotSetLightSensorActive"), 0,
+			_Public|_Static|_Imm, _F(NXT_ecrobotGetGyroSensor), TY_int, TY_NXT, MN_("ecrobotGetGyroSensor"), 0,
+			_Public|_Static|_Imm, _F(NXT_ecrobotGetLightSensor), TY_int, TY_NXT, MN_("ecrobotGetLightSensor"), 0,
+			_Public|_Static|_Imm, _F(NXT_nxtMotorSetSpeed), TY_void, TY_NXT, MN_("nxtMotorSetSpeed"), 2, TY_int, FN_x, TY_int, FN_y,
+			_Public|_Static|_Imm, _F(NXT_nxtMotorSetCount), TY_void, TY_NXT, MN_("nxtMotorSetCount"), 2, TY_int, FN_x, TY_int, FN_y,
+			_Public|_Static|_Imm, _F(NXT_nxtMotorGetCount), TY_int, TY_NXT, MN_("nxtMotorGetCount"), 1, TY_int, FN_x, 
+			_Public|_Static|_Imm, _F(NXT_staCyc), TY_void, TY_NXT, MN_("staCyc"), 0,
+			_Public|_Static|_Imm, _F(NXT_waiSem), TY_void, TY_NXT, MN_("waiSem"), 0,
+			_Public|_Static|_Imm, _F(NXT_getSonarSensor), TY_int, TY_NXT, MN_("getsonarSensor"), 0,
 			DEND,
 	};
 	KLIB kNameSpace_loadMethodData(kctx, ks, MethodData);

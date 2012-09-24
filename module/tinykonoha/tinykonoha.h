@@ -25,6 +25,8 @@
 #ifndef MINIOKNOHA_H_
 #define MINIOKNOHA_H_
 
+#include "constant.h"
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -765,18 +767,18 @@ struct KonohaClassField {
 
 /* ----------------------------------------------------------------------- */
 
-#define TY_void             ((ktype_t)0)
-#define TY_var              ((ktype_t)1)
-#define TY_Object            ((ktype_t)2)
-#define TY_Boolean           ((ktype_t)3)
-#define TY_Int               ((ktype_t)4)
-#define TY_String            ((ktype_t)5)
-#define TY_Array             ((ktype_t)6)
-#define TY_Param             ((ktype_t)7)
-#define TY_Method            ((ktype_t)8)
-#define TY_Func              ((ktype_t)9)
-#define TY_System            ((ktype_t)10)
-#define TY_0                ((ktype_t)11)    /* Parameter Type*/
+//#define TY_void             ((ktype_t)0)
+//#define TY_var              ((ktype_t)1)
+//#define TY_Object            ((ktype_t)2)
+#define TY_Boolean           (TY_boolean)
+#define TY_Int               (TY_int)
+//#define TY_String            ((ktype_t)5)
+//#define TY_Array             ((ktype_t)6)
+//#define TY_Param             ((ktype_t)7)
+//#define TY_Method            ((ktype_t)8)
+//#define TY_Func              ((ktype_t)9)
+//#define TY_System            ((ktype_t)10)
+//#define TY_0                ((ktype_t)11)    /* Parameter Type*/
 
 #define CT_Object               CT_(TY_Object)
 #define CT_Boolean              CT_(TY_Boolean)

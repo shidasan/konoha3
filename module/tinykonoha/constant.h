@@ -1,3 +1,24 @@
+#define TY_void 0
+#define TY_var 1
+#define TY_Object 2
+#define TY_boolean 3
+#define TY_int 4
+#define TY_String 5
+#define TY_Array 6
+#define TY_Param 7
+#define TY_Method 8
+#define TY_Func 9
+#define TY_System 10
+#define TY_0 11
+#define TY_BasicBlock 12
+#define TY_ByteCode 13
+#define TY_NameSpace 14
+#define TY_Token 15
+#define TY_Expr 16
+#define TY_Stmt 17
+#define TY_Block 18
+#define TY_Gamma 19
+
 #define MN_Object_String 43
 #define MN_boolean_opNOT 28
 #define MN_boolean_opEQ 24
@@ -58,6 +79,7 @@
 #define MN_float_String 43
 #define MN_float_opSUB 19
 
+
 #define MN_Array_get 0
 #define MN_Array_set 0
 #define MN_Array_removeAt 75
@@ -77,22 +99,24 @@
 #define MN_Array_newArray 89
 #define MN_Array_newList 90
 
-#define MN_System_balanceControl 92
-#define MN_System_balanceInit 93
-#define MN_System_dly 94
-#define MN_System_actMainTask 95
-#define MN_System_ecrobotIsRunning 96
-#define MN_System_tailControl 97
-#define MN_System_manipulateTail 98
-#define MN_System_ecrobotInitNxtstate 99
-#define MN_System_ecrobotInitSensors 100
-#define MN_System_ecrobotSetLightSensorActive 101
-#define MN_System_ecrobotGetGyroSensor 102
-#define MN_System_ecrobotGetLightSensor 103
-#define MN_System_nxtMotorSetSpeed 104
-#define MN_System_nxtMotorSetCount 105
-#define MN_System_nxtMotorGetCount 106
-#define MN_System_staCyc 107
-#define MN_System_waiSem 108
-#define MN_System_ecrobotGetSonarSensor 109
+#define TY_NXT 24
+
+#define MN_NXT_balanceControl 93
+#define MN_NXT_balanceInit 94
+#define MN_NXT_dly 95
+#define MN_NXT_actMainTask 96
+#define MN_NXT_ecrobotIsRunning 97
+#define MN_NXT_tailControl 98
+#define MN_NXT_manipulateTail 99
+#define MN_NXT_ecrobotInitNxtstate 100
+#define MN_NXT_ecrobotInitSensors 101
+#define MN_NXT_ecrobotSetLightSensorActive 102
+#define MN_NXT_ecrobotGetGyroSensor 103
+#define MN_NXT_ecrobotGetLightSensor 104
+#define MN_NXT_nxtMotorSetSpeed 105
+#define MN_NXT_nxtMotorSetCount 106
+#define MN_NXT_nxtMotorGetCount 107
+#define MN_NXT_staCyc 108
+#define MN_NXT_waiSem 109
+#define MN_NXT_getsonarSensor 110
 

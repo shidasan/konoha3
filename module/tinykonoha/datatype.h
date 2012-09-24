@@ -1,8 +1,6 @@
 #define KVPROTO_INIT  8
 #define KVPROTO_DELTA 7
 
-#include "constant.h"
-
 static kObject *DEFAULT_fnull(KonohaContext *kctx, KonohaClass *ct)
 {
 	DBG_ASSERT(ct->defaultValueAsNull != NULL);

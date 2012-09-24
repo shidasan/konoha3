@@ -1057,11 +1057,11 @@ static void dumpBYTECODE(KonohaContext *kctx, VirtualMachineInstruction *pc_star
 void dumpCidMn(KonohaContext *kctx)
 {
 	size_t i, size = kArray_size(&kctx->share->classTable);
-	static size_t _i; /* static variable */
-	for (i = 0; i < size; i++) {
+	static size_t _i = 0; /* static variable */
+	for (i = _i; i < size; i++, _i++) {
 		KonohaClass *ct = kctx->share->classTable.classItems[i];
-		if (_i <= i && ct->typeId == ct->baseTypeId) { /* except generics */
-			_i++;
+		if (ct->typeId == ct->baseTypeId) {
+		//if (_i == i && ct->typeId == ct->baseTypeId) { /* except generics */
 			if (isupper(*CT_t(ct))) {
 				DUMP_P("#define TY_%s %d\n", ct_toText(kctx, ct), ct->typeId);
 			} else {
@@ -1081,7 +1081,13 @@ void dumpCidMn(KonohaContext *kctx)
 			} else if (Method_isCast(mtd)) {
 				DUMP_P("#define MN_%s_as%s %d\n", ct_toText(kctx, ct), ct_toText(kctx, CT_(SYM_UNMASK(mtd->mn))), mtd->mn);
 			} else {
-				DUMP_P("#define MN_%s_%s %d\n", ct_toText(kctx, ct), mn_toText(kctx, mtd->mn), SYM_UNMASK(mtd->mn));
+				if (MN_isGETTER(mtd->mn)) {
+					DUMP_P("#define MN_%s_get%s %d\n", ct_toText(kctx, ct), mn_toText(kctx, SYM_UNMASK(mtd->mn)), SYM_UNMASK(mtd->mn));
+				} else if (MN_isSETTER(mtd->mn)) {
+					DUMP_P("#define MN_%s_set%s %d\n", ct_toText(kctx, ct), mn_toText(kctx, SYM_UNMASK(mtd->mn)), SYM_UNMASK(mtd->mn));
+				} else {
+					DUMP_P("#define MN_%s_%s %d\n", ct_toText(kctx, ct), mn_toText(kctx, SYM_UNMASK(mtd->mn)), SYM_UNMASK(mtd->mn));
+				}
 			}
 		}
 	}
@@ -1095,22 +1101,22 @@ static void tinyvm_dump(KonohaContext *kctx, kMethod *mtd)
 		defined = 1;
 		dumpCidMn(kctx);
 	}
-	DUMP_P("kopl_u opl%zd[] = {\n", kctx->share->methodDeclSize);
-	size_t i = 0;
-	while(1) {
-		dumpBYTECODE(kctx, mtd->pc_start, i);
-		if (mtd->pc_start[i].opcode == OPCODE_RET) {
-			break;
-		}
-		i++;
-	}
-	DUMP_P("};\n\n");
-	dumpConstData(kctx, mtd->pc_start, mtd);
-	DUMP_P("kmethoddecl_t decl%zd = {\n", kctx->share->methodDeclSize);
-	DUMP_P("%d/*cid*/, ", mtd->typeId);
-	DUMP_P("%d/*method %s*/,\n", mtd->mn, SYM_t(mtd->mn));
-	DUMP_P("data%zd, opl%zd\n};\n\n", kctx->share->methodDeclSize, kctx->share->methodDeclSize);
-	((KonohaRuntimeVar*)kctx->share)->methodDeclSize++;
+	//DUMP_P("kopl_u opl%zd[] = {\n", kctx->share->methodDeclSize);
+	//size_t i = 0;
+	//while(1) {
+	//	dumpBYTECODE(kctx, mtd->pc_start, i);
+	//	if (mtd->pc_start[i].opcode == OPCODE_RET) {
+	//		break;
+	//	}
+	//	i++;
+	//}
+	//DUMP_P("};\n\n");
+	//dumpConstData(kctx, mtd->pc_start, mtd);
+	//DUMP_P("kmethoddecl_t decl%zd = {\n", kctx->share->methodDeclSize);
+	//DUMP_P("%d/*cid*/, ", mtd->typeId);
+	//DUMP_P("%d/*method %s*/,\n", mtd->mn, SYM_t(mtd->mn));
+	//DUMP_P("data%zd, opl%zd\n};\n\n", kctx->share->methodDeclSize, kctx->share->methodDeclSize);
+	//((KonohaRuntimeVar*)kctx->share)->methodDeclSize++;
 }
 
 #else
