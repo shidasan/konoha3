@@ -28,7 +28,7 @@
 #include <windows.h>
 #include <winuser.h>
 
-#define PORT         "COM9:"
+#define PORT         "COM5:"
 #define BUFSIZE      128
 #define USLEEP_PARAM 50000
 //#define USLEEP_PARAM 2000000
@@ -78,7 +78,7 @@ static void sendBuf(KonohaContext *kctx, HANDLE hComm, bt_buffer_t *writebuf)
 	while (!WriteFile(hComm, buf, BUFSIZE, &readsize, NULL)) {
 		//CloseHandle(hComm);
 		printf("cannot send buffer\n");
-		//KLIB KonohaRuntime_raise(kctx, EXPT_("Cannnot send buffer"), NULL, 0, NULL);
+		KLIB KonohaRuntime_raise(kctx, EXPT_("Cannnot send buffer"), NULL, 0, NULL);
 	}
 }
 
@@ -138,7 +138,7 @@ static void sendBluetooth(KonohaContext *kctx, kMethod *mtd)
 	while (mtd->pc_start[opsize].opcode != OPCODE_RET) {
 		opsize++;
 	}
-	usleep(USLEEP_PARAM * 2);
+	//usleep(USLEEP_PARAM * 2);
 	opsize++; // OPCODE_RET
 	bt_buffer_append(kctx, writebuf, &magicValue, sizeof(int8_t));
 	bt_buffer_append(kctx, writebuf, &opsize, sizeof(int32_t));
@@ -178,9 +178,10 @@ static void sendBluetooth(KonohaContext *kctx, kMethod *mtd)
 			case TY_Method: {
 				kMethod *mtd = (kMethod*)op->n;
 				int16_t cid = mtd->typeId;
-				int16_t mn = mtd->mn;
+				int16_t mn = SYM_UNMASK(mtd->mn);
+				printf("cid %d, mn %d\n", cid, mn);
 				bt_buffer_append(kctx, writebuf, &cid, sizeof(int16_t));
-				bt_buffer_append(kctx, writebuf, &mn, sizeof(int16_t));
+				bt_buffer_append(kctx, writebuf, &(mn), sizeof(int16_t));
 				break;
 			}
 			default: {
@@ -229,6 +230,15 @@ static void sendBluetooth(KonohaContext *kctx, kMethod *mtd)
 			printf("jumppc %d\n", jumppc);
 			int8_t a = op->a;
 			bt_buffer_append(kctx, writebuf, &jumppc, sizeof(int16_t));
+			bt_buffer_append(kctx, writebuf, &a, sizeof(int8_t));
+			break;
+		}
+		case OPCODE_BNOT: {
+			OPBNOT *op = (OPBNOT*)pc;
+			printf("BNOT\n");
+			int8_t c = op->c;
+			int8_t a = op->a;
+			bt_buffer_append(kctx, writebuf, &c, sizeof(int8_t));
 			bt_buffer_append(kctx, writebuf, &a, sizeof(int8_t));
 			break;
 		}

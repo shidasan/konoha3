@@ -191,7 +191,7 @@ static KMETHOD NXT_getSonarSensor(KonohaContext *kctx, KonohaStack *sfp)
 #endif
 }
 
-static void NXT_balance(float forward, float turn)
+static void NXT_balance_inner(float forward, float turn)
 {
 #ifdef K_USING_TOPPERS
 	signed char pwm_L, pwm_R;
@@ -209,6 +209,15 @@ static void NXT_balance(float forward, float turn)
 	ecrobot_set_motor_speed(NXT_PORT_B, pwm_R);
 	wai_sem(EVT_SEM);
 	state.timer += 4;
+#endif
+}
+
+static KMETHOD NXT_balance(KonohaContext *kctx, KonohaStack *sfp)
+{
+#ifdef K_USING_TOPPERS
+	int forward = Int_to(int, sfp[1]);
+	int turn = Int_to(int, sfp[2]);
+	NXT_balance_inner(forward, turn);
 #endif
 }
 
@@ -233,7 +242,7 @@ static KMETHOD NXT_balancePid(KonohaContext *kctx, KonohaStack *sfp)
 	else if (turn < -100) turn = -100;
 
 	int forward = Int_to(int, sfp[1]);
-	NXT_balance(forward, turn);
+	NXT_balance_inner(forward, turn);
 #endif
 }
 
@@ -245,7 +254,7 @@ static KMETHOD NXT_updateStatus(KonohaContext *kctx, KonohaStack *sfp)
 #define ROBOT_BREADTH 16
 #define WHEEL_RADIUS  4
 
-	//tail_control(share->tail); /* バランス走行用角度に制御 */
+	tail_control(state.tail); /* バランス走行用角度に制御 */
 	state.sonar = getSonarValue();
 	state.light = ecrobot_get_light_sensor(NXT_PORT_S3);
 	state.gyro_prev = state.gyro;
@@ -264,6 +273,22 @@ static KMETHOD NXT_updateStatus(KonohaContext *kctx, KonohaStack *sfp)
 	float l_len = 2 * M_PI * WHEEL_RADIUS * (state.diff_B_motor[1] - state.diff_B_motor[0]) / 360;
 	state.distance += (r_len + l_len)/2;
 	state.theta    += 360.0 * (r_len - l_len) / (2 * M_PI *ROBOT_BREADTH);
+#endif
+}
+
+static KMETHOD NXT_getgrayFlag(KonohaContext *kctx, KonohaStack *sfp)
+{
+#ifdef K_USING_TOPPERS
+	RETURNb_(state.grayflag);
+#else
+	RETURNb_(0);
+#endif
+}
+
+static KMETHOD NXT_soundTone(KonohaContext *kctx, KonohaStack *sfp)
+{
+#ifdef K_USING_TOPPERS
+	ecrobot_sound_tone(Int_to(int, sfp[1]), Int_to(int, sfp[2]), 50);
 #endif
 }
 
@@ -299,6 +324,9 @@ kbool_t tinykonoha_nxtMethodInit(KonohaContext *kctx, kNameSpace *ks)
 
 		_F(NXT_updateStatus), TY_NXT, MN_(NXT_updateStatus),
 		_F(NXT_balancePid), TY_NXT, MN_(NXT_balancePid),
+		_F(NXT_balance), TY_NXT, MN_(NXT_balance),
+		_F(NXT_getgrayFlag), TY_NXT, MN_(NXT_getgrayFlag),
+		_F(NXT_soundTone), TY_NXT, MN_(NXT_soundTone),
 		DEND,
 	};
 	KLIB kNameSpace_loadMethodData(kctx, ks, MethodData);
@@ -336,6 +364,9 @@ static	kbool_t nxt_initPackage(KonohaContext *kctx, kNameSpace *ks, int argc, co
 
 			_Public|_Static|_Imm, _F(NXT_updateStatus), TY_void, TY_NXT, MN_("updateStatus"), 0,
 			_Public|_Static|_Imm, _F(NXT_balancePid), TY_void, TY_NXT, MN_("balancePid"), 1, TY_int, FN_x,
+			_Public|_Static|_Imm, _F(NXT_balance), TY_void, TY_NXT, MN_("balance"), 2, TY_int, FN_x, TY_int, FN_y,
+			_Public|_Static|_Imm, _F(NXT_getgrayFlag), TY_boolean, TY_NXT, MN_("getgrayFlag"), 0,
+			_Public|_Static|_Imm, _F(NXT_soundTone), TY_boolean, TY_NXT, MN_("soundTone"), 2, TY_int, FN_x, TY_int, FN_y, 
 			DEND,
 	};
 	KLIB kNameSpace_loadMethodData(kctx, ks, MethodData);

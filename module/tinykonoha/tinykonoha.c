@@ -408,7 +408,7 @@ int getWhiteLight()
 	return whitelight;
 }
 
-static void tail_control(signed int angle)
+void tail_control(signed int angle)
 {
 	float pwm = (float)(angle - nxt_motor_get_count(NXT_PORT_A))*P_GAIN; /* 比例制御 */
 	/* PWM出力飽和処理 */
@@ -474,11 +474,11 @@ void TaskMain(VP_INT exinf)
 	nxt_motor_set_count(NXT_PORT_C, 0);
 	nxt_motor_set_count(NXT_PORT_B, 0);
 	sta_cyc(CYC0);
-	//TDBG_s("toplevel");
-	//dly_tsk(1000);
+	TDBG_s("toplevel");
+	dly_tsk(1000);
 	execTopLevelExpression((KonohaContext*)kctx);
-	//TDBG_s("end toplevel");
-	//dly_tsk(1000);
+	TDBG_s("end toplevel");
+	dly_tsk(1000);
 	//act_tsk(TASK0);
 }
 

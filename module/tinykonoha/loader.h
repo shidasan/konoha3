@@ -57,17 +57,20 @@ static void undefCode(KonohaContext *kctx, char *buf, VirtualMachineInstruction 
 	//TDBG_i("undefined", buf[0]);
 }
 void CT_addMethod(KonohaContext *kctx, KonohaClassVar *ct, kMethod *mtd);
+
+#define BUF16(BUF) ((int)BUF[0]) + ((int)BUF[1]) * (1 << 8)
+#define BUF32(BUF) BUF16(BUF) + ((int)BUF[2]) * (1 << 16) + ((int)BUF[3]) * (1 << 24)
+
 static void genNSET(KonohaContext *kctx, char *buf, VirtualMachineInstruction *pc, int pos)
 {
 	OPNSET *op = (OPNSET*)(pc + pos);
 	int8_t opcode = buf[0]; buf++; //eat opcode
 	op->a = buf[0]; buf++; //eat a
-	int16_t ty = (int16_t)buf[0]; buf+=2; //eat ty
+	int16_t ty = (int16_t)BUF16(buf); buf+=2; //eat ty
 	switch(ty) {
 	case TY_float:
 	case TY_Int: {
-		op->n = (int32_t)buf[0];
-		//TDBG_i("ivalue", op->n);
+		op->n = BUF32(buf);
 		break;
 	}
 	case TY_String: {
@@ -81,8 +84,8 @@ static void genNSET(KonohaContext *kctx, char *buf, VirtualMachineInstruction *p
 		break;
 	}
 	case TY_Method: {
-		int16_t cid = (int16_t)buf[0]; buf+=2; //eat cid
-		int16_t mn = (int16_t)buf[0]; buf+=2; //eat mn
+		int16_t cid = (int16_t)BUF16(buf); buf+=2; //eat cid
+		int16_t mn = (int16_t)BUF16(buf); buf+=2; //eat mn
 		kMethod *mtd = KLIB kNameSpace_getMethodNULL(kctx, NULL, cid, mn, 0, 0);
 		if (mtd != NULL) {
 			//TDBG_i("cid", mtd->typeId);
@@ -129,6 +132,13 @@ static void genRET(KonohaContext *kctx, char *buf, VirtualMachineInstruction *pc
 {
 	//TDBG_i("RET", buf[0]);
 }
+static void genBNOT(KonohaContext *kctx, char *buf, VirtualMachineInstruction *pc, int pos)
+{
+	OPBNOT *op = (OPBNOT*)(pc + pos);
+	buf++; //eat opcode
+	op->c = buf[0]; buf++;
+	op->a = buf[0]; buf++;
+}
 static void genJMP(KonohaContext *kctx, char *buf, VirtualMachineInstruction *pc, int pos)
 {
 	OPJMP *op = (OPJMP*)(pc + pos);
@@ -147,7 +157,7 @@ typedef void (*genByteCode)(KonohaContext *, char *, VirtualMachineInstruction *
 genByteCode genCode[] = {NULL, NULL, NULL, NULL,
 	                     genNSET, genNMOV, NULL, NULL, 
 						 NULL, NULL, NULL, genCALL,
-						 genRET, NULL, NULL, genJMP,
+						 genRET, NULL, genBNOT, genJMP,
 						 genJMPF, NULL, NULL, NULL,
 						 NULL, NULL, NULL};
 

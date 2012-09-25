@@ -113,4 +113,7 @@
 #define MN_NXT_getsonarSensor 102
 #define MN_NXT_updateStatus 103
 #define MN_NXT_balancePid 104
+#define MN_NXT_balance 105
+#define MN_NXT_getgrayFlag 106
+#define MN_NXT_soundTone 107
 
