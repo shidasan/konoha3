@@ -161,6 +161,13 @@ genByteCode genCode[] = {NULL, NULL, NULL, NULL,
 						 genRET, NULL, genBNOT, genJMP,
 						 genJMPF, NULL, NULL, NULL,
 						 NULL, NULL, NULL};
+size_t bytecodesize[] = {
+	sizeof(OPNOP), sizeof(OPNOP), sizeof(OPNOP), sizeof(OPNOP),
+	sizeof(OPNSET), sizeof(OPNMOV), sizeof(OPNOP), sizeof(OPNOP),
+	sizeof(OPNOP), sizeof(OPNOP), sizeof(OPNOP), sizeof(OPCALL),
+	sizeof(OPRET), sizeof(OPNOP), sizeof(OPBNOT), sizeof(OPJMP),
+	sizeof(OPJMPF), sizeof(OPNOP), sizeof(OPNOP), sizeof(OPNOP),
+	sizeof(OPNOP), sizeof(OPNOP), sizeof(OPNOP)};
 
 static void loadByteCode(KonohaContext *kctx)
 {
@@ -189,9 +196,25 @@ static void loadByteCode(KonohaContext *kctx)
 		int opsize = (int32_t)*data; data += 4;//eat opsize
 		int16_t cid = (int16_t)*data; data += 2;//eat cid
 		int16_t mn = (int16_t)*data; data += 2;//eat cid
+		size_t bytecode_mallocsize = 0;
+		int j = 0;
+		for (; j < KOPCODE_MAX; j++) {
+			int opcount = BUF16(data); data += 2;
+			//TDBG_i("opcount", opcount);
+			//dly_tsk(1000);
+			bytecode_mallocsize += opcount * bytecodesize[j];
+		}
+
+		//data = receive_buf(buf);
+
 		//TDBG_i("opsize", opsize);
+		//dly_tsk(1000);
+		//TDBG_i("mallocsize", bytecode_mallocsize);
+		//dly_tsk(1000);
 		
 		/* bytecode loading loop */
+		TDBG_i("mallocsize", bytecode_mallocsize);
+		//VirtualMachineInstruction *pc = (VirtualMachineInstruction*)KLIB Kmalloc(kctx, bytecode_mallocsize);
 		VirtualMachineInstruction *pc = (VirtualMachineInstruction*)KLIB Kmalloc(kctx, sizeof(VirtualMachineInstruction) * opsize);
 		for (i = 0; i < opsize; i++) {
 			data = receive_buf(buf);

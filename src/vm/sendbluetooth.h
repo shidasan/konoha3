@@ -137,16 +137,25 @@ static void sendBluetooth(KonohaContext *kctx, kMethod *mtd)
 	int16_t mn = mtd->mn;
 	printf("cid %d mn %d\n", cid, mtd->mn);
 
+	int16_t opcode_count[KOPCODE_MAX] = {0};
 	while (mtd->pc_start[opsize].opcode != OPCODE_RET) {
+		opcode_count[mtd->pc_start[opsize].opcode]++;
 		opsize++;
 	}
-	//usleep(USLEEP_PARAM * 2);
 	opsize++; // OPCODE_RET
 	bt_buffer_append(kctx, writebuf, &magicValue, sizeof(int8_t));
 	bt_buffer_append(kctx, writebuf, &opsize, sizeof(int32_t));
 	bt_buffer_append(kctx, writebuf, &cid, sizeof(int16_t));
 	bt_buffer_append(kctx, writebuf, &mn, sizeof(int16_t));
+	size_t j;
+	for (j = 0; j < KOPCODE_MAX; j++) {
+		//printf("opcode%d count: %d\n", j, opcode_count[j]);
+		bt_buffer_append(kctx, writebuf, opcode_count + j, sizeof(int16_t));
+	}
 	sendBuf(kctx, hComm, writebuf);
+	//bt_buffer_clear(kctx, writebuf);
+	//usleep(USLEEP_PARAM);
+	//sendBuf(kctx, hComm, writebuf);
 	VirtualMachineInstruction *pc = NULL;
 	int i = 0;
 	printf("opsize %d\n", opsize);
