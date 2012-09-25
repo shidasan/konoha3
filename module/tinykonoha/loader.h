@@ -171,11 +171,8 @@ size_t bytecodesize[] = {
 
 static void loadByteCode(KonohaContext *kctx)
 {
-	//TDBG_s("load");
 	int i = 0;
 	char buf[128] = {0};
-	//TDBG_s("hi");
-	//dly_tsk(1999);
 	do {
 		bluetooth_connect();
 		dly_tsk(1);
@@ -190,7 +187,6 @@ static void loadByteCode(KonohaContext *kctx)
 		magicValue = data[0];
 		data++;// eat magicValue
 		if (magicValue != -1) {
-			//TDBG_i("magicValue", magicValue);
 			break;
 		}
 		int opsize = (int32_t)*data; data += 4;//eat opsize
@@ -200,17 +196,8 @@ static void loadByteCode(KonohaContext *kctx)
 		int j = 0;
 		for (; j < KOPCODE_MAX; j++) {
 			int opcount = BUF16(data); data += 2;
-			//TDBG_i("opcount", opcount);
-			//dly_tsk(1000);
 			bytecode_mallocsize += opcount * bytecodesize[j];
 		}
-
-		//data = receive_buf(buf);
-
-		//TDBG_i("opsize", opsize);
-		//dly_tsk(1000);
-		//TDBG_i("mallocsize", bytecode_mallocsize);
-		//dly_tsk(1000);
 		
 		/* bytecode loading loop */
 		TDBG_i("mallocsize", bytecode_mallocsize);
@@ -226,21 +213,13 @@ static void loadByteCode(KonohaContext *kctx)
 				undefCode(kctx, data, pc, i);
 			}
 		}
-		//TDBG_i("cid", cid);
-		//TDBG_i("mn", mn);
 		if (cid == 0 && mn == 0) {
 			OPEXIT opEXIT = {OPCODE_EXIT};
 			krbp_t *rbp = (krbp_t*)kctx->esp;
 			rbp[K_PCIDX2].pc = (VirtualMachineInstruction*)&opEXIT;
 			rbp[K_SHIFTIDX2].shift = 0;
-			//TDBG_s("toplevel");
-			//KonohaVirtualMachine_run(kctx, kctx->esp, pc);
-			//dly_tsk(1000);
-			//TDBG_s("toplevel end");
-			//KLIB Kfree(kctx, pc, sizeof(VirtualMachineInstruction) * opsize);
 			KLIB kArray_add(kctx, kctx->share->topLevelMethodList, pc);
 		} else {
-			//TDBG_s("function");
 			uintptr_t flag = kMethod_Static|kMethod_Public;
 			kMethodVar *mtd = (kMethodVar*)KLIB new_kMethod(kctx, flag, cid, mn, MethodFunc_runVirtualMachine);
 			mtd->pc_start = pc;
