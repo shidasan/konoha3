@@ -390,10 +390,22 @@ static KonohaContext *new_context(size_t stacksize)
 static char mstate;				/* 走行体の状態 */
 static char keystate;			/* タッチセンサーの状態 */
 static U16 gyro_offset_value;
+static int sonar_value;
+static int whitelight;
 
 U16 getGyroOffset()
 {
 	return gyro_offset_value;
+}
+
+int getSonarValue()
+{
+	return sonar_value;
+}
+
+int getWhiteLight()
+{
+	return whitelight;
 }
 
 static void tail_control(signed int angle)

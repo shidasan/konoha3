@@ -112,4 +112,5 @@
 #define MN_NXT_waiSem 101
 #define MN_NXT_getsonarSensor 102
 #define MN_NXT_updateStatus 103
+#define MN_NXT_balancePid 104
 

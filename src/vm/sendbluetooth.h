@@ -28,7 +28,7 @@
 #include <windows.h>
 #include <winuser.h>
 
-#define PORT         "COM5:"
+#define PORT         "COM9:"
 #define BUFSIZE      128
 #define USLEEP_PARAM 50000
 //#define USLEEP_PARAM 2000000
