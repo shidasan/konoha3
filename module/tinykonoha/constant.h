@@ -101,22 +101,16 @@
 
 #define TY_NXT 24
 
+#define MN_NXT_new 40
 #define MN_NXT_balanceControl 93
 #define MN_NXT_balanceInit 94
 #define MN_NXT_dly 95
-#define MN_NXT_actMainTask 96
-#define MN_NXT_ecrobotIsRunning 97
-#define MN_NXT_tailControl 98
-#define MN_NXT_manipulateTail 99
-#define MN_NXT_ecrobotInitNxtstate 100
-#define MN_NXT_ecrobotInitSensors 101
-#define MN_NXT_ecrobotSetLightSensorActive 102
-#define MN_NXT_ecrobotGetGyroSensor 103
-#define MN_NXT_ecrobotGetLightSensor 104
-#define MN_NXT_nxtMotorSetSpeed 105
-#define MN_NXT_nxtMotorSetCount 106
-#define MN_NXT_nxtMotorGetCount 107
-#define MN_NXT_staCyc 108
-#define MN_NXT_waiSem 109
-#define MN_NXT_getsonarSensor 110
+#define MN_NXT_ecrobotIsRunning 96
+#define MN_NXT_tailControl 97
+#define MN_NXT_manipulateTail 98
+#define MN_NXT_ecrobotGetGyroSensor 99
+#define MN_NXT_ecrobotGetLightSensor 100
+#define MN_NXT_waiSem 101
+#define MN_NXT_getsonarSensor 102
+#define MN_NXT_updateStatus 103
 
