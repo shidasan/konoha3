@@ -249,20 +249,20 @@ static const kOPDATA_t OPDATA[] = {
 
 static void opcode_check(void)
 {
-	TDBG_i("NOP", sizeof(OPNOP));
-	dly_tsk(1000);
-	TDBG_i("NSET", sizeof(OPNSET));
-	dly_tsk(1000);
-	TDBG_i("NMOV", sizeof(OPNMOV));
-	dly_tsk(1000);
-	TDBG_i("CALL", sizeof(OPCALL));
-	dly_tsk(1000);
-	TDBG_i("JMP", sizeof(OPJMP));
-	dly_tsk(1000);
-	TDBG_i("JMPF", sizeof(OPJMPF));
-	dly_tsk(1000);
-	TDBG_i("RET", sizeof(OPRET));
-	dly_tsk(1000);
+	//TDBG_i("NOP", sizeof(OPNOP));
+	//dly_tsk(1000);
+	//TDBG_i("NSET", sizeof(OPNSET));
+	//dly_tsk(1000);
+	//TDBG_i("NMOV", sizeof(OPNMOV));
+	//dly_tsk(1000);
+	//TDBG_i("CALL", sizeof(OPCALL));
+	//dly_tsk(1000);
+	//TDBG_i("JMP", sizeof(OPJMP));
+	//dly_tsk(1000);
+	//TDBG_i("JMPF", sizeof(OPJMPF));
+	//dly_tsk(1000);
+	//TDBG_i("RET", sizeof(OPRET));
+	//dly_tsk(1000);
 	assert(sizeof(OPNOP) <= sizeof(VirtualMachineInstruction));
 	assert(sizeof(OPTHCODE) <= sizeof(VirtualMachineInstruction));
 	assert(sizeof(OPENTER) <= sizeof(VirtualMachineInstruction));
