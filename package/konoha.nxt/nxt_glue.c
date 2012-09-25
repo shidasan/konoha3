@@ -44,9 +44,39 @@ static signed char pwm_L, pwm_R;
 
 #endif
 
+typedef struct nxt_state_t {
+#ifdef K_USING_TOPPERS
+	int timer;
+	int tail;
+	U16 light;
+	U16 target_light;
+	int gyro;
+	int gyro_offset;
+	BOOL grayflag;
+	F32 diff_C_motor[2];
+	F32 diff_B_motor[2];
+	int motor_velocity_C;
+	int motor_velocity_B;
+	int whitelight;
+	int blacklight;
+
+	S32 sonar;
+	int bottle_side;
+
+	S32 pid_diff[2];
+	U16 pid_integral;
+	
+	F32 distance;
+	F32 theta;
+#endif
+}nxt_state_t;
+
 typedef struct {
 	KonohaObjectHeader h;
+	nxt_state_t *state;
 } kNXT;
+
+static nxt_state_t state;
 
 static void kNXT_init(KonohaContext *kctx, kObject *o, void *conf)
 {
@@ -61,17 +91,20 @@ static void kNXT_free(KonohaContext *kctx, kObject *o)
 #define Int_to(T, a)               ((T)a.intValue)
 #define Float_to(T, a)             ((T)a.floatValue)
 
-static KMETHOD NXT_new(KonohaContext *kctx, KonohaStack *sfp)
-{
-	kNXT *nxt = (kNXT*)sfp[0].o;
-	RETURN_(nxt);
-}
-
-static KMETHOD NXT_balanceInit(KonohaContext *kctx, KonohaStack *sfp)
+static KMETHOD NXT_init(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
-	TDBG_s("balance init");
 	balance_init();
+	nxt_motor_set_count(NXT_PORT_C, 0);
+	nxt_motor_set_count(NXT_PORT_B, 0);
+	state.gyro_offset = ecrobot_get_gyro_sensor(NXT_PORT_S1);
+	state.grayflag = 0;
+	state.tail = 0;
+	state.pid_integral = 0;
+	state.light = ecrobot_get_light_sensor(NXT_PORT_S3);
+	state.blacklight = state.light;
+	state.target_light = (whitelight + state.blacklight)/2 - 25;
+	state.bottle_side = 0;
 #endif
 }
 static KMETHOD NXT_dly(KonohaContext *kctx, KonohaStack *sfp)
@@ -172,8 +205,18 @@ static KMETHOD NXT_updateStatus(KonohaContext *kctx, KonohaStack *sfp)
 #ifdef K_USING_TINYVM
 kbool_t tinykonoha_nxtMethodInit(KonohaContext *kctx, kNameSpace *ks)
 {
+	KDEFINE_CLASS defNXT = {
+		STRUCTNAME(NXT),
+		.cflag = kClass_Final,
+		.init = kNXT_init,
+		.free = kNXT_free,
+		.typeId = TY_NXT,
+	};
+
+	KonohaClass *cNXT = KLIB Konoha_defineClass(kctx, 0, PN_konoha, NULL, &defNXT, 0);
+	KINITv(((KonohaClassVar*)cNXT)->methodList, K_EMPTYARRAY);
 	intptr_t MethodData[] = {
-		_F(NXT_balanceInit), TY_NXT, MN_(NXT_balanceInit),
+		_F(NXT_init), TY_NXT, MN_(NXT_init),
 		_F(NXT_dly), TY_NXT, MN_(NXT_dly),
 		_F(NXT_ecrobotIsRunning), TY_NXT, MN_(NXT_ecrobotIsRunning),
 		_F(NXT_tailControl), TY_NXT, MN_(NXT_tailControl),
@@ -206,10 +249,11 @@ static	kbool_t nxt_initPackage(KonohaContext *kctx, kNameSpace *ks, int argc, co
 	int FN_x = FN_("x");
 	int FN_y = FN_("y");
 	intptr_t MethodData[] = {
-			_Public             , _F(NXT_new), TY_NXT, TY_NXT, MN_("new"), 0, 
+			//_Public             , _F(NXT_new), TY_NXT, TY_NXT, MN_("new"), 0, 
+			_Public|_Static|_Imm, _F(NXT_init), TY_void, TY_NXT, MN_("init"), 0,
 
 			_Public|_Static|_Imm, _F(NXT_balanceControl), TY_void, TY_NXT, MN_("balanceControl"), 2, TY_int, FN_x, TY_int, FN_y, 
-			_Public|_Static|_Imm, _F(NXT_balanceInit), TY_void, TY_NXT, MN_("balanceInit"), 0,
+			//_Public|_Static|_Imm, _F(NXT_balanceInit), TY_void, TY_NXT, MN_("balanceInit"), 0,
 			_Public|_Static|_Imm, _F(NXT_dly), TY_void, TY_NXT, MN_("dly"), 1, TY_int, FN_x, 
 			_Public|_Static|_Imm, _F(NXT_ecrobotIsRunning), TY_boolean, TY_NXT, MN_("ecrobotIsRunning"), 0, 
 			_Public|_Static|_Imm, _F(NXT_tailControl), TY_void, TY_NXT, MN_("tailControl"), 1, TY_int, FN_x, 

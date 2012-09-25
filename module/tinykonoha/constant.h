@@ -101,9 +101,8 @@
 
 #define TY_NXT 24
 
-#define MN_NXT_new 40
-#define MN_NXT_balanceControl 93
-#define MN_NXT_balanceInit 94
+#define MN_NXT_init 93
+#define MN_NXT_balanceControl 94
 #define MN_NXT_dly 95
 #define MN_NXT_ecrobotIsRunning 96
 #define MN_NXT_tailControl 97

@@ -83,10 +83,12 @@ static void genNSET(KonohaContext *kctx, char *buf, VirtualMachineInstruction *p
 	case TY_Method: {
 		int16_t cid = (int16_t)buf[0]; buf+=2; //eat cid
 		int16_t mn = (int16_t)buf[0]; buf+=2; //eat mn
-		//TDBG_i("cid", cid);
-		//TDBG_i("mn", mn);
 		kMethod *mtd = KLIB kNameSpace_getMethodNULL(kctx, NULL, cid, mn, 0, 0);
 		if (mtd != NULL) {
+			//TDBG_i("cid", mtd->typeId);
+			//dly_tsk(1000);
+			//TDBG_i("mn", mtd->mn);
+			//dly_tsk(1000);
 			op->n = (int32_t)mtd;
 		} else {
 			if (CT_(cid) != NULL) {
@@ -102,7 +104,6 @@ static void genNSET(KonohaContext *kctx, char *buf, VirtualMachineInstruction *p
 		break;
 	}
 	default: {
-		//TDBG_i("undefined type", ty);
 		op->n = (int32_t)kctx->share->constNull;
 		break;
 	}

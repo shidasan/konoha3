@@ -28,7 +28,7 @@
 #include <windows.h>
 #include <winuser.h>
 
-#define PORT         "COM9:"
+#define PORT         "COM5:"
 #define BUFSIZE      128
 #define USLEEP_PARAM 50000
 //#define USLEEP_PARAM 2000000
@@ -132,8 +132,8 @@ static void sendBluetooth(KonohaContext *kctx, kMethod *mtd)
 	int8_t magicValue = -1;
 	int32_t opsize = 0;
 	int16_t cid = mtd->typeId;
-	printf("cid %d\n", cid);
 	int16_t mn = mtd->mn;
+	printf("cid %d mn %d\n", cid, mtd->mn);
 
 	while (mtd->pc_start[opsize].opcode != OPCODE_RET) {
 		opsize++;

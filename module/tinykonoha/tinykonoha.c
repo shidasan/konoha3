@@ -417,12 +417,13 @@ static void execTopLevelExpression(KonohaContext *kctx)
 	kArray *array = kctx->share->topLevelMethodList;
 	size_t i, size = kArray_size(array);
 	//TDBG_i("size", size);
-	for (i = 4; i < size; i++) {
+	for (i = 0; i < size; i++) {
 		OPEXIT opEXIT = {OPCODE_EXIT};
 		krbp_t *rbp = (krbp_t*)kctx->esp;
 		rbp[K_PCIDX2].pc = (VirtualMachineInstruction*)&opEXIT;
 		rbp[K_SHIFTIDX2].shift = 0;
 		VirtualMachineInstruction *pc = (VirtualMachineInstruction*)array->objectItems[i];
+		//TDBG_s("run"); dly_tsk(1000);
 		KonohaVirtualMachine_run(kctx, kctx->esp, pc);
 	}
 }
@@ -461,7 +462,11 @@ void TaskMain(VP_INT exinf)
 	nxt_motor_set_count(NXT_PORT_C, 0);
 	nxt_motor_set_count(NXT_PORT_B, 0);
 	sta_cyc(CYC0);
+	//TDBG_s("toplevel");
+	//dly_tsk(1000);
 	execTopLevelExpression((KonohaContext*)kctx);
+	//TDBG_s("end toplevel");
+	//dly_tsk(1000);
 	//act_tsk(TASK0);
 }
 
@@ -474,6 +479,8 @@ void TaskDisp(VP_INT exinf)
 	char key;
 	ER ercd;
 
+	int button_state = 0;
+
 	vmsk_log(LOG_UPTO(LOG_INFO), LOG_UPTO(LOG_EMERG));
 	syscall(serial_ctl_por(CONSOLE_PORTID,	(IOCTL_CRLF | IOCTL_FCSND | IOCTL_FCRCV)));
 	ecrobot_init_nxtstate();
@@ -484,12 +491,12 @@ void TaskDisp(VP_INT exinf)
 	keystate = ecrobot_get_touch_sensor(NXT_PORT_S4);
 	nxt_motor_set_count(NXT_PORT_A, 0);		/* 完全停止用モータエンコーダリセット */
 	act_tsk(TASK0);
-	mstate = MWAIT;
-	wtime = STOPWAIT;
+	//mstate = MWAIT;
+	//wtime = STOPWAIT;
 	while(1){
 		ecrobot_poll_nxtstate();
 		sonar_value = ecrobot_get_sonar_sensor(NXT_PORT_S2);
-		ercd = serial_ref_por(CONSOLE_PORTID, &rpor);
+		//ercd = serial_ref_por(CONSOLE_PORTID, &rpor);
 		//if(ercd == E_OK && rpor.reacnt){
 		//	serial_rea_dat(CONSOLE_PORTID, buf, 1);
 		//	if(buf[0] == 'g' && mstate == MWAIT)
@@ -501,10 +508,19 @@ void TaskDisp(VP_INT exinf)
 		//}
 		key = ecrobot_get_touch_sensor(NXT_PORT_S4);
 		if(key != keystate){	/* KEYセンサーの検知 */
-			if(key != 0){
-				if(mstate == MWAIT)
+			if (button_state == 0) {
+				whitelight = ecrobot_get_light_sensor(NXT_PORT_S3);
+				key = 0;
+				button_state = 1;
+				ecrobot_sound_tone(1000, 200, 50);
+				dly_tsk(1000U);
+			} else if (button_state == 1) {
+				button_state = 2;
+				dly_tsk(1000U);
+			} else if (button_state == 2) {
+				if (mstate == MWAIT) {
 					mstate = MRUNNING;
-				else if(mstate == MRUNNING){
+				} else if (mstate == MRUNNING) {
 					mstate = MSTOP1;
 					wtime = STOPWAIT;
 				}
