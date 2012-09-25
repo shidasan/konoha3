@@ -458,6 +458,7 @@ void cyc0(VP_INT exinf)
 }
 void TaskMain(VP_INT exinf)
 {
+	opcode_check();
 	struct KonohaContext *kctx = (struct KonohaContext *)new_context(K_STACK_SIZE);
 	loadByteCode((KonohaContext*)kctx);
 
@@ -484,7 +485,6 @@ void TaskMain(VP_INT exinf)
 
 void TaskDisp(VP_INT exinf)
 {
-
 	T_SERIAL_RPOR rpor;
 	UB buf[4];
 	int wtime = 0;

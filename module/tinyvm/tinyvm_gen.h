@@ -30,23 +30,23 @@
 #define OPCODE_NOP ((kopcode_t)0)
 typedef struct OPNOP {
 	KCODE_HEAD;
-} OPNOP;
+}__attribute__((packed)) OPNOP;
 
 #define OPCODE_THCODE ((kopcode_t)1)
 typedef struct OPTHCODE {
 	KCODE_HEAD;
 	ThreadCodeFunc threadCode;
-} OPTHCODE;
+} __attribute__((packed)) OPTHCODE;
 
 #define OPCODE_ENTER ((kopcode_t)2)
 typedef struct OPENTER {
 	KCODE_HEAD;
-} OPENTER;
+} __attribute__((packed)) OPENTER;
 
 #define OPCODE_EXIT ((kopcode_t)3)
 typedef struct OPEXIT {
 	KCODE_HEAD;
-} OPEXIT;
+} __attribute__((packed)) OPEXIT;
 
 #define OPCODE_NSET ((kopcode_t)4)
 typedef struct OPNSET {
@@ -54,7 +54,7 @@ typedef struct OPNSET {
 	kreg_t a;
 	kint_t n;
 	/*KonohaClass* ty;*/
-} OPNSET;
+} __attribute__((packed)) OPNSET;
 
 #define OPCODE_NMOV ((kopcode_t)5)
 typedef struct OPNMOV {
@@ -62,7 +62,7 @@ typedef struct OPNMOV {
 	kreg_t a;
 	kreg_t b;
 	/*KonohaClass* ty;*/
-} OPNMOV;
+} __attribute__((packed)) OPNMOV;
 
 #define OPCODE_NMOVx ((kopcode_t)6)
 typedef struct OPNMOVx {
@@ -71,31 +71,31 @@ typedef struct OPNMOVx {
 	kreg_t b;
 	uintptr_t bx;
 	/*KonohaClass* ty;*/
-} OPNMOVx;
+} __attribute__((packed)) OPNMOVx;
 
 #define OPCODE_XNMOV ((kopcode_t)7)
 typedef struct OPXNMOV {
 	KCODE_HEAD;
 	kreg_t a;
-	uintptr_t ax __attribute__((packed));
+	uintptr_t ax;
 	kreg_t b;
 	/*KonohaClass* ty;*/
-} OPXNMOV;
+} __attribute__((packed)) OPXNMOV;
 
 #define OPCODE_NEW ((kopcode_t)8)
 typedef struct OPNEW {
 	KCODE_HEAD;
 	kreg_t a;
-	uintptr_t p __attribute__((packed));
-	ktype_t cid __attribute__((packed));
-} OPNEW;
+	uintptr_t p;
+	ktype_t cid;
+} __attribute__((packed)) OPNEW;
 
 #define OPCODE_NULL ((kopcode_t)9)
 typedef struct OPNULL {
 	KCODE_HEAD;
 	kreg_t a;
 	ktype_t cid;
-} OPNULL;
+} __attribute__((packed)) OPNULL;
 
 #define OPCODE_LOOKUP ((kopcode_t)10)
 typedef struct OPLOOKUP {
@@ -103,7 +103,7 @@ typedef struct OPLOOKUP {
 	kreg_t thisidx;
 	kNameSpace* ns;
 	/*kMethod* mtd;*/
-} OPLOOKUP;
+} __attribute__((packed)) OPLOOKUP;
 
 #define OPCODE_CALL ((kopcode_t)11)
 typedef struct OPCALL {
@@ -111,70 +111,70 @@ typedef struct OPCALL {
 	/*uintptr_t uline;*/
 	kreg_t thisidx;
 	kreg_t espshift;
-	kObject* tyo;
-} OPCALL;
+	/*kObject* tyo*/;
+} __attribute__((packed)) OPCALL;
 
 #define OPCODE_RET ((kopcode_t)12)
 typedef struct OPRET {
 	KCODE_HEAD;
-} OPRET;
+} __attribute__((packed)) OPRET;
 
 #define OPCODE_NCALL ((kopcode_t)13)
 typedef struct OPNCALL {
 	KCODE_HEAD;
-} OPNCALL;
+} __attribute__((packed)) OPNCALL;
 
 #define OPCODE_BNOT ((kopcode_t)14)
 typedef struct OPBNOT {
 	KCODE_HEAD;
 	kreg_t c;
 	kreg_t a;
-} OPBNOT;
+} __attribute__((packed)) OPBNOT;
 
 #define OPCODE_JMP ((kopcode_t)15)
 typedef struct OPJMP {
 	KCODE_HEAD;
 	uint16_t jumppc;
-} OPJMP;
+} __attribute__((packed)) OPJMP;
 
 #define OPCODE_JMPF ((kopcode_t)16)
 typedef struct OPJMPF {
 	KCODE_HEAD;
 	uint16_t jumppc;
 	kreg_t a;
-} OPJMPF;
+} __attribute__((packed)) OPJMPF;
 
 #define OPCODE_TRYJMP ((kopcode_t)17)
 typedef struct OPTRYJMP {
 	KCODE_HEAD;
 	VirtualMachineInstruction  *jumppc;
-} OPTRYJMP;
+} __attribute__((packed)) OPTRYJMP;
 
 #define OPCODE_YIELD ((kopcode_t)18)
 typedef struct OPYIELD {
 	KCODE_HEAD;
-} OPYIELD;
+} __attribute__((packed)) OPYIELD;
 
 #define OPCODE_ERROR ((kopcode_t)19)
 typedef struct OPERROR {
 	KCODE_HEAD;
 	/*uintptr_t uline;*/
-	kString* msg __attribute__((packed));
+	kString* msg;
 	kreg_t esp;
-} OPERROR;
+} __attribute__((packed)) OPERROR;
 
 #define OPCODE_SAFEPOINT ((kopcode_t)20)
 typedef struct OPSAFEPOINT {
 	KCODE_HEAD;
 	/*uintptr_t uline;*/
 	kreg_t esp;
-} OPSAFEPOINT;
+} __attribute__((packed)) OPSAFEPOINT;
 
 #define OPCODE_CHKSTACK ((kopcode_t)21)
 typedef struct OPCHKSTACK {
 	KCODE_HEAD;
 	/*uintptr_t uline;*/
-} OPCHKSTACK;
+} __attribute__((packed)) OPCHKSTACK;
 
 #define OPCODE_TRACE ((kopcode_t)22)
 typedef struct OPTRACE {
@@ -182,7 +182,7 @@ typedef struct OPTRACE {
 	/*uintptr_t uline;*/
 	kreg_t thisidx;
 	TraceFunc trace;
-} OPTRACE;
+} __attribute__((packed)) OPTRACE;
 
 	
 #define KOPCODE_MAX ((kopcode_t)23)
@@ -249,6 +249,20 @@ static const kOPDATA_t OPDATA[] = {
 
 static void opcode_check(void)
 {
+	TDBG_i("NOP", sizeof(OPNOP));
+	dly_tsk(1000);
+	TDBG_i("NSET", sizeof(OPNSET));
+	dly_tsk(1000);
+	TDBG_i("NMOV", sizeof(OPNMOV));
+	dly_tsk(1000);
+	TDBG_i("CALL", sizeof(OPCALL));
+	dly_tsk(1000);
+	TDBG_i("JMP", sizeof(OPJMP));
+	dly_tsk(1000);
+	TDBG_i("JMPF", sizeof(OPJMPF));
+	dly_tsk(1000);
+	TDBG_i("RET", sizeof(OPRET));
+	dly_tsk(1000);
 	assert(sizeof(OPNOP) <= sizeof(VirtualMachineInstruction));
 	assert(sizeof(OPTHCODE) <= sizeof(VirtualMachineInstruction));
 	assert(sizeof(OPENTER) <= sizeof(VirtualMachineInstruction));
@@ -407,7 +421,7 @@ static VirtualMachineInstruction* KonohaVirtualMachine_run(KonohaContext *kctx, 
 	} 
 	CASE(CALL) {
 		OPCALL *op = (OPCALL*)pc;
-		OPEXEC_CALL(0, op->thisidx, op->espshift, op->tyo); pc++;
+		OPEXEC_CALL(0, op->thisidx, op->espshift, NULL/*op->tyo*/); pc++;
 		GOTO_NEXT();
 	} 
 	CASE(RET) {

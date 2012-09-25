@@ -19,7 +19,7 @@
 #define TY_Block 18
 #define TY_Gamma 19
 
-#define MN_Object_String 43
+#define MN_Object_String 49195
 #define MN_boolean_opNOT 28
 #define MN_boolean_opEQ 24
 #define MN_boolean_opNEQ 25
@@ -36,11 +36,11 @@
 #define MN_int_opLTE 21
 #define MN_int_opGT 22
 #define MN_int_opGTE 23
-#define MN_int_String 43
+#define MN_int_String 49195
 #define MN_int_box 56
 #define MN_String_opEQ 24
 #define MN_String_opNEQ 25
-#define MN_String_int 34
+#define MN_String_int 49186
 #define MN_String_opADD 18
 #define MN_Func_new 40
 #define MN_Func_invoke 57
@@ -62,8 +62,8 @@
 #define MN_int_opLTE 21
 #define MN_int_opGT 22
 #define MN_int_opGTE 23
-#define MN_int_float 68
-#define MN_String_float 68
+#define MN_int_float 49220
+#define MN_String_float 49220
 #define MN_float_opADD 18
 #define MN_float_opADD 18
 #define MN_float_opSUB 19
@@ -75,16 +75,16 @@
 #define MN_float_opLTE 21
 #define MN_float_opGT 22
 #define MN_float_opGTE 23
-#define MN_float_int 34
-#define MN_float_String 43
+#define MN_float_int 49186
+#define MN_float_String 49195
 #define MN_float_opSUB 19
 
 
-#define MN_Array_get 0
-#define MN_Array_set 0
+#define MN_Array_get 16384
+#define MN_Array_set 8192
 #define MN_Array_removeAt 75
-#define MN_Array_getSize 76
-#define MN_Array_getlength 77
+#define MN_Array_getSize 16460
+#define MN_Array_getlength 16461
 #define MN_Array_add 78
 #define MN_Array_push 79
 #define MN_Array_pop 80
@@ -94,7 +94,7 @@
 #define MN_Array_concat 84
 #define MN_Array_indexOf 86
 #define MN_Array_lastIndexOf 87
-#define MN_Array_String 43
+#define MN_Array_String 49195
 #define MN_Array_new 40
 #define MN_Array_newArray 89
 #define MN_Array_newList 90
@@ -110,10 +110,14 @@
 #define MN_NXT_ecrobotGetGyroSensor 99
 #define MN_NXT_ecrobotGetLightSensor 100
 #define MN_NXT_waiSem 101
-#define MN_NXT_getsonarSensor 102
+#define MN_NXT_getsonarSensor 16486
 #define MN_NXT_updateStatus 103
 #define MN_NXT_balancePid 104
 #define MN_NXT_balance 105
-#define MN_NXT_getgrayFlag 106
+#define MN_NXT_getgrayFlag 16490
 #define MN_NXT_soundTone 107
+#define MN_NXT_getgyroOffset 16492
+#define MN_NXT_setgyroOffset 8300
+#define MN_NXT_gettail 16493
+#define MN_NXT_settail 8301
 

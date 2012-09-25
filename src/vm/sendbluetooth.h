@@ -22,7 +22,9 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***************************************************************************/
 
+#include <minikonoha/minikonoha.h>
 #include <minikonoha/float.h>
+#include <minikonoha/sugar.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <windows.h>
@@ -152,6 +154,7 @@ static void sendBluetooth(KonohaContext *kctx, kMethod *mtd)
 		bt_buffer_clear(kctx, writebuf);
 		pc = mtd->pc_start + i;
 		bt_buffer_append(kctx, writebuf, &pc->opcode, sizeof(int8_t));
+		printf("\nop%d\n", i);
 		switch (pc->opcode) {
 		case OPCODE_NSET: {
 			OPNSET *op = (OPNSET*)pc;
@@ -159,11 +162,12 @@ static void sendBluetooth(KonohaContext *kctx, kMethod *mtd)
 			int8_t a = op->a;
 			int32_t n = op->n;
 			int16_t ty = op->ty->typeId;
-			printf("ty %d\n", op->ty->typeId);
 			bt_buffer_append(kctx, writebuf, &a, sizeof(int8_t));
 			bt_buffer_append(kctx, writebuf, &ty, sizeof(int16_t));
 			switch(ty) {
+			case TY_boolean:
 			case TY_int: {
+				printf("int %d\n", n);
 				bt_buffer_append(kctx, writebuf, &n, sizeof(int32_t));
 				break;
 			}
@@ -179,6 +183,7 @@ static void sendBluetooth(KonohaContext *kctx, kMethod *mtd)
 				kMethod *mtd = (kMethod*)op->n;
 				int16_t cid = mtd->typeId;
 				int16_t mn = SYM_UNMASK(mtd->mn);
+				printf("method %s\n", SYM_t(SYM_UNMASK(mtd->mn)));
 				printf("cid %d, mn %d\n", cid, mn);
 				bt_buffer_append(kctx, writebuf, &cid, sizeof(int16_t));
 				bt_buffer_append(kctx, writebuf, &(mn), sizeof(int16_t));

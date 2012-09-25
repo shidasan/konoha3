@@ -279,6 +279,9 @@ static KMETHOD NXT_updateStatus(KonohaContext *kctx, KonohaStack *sfp)
 static KMETHOD NXT_getgrayFlag(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
+	if (state.grayflag) {
+		ecrobot_sound_tone(2000, 200, 50);
+	}
 	RETURNb_(state.grayflag);
 #else
 	RETURNb_(0);
@@ -289,6 +292,36 @@ static KMETHOD NXT_soundTone(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
 	ecrobot_sound_tone(Int_to(int, sfp[1]), Int_to(int, sfp[2]), 50);
+#endif
+}
+
+static KMETHOD NXT_getgyroOffset(KonohaContext *kctx, KonohaStack *sfp)
+{
+#ifdef K_USING_TOPPERS
+	RETURNi_(state.gyro_offset);
+#endif
+}
+
+static KMETHOD NXT_setgyroOffset(KonohaContext *kctx, KonohaStack *sfp)
+{
+#ifdef K_USING_TOPPERS
+	ecrobot_sound_tone(3000, 1000, 50);
+	state.gyro_offset = Int_to(int, sfp[1]);
+#endif
+}
+
+static KMETHOD NXT_gettail(KonohaContext *kctx, KonohaStack *sfp)
+{
+#ifdef K_USING_TOPPERS
+	RETURNi_(state.tail);
+#endif
+}
+
+static KMETHOD NXT_settail(KonohaContext *kctx, KonohaStack *sfp)
+{
+#ifdef K_USING_TOPPERS
+	ecrobot_sound_tone(3000, 1000, 50);
+	state.tail = Int_to(int, sfp[1]);
 #endif
 }
 
@@ -327,6 +360,10 @@ kbool_t tinykonoha_nxtMethodInit(KonohaContext *kctx, kNameSpace *ks)
 		_F(NXT_balance), TY_NXT, MN_(NXT_balance),
 		_F(NXT_getgrayFlag), TY_NXT, MN_(NXT_getgrayFlag),
 		_F(NXT_soundTone), TY_NXT, MN_(NXT_soundTone),
+		_F(NXT_getgyroOffset), TY_NXT, MN_(NXT_getgyroOffset),
+		_F(NXT_setgyroOffset), TY_NXT, MN_(NXT_setgyroOffset),
+		_F(NXT_gettail), TY_NXT, MN_(NXT_gettail),
+		_F(NXT_settail), TY_NXT, MN_(NXT_settail),
 		DEND,
 	};
 	KLIB kNameSpace_loadMethodData(kctx, ks, MethodData);
@@ -367,6 +404,10 @@ static	kbool_t nxt_initPackage(KonohaContext *kctx, kNameSpace *ks, int argc, co
 			_Public|_Static|_Imm, _F(NXT_balance), TY_void, TY_NXT, MN_("balance"), 2, TY_int, FN_x, TY_int, FN_y,
 			_Public|_Static|_Imm, _F(NXT_getgrayFlag), TY_boolean, TY_NXT, MN_("getgrayFlag"), 0,
 			_Public|_Static|_Imm, _F(NXT_soundTone), TY_boolean, TY_NXT, MN_("soundTone"), 2, TY_int, FN_x, TY_int, FN_y, 
+			_Public|_Static|_Imm, _F(NXT_getgyroOffset), TY_int, TY_NXT, MN_("getgyroOffset"), 0,
+			_Public|_Static|_Imm, _F(NXT_setgyroOffset), TY_void, TY_NXT, MN_("setgyroOffset"), 1, TY_int, FN_x,
+			_Public|_Static|_Imm, _F(NXT_gettail), TY_int, TY_NXT, MN_("gettail"), 0,
+			_Public|_Static|_Imm, _F(NXT_settail), TY_void, TY_NXT, MN_("settail"), 1, TY_int, FN_x,
 			DEND,
 	};
 	KLIB kNameSpace_loadMethodData(kctx, ks, MethodData);

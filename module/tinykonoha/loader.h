@@ -68,6 +68,7 @@ static void genNSET(KonohaContext *kctx, char *buf, VirtualMachineInstruction *p
 	op->a = buf[0]; buf++; //eat a
 	int16_t ty = (int16_t)BUF16(buf); buf+=2; //eat ty
 	switch(ty) {
+	case TY_boolean:
 	case TY_float:
 	case TY_Int: {
 		op->n = BUF32(buf);
@@ -125,7 +126,7 @@ static void genCALL(KonohaContext *kctx, char *buf, VirtualMachineInstruction *p
 	buf++; //eat opcode
 	op->thisidx = buf[0]; buf++;//eat thisidx
 	op->espshift = buf[0]; buf++;//eat espshift
-	op->tyo = kctx->share->constNull;
+	//op->tyo = kctx->share->constNull;
 	//TDBG_i("CALL", buf[0]);
 }
 static void genRET(KonohaContext *kctx, char *buf, VirtualMachineInstruction *pc, int pos)

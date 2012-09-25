@@ -1082,11 +1082,11 @@ void dumpCidMn(KonohaContext *kctx)
 				DUMP_P("#define MN_%s_as%s %d\n", ct_toText(kctx, ct), ct_toText(kctx, CT_(SYM_UNMASK(mtd->mn))), mtd->mn);
 			} else {
 				if (MN_isGETTER(mtd->mn)) {
-					DUMP_P("#define MN_%s_get%s %d\n", ct_toText(kctx, ct), mn_toText(kctx, SYM_UNMASK(mtd->mn)), SYM_UNMASK(mtd->mn));
+					DUMP_P("#define MN_%s_get%s %d\n", ct_toText(kctx, ct), mn_toText(kctx, SYM_UNMASK(mtd->mn)), (mtd->mn));
 				} else if (MN_isSETTER(mtd->mn)) {
-					DUMP_P("#define MN_%s_set%s %d\n", ct_toText(kctx, ct), mn_toText(kctx, SYM_UNMASK(mtd->mn)), SYM_UNMASK(mtd->mn));
+					DUMP_P("#define MN_%s_set%s %d\n", ct_toText(kctx, ct), mn_toText(kctx, SYM_UNMASK(mtd->mn)), (mtd->mn));
 				} else {
-					DUMP_P("#define MN_%s_%s %d\n", ct_toText(kctx, ct), mn_toText(kctx, SYM_UNMASK(mtd->mn)), SYM_UNMASK(mtd->mn));
+					DUMP_P("#define MN_%s_%s %d\n", ct_toText(kctx, ct), mn_toText(kctx, SYM_UNMASK(mtd->mn)), (mtd->mn));
 				}
 			}
 		}
