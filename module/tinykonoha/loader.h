@@ -63,6 +63,8 @@ void CT_addMethod(KonohaContext *kctx, KonohaClassVar *ct, kMethod *mtd);
 
 static void genNSET(KonohaContext *kctx, char *buf, VirtualMachineInstruction *pc, int pos)
 {
+	//KLIB kArray_add(kctx, ct->methodList, mtd);
+
 	OPNSET *op = (OPNSET*)(pc + pos);
 	int8_t opcode = buf[0]; buf++; //eat opcode
 	op->a = buf[0]; buf++; //eat a
@@ -71,17 +73,27 @@ static void genNSET(KonohaContext *kctx, char *buf, VirtualMachineInstruction *p
 	case TY_boolean:
 	case TY_float:
 	case TY_Int: {
-		op->n = BUF32(buf);
+		int32_t n = BUF32(buf);
+		if (n < (1 << 16)) {
+			op->opcode = OPCODE_NSET16;
+			op->n = (int16_t)n;
+		} else {
+			size_t size = kctx->share->constObjectList->bytesize/sizeof(void*);
+			KLIB kArray_add(kctx, kctx->share->constObjectList, n);
+			op->n = size;
+		}
 		break;
 	}
 	case TY_String: {
 		size_t strsize = buf[0]; buf++; //eat strsize
-		//TDBG_i("strsize", strsize);
 		char *str = (char *)KLIB Kmalloc(kctx, strsize+1);
 		memcpy(str, buf, strsize);
 		str[strsize] = '\0';
 		kStringVar *string = (kStringVar*)KLIB new_kObject(kctx, CT_(TY_String), (uintptr_t)str);
-		op->n = (int32_t)string;
+		//op->n = (int32_t)string;
+		size_t size = kctx->share->constObjectList->bytesize/sizeof(void*);
+		KLIB kArray_add(kctx, kctx->share->constObjectList, string);
+		op->n = size;
 		break;
 	}
 	case TY_Method: {
@@ -93,15 +105,22 @@ static void genNSET(KonohaContext *kctx, char *buf, VirtualMachineInstruction *p
 			//dly_tsk(1000);
 			//TDBG_i("mn", mtd->mn);
 			//dly_tsk(1000);
-			op->n = (int32_t)mtd;
+			//op->n = (int32_t)mtd;
+			size_t size = kctx->share->constObjectList->bytesize/sizeof(void*);
+			KLIB kArray_add(kctx, kctx->share->constObjectList, mtd);
+			op->n = size;
 		} else {
 			if (CT_(cid) != NULL) {
 				uintptr_t flag = kMethod_Static|kMethod_Public;
 				kMethod *mtd = KLIB new_kMethod(kctx, flag, cid, mn, NULL);
-				op->n = (int32_t)mtd;
+				//op->n = (int32_t)mtd;
+				size_t size = kctx->share->constObjectList->bytesize/sizeof(void*);
+				KLIB kArray_add(kctx, kctx->share->constObjectList, mtd);
+				op->n = size;
 				CT_addMethod(kctx, (KonohaClassVar*)CT_(cid), mtd);
 			} else {
-				op->n = (int32_t)kctx->share->constNull;
+				op->opcode = OPCODE_NSET16;
+				op->n = (int32_t)NULL;
 			}
 		}
 		//TDBG_i("method", (int32_t)mtd);
@@ -161,13 +180,13 @@ genByteCode genCode[] = {NULL, NULL, NULL, NULL,
 						 genRET, NULL, genBNOT, genJMP,
 						 genJMPF, NULL, NULL, NULL,
 						 NULL, NULL, NULL};
-size_t bytecodesize[] = {
-	sizeof(OPNOP), sizeof(OPNOP), sizeof(OPNOP), sizeof(OPNOP),
-	sizeof(OPNSET), sizeof(OPNMOV), sizeof(OPNOP), sizeof(OPNOP),
-	sizeof(OPNOP), sizeof(OPNOP), sizeof(OPNOP), sizeof(OPCALL),
-	sizeof(OPRET), sizeof(OPNOP), sizeof(OPBNOT), sizeof(OPJMP),
-	sizeof(OPJMPF), sizeof(OPNOP), sizeof(OPNOP), sizeof(OPNOP),
-	sizeof(OPNOP), sizeof(OPNOP), sizeof(OPNOP)};
+//size_t bytecodesize[] = {
+//	sizeof(OPNOP), sizeof(OPNOP), sizeof(OPNOP), sizeof(OPNOP),
+//	sizeof(OPNSET), sizeof(OPNMOV), sizeof(OPNOP), sizeof(OPNOP),
+//	sizeof(OPNOP), sizeof(OPNOP), sizeof(OPNOP), sizeof(OPCALL),
+//	sizeof(OPRET), sizeof(OPNOP), sizeof(OPBNOT), sizeof(OPJMP),
+//	sizeof(OPJMPF), sizeof(OPNOP), sizeof(OPNOP), sizeof(OPNOP),
+//	sizeof(OPNOP), sizeof(OPNOP), sizeof(OPNOP)};
 
 static void loadByteCode(KonohaContext *kctx)
 {

@@ -86,6 +86,11 @@ void TDBG_abort(const char *msg)
 
 #define K_STACK_SIZE 65
 
+extern nxt_state_t nxtstate;
+//nxt_state_t *getnxtstate() {
+//	return &nxtstate;
+//}
+
 static void KRUNTIME_reftrace(KonohaContext *kctx, KonohaContext *ctx)
 {
 	//TDBG_abort("runtime trace");
@@ -465,7 +470,7 @@ void TaskMain(VP_INT exinf)
 	mstate = MWAIT;
 	ecrobot_set_light_sensor_active(NXT_PORT_S3);
 	while (mstate != MRUNNING) {
-		TDBG_i("invoke ptr", (int32_t)MethodFunc_runVirtualMachine);
+		//TDBG_i("invoke ptr", (int32_t)MethodFunc_runVirtualMachine);
 		tail_control(TAIL_ANGLE_STAND_UP);
 		gyro_offset_value = ecrobot_get_gyro_sensor(NXT_PORT_S1);
 		//TDBG_i("gyro_offset", gyro_offset);

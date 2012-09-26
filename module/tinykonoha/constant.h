@@ -124,4 +124,10 @@
 #define MN_NXT_settail 8303
 #define MN_NXT_getdistance 16496
 #define MN_NXT_setdistance 8304
+#define MN_NXT_gettimer 16497
+#define MN_NXT_cleartimer 114
+#define MN_NXT_gettheta 16499
+#define MN_NXT_cleartheta 116
+#define MN_NXT_getlight 16501
+#define MN_NXT_gettargetLight 16502
 

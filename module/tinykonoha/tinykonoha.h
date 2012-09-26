@@ -279,6 +279,7 @@ typedef enum {
 } kstatus_t;
 
 typedef intptr_t         kint_t;
+typedef int16_t          kint16_t;
 typedef uintptr_t        kuint_t;
 
 #ifdef K_USING_SYS64_
@@ -548,6 +549,7 @@ struct KonohaRuntimeVar {
 	kArray                   *emptyArray;
 	kArray                   *constData;
 	kArray                   *topLevelMethodList;
+	kArray                   *constObjectList;
 
 	//kmutex_t          *filepackMutex;
 	kArray                   *fileidList;    // file, http://

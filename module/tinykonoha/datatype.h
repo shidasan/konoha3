@@ -676,6 +676,7 @@ static void KCLASSTABLE_init(KonohaContextVar *kctx)
 	kObject_setNullObject(share.constNull, 1);
 	KINITv(share.constData, new_(Array, 0));
 	KINITv(share.topLevelMethodList, new_(Array, 0));
+	KINITv(share.constObjectList, new_(Array, 128));
 	KINITv(share.emptyArray, new_(Array, 0));
 	initStructData(kctx);
 	tinykonoha_floatMethodInit(kctx, NULL);

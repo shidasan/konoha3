@@ -108,8 +108,7 @@ typedef struct {
 
 typedef struct VirtualMachineInstruction {
 	KCODE_HEAD;
-	uint8_t data[1];
-	void *ptr;
+	uint8_t data[3];
 } VirtualMachineInstruction;
 
 /* ------------------------------------------------------------------------ */
@@ -185,8 +184,8 @@ static void KonohaVirtualMachine_onSafePoint(KonohaContext *kctx, KonohaStack *s
 
 #define OPEXEC_NOP() (void)op
 
-#define OPEXEC_THCODE(F) { \
-		F(kctx, pc, OPJUMP); \
+#define OPEXEC_THCODE(/*F*/) { \
+		/*F(kctx, pc, OPJUMP); */\
 		pc = PC_NEXT(pc);\
 		goto L_RETURN; \
 	}\
@@ -223,25 +222,26 @@ static void KonohaVirtualMachine_onSafePoint(KonohaContext *kctx, KonohaStack *s
 //#define OPEXEC_XNMOV(A, AX, B, CT) (rbp[(A)].asObjectVar)->fieldObjectItems[AX] = rbp[(B)].o
 //#define OPEXEC_NEW(A, P, CT)   KSETv_AND_WRITE_BARRIER(NULL, rbp[(A)].o, KLIB new_kObject(kctx, CT, P), GC_NO_WRITE_BARRIER)
 //#define OPEXEC_NULL(A, CT)     KSETv_AND_WRITE_BARRIER(NULL, rbp[(A)].o, KLIB Knull(kctx, CT), GC_NO_WRITE_BARRIER)
-#define OPEXEC_NSET(A, N) rbp[(A)].unboxValue = N
+#define OPEXEC_NSET16(A, N) rbp[(A)].unboxValue = N
+#define OPEXEC_NSET(A, N) rbp[(A)].unboxValue = (kctx->share->constObjectList->unboxItems[N])
 #define OPEXEC_NMOV(A, B) rbp[(A)].unboxValue = rbp[(B)].unboxValue
 #define OPEXEC_NMOVx(A, B, BX) rbp[(A)].o = (rbp[(B)].asObjectVar)->fieldObjectItems[(BX)]
 #define OPEXEC_XNMOV(A, AX, B) (rbp[(A)].asObjectVar)->fieldObjectItems[AX] = rbp[(B)].o
 
-#define OPEXEC_NEW(A, P, CID)   KSETv_AND_WRITE_BARRIER(NULL, rbp[(A)].o, KLIB new_kObject(kctx, CT_(CID), P), GC_NO_WRITE_BARRIER)
+#define OPEXEC_NEW(A, /*P, */CID)   KSETv_AND_WRITE_BARRIER(NULL, rbp[(A)].o, KLIB new_kObject(kctx, CT_(CID), 0/*P*/), GC_NO_WRITE_BARRIER)
 #define OPEXEC_NULL(A, CID)     KSETv_AND_WRITE_BARRIER(NULL, rbp[(A)].o, KLIB Knull(kctx, CT_(CID)), GC_NO_WRITE_BARRIER)
 #define OPEXEC_BOX(A, B, CT)   KSETv_AND_WRITE_BARRIER(NULL, rbp[(A)].o, KLIB new_kObject(kctx, CT, rbp[(B)].intValue), GC_NO_WRITE_BARRIER)
 #define OPEXEC_UNBOX(A, B, CT) rbp[(A)].unboxValue = N_toint(rbp[B].o)
 
 #define PC_NEXT(pc)   pc+1
 
-#define OPEXEC_LOOKUP(THIS, NS, MTD) { \
+#define OPEXEC_LOOKUP(THIS/*, NS, MTD*/) { \
 		/*kNameSpace_lookupMethodWithInlineCache(kctx, SFP(rshift(rbp, THIS)), NS, (kMethod**)&MTD);*/\
 	} \
 
 #define OPEXEC_CALL(UL, THIS, espshift, CTO) { \
 		kMethod *mtd_ = rbp[THIS+K_MTDIDX2].mtdNC;\
-		if (mtd_ != kctx->share->constNull && mtd_->invokeMethodFunc != NULL) { \
+		if (mtd_ != NULL && mtd_ != kctx->share->constNull && mtd_->invokeMethodFunc != NULL) { \
 			KonohaStack *sfp_ = SFP(rshift(rbp, THIS)); \
 			sfp_[K_RTNIDX].o = CTO;\
 			/*sfp_[K_RTNIDX].uline = UL;*/\
@@ -320,8 +320,8 @@ static void KonohaVirtualMachine_onSafePoint(KonohaContext *kctx, KonohaStack *s
 
 #define OPEXEC_BNOT(c, a)     rbp[c].boolValue = !(rbp[a].boolValue)
 
-#define OPEXEC_TRACE(UL, THIS, F) { \
-		F(kctx, SFP(rshift(rbp, THIS)), UL);\
+#define OPEXEC_TRACE(UL, THIS/*, F*/) { \
+		/*F(kctx, SFP(rshift(rbp, THIS)), UL);*/\
 	} \
 
 #define OPEXEC_CHKSTACK(UL) \
