@@ -108,7 +108,7 @@ typedef struct {
 
 typedef struct VirtualMachineInstruction {
 	KCODE_HEAD;
-	uint8_t data[3];
+	uint8_t data[1];
 	void *ptr;
 } VirtualMachineInstruction;
 
@@ -293,7 +293,8 @@ static void KonohaVirtualMachine_onSafePoint(KonohaContext *kctx, KonohaStack *s
 		rbp[K_MTDIDX2].mtdNC = NULL;\
 		rbp = rshift(rbp, -vshift); \
 		pc = vpc; \
-		GOTO_PC(pc);\
+		/*GOTO_PC(pc);*/\
+		return pc;\
 	}\
 
 #define OPEXEC_JMP(PC, JUMP) {\

@@ -421,7 +421,7 @@ static VirtualMachineInstruction* KonohaVirtualMachine_run(KonohaContext *kctx, 
 	} 
 	CASE(CALL) {
 		OPCALL *op = (OPCALL*)pc;
-		OPEXEC_CALL(0, op->thisidx, op->espshift, NULL/*op->tyo*/); pc++;
+		OPEXEC_CALL(0, op->thisidx, op->espshift, kctx->share->constNull/*op->tyo*/); pc++;
 		GOTO_NEXT();
 	} 
 	CASE(RET) {

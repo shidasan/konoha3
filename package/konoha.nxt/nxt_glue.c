@@ -187,7 +187,7 @@ static KMETHOD NXT_balanceControl(KonohaContext *kctx, KonohaStack *sfp)
 static KMETHOD NXT_getSonarSensor(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
-	RETURNi_(state.sonar);
+	RETURNi_(getSonarValue());
 #endif
 }
 
@@ -218,6 +218,61 @@ static KMETHOD NXT_balance(KonohaContext *kctx, KonohaStack *sfp)
 	int forward = Int_to(int, sfp[1]);
 	int turn = Int_to(int, sfp[2]);
 	NXT_balance_inner(forward, turn);
+#endif
+}
+
+static KMETHOD NXT_tailwalk(KonohaContext *kctx, KonohaStack *sfp)
+{
+#ifdef K_USING_TOPPERS
+	//ecrobot_sound_tone(1000, 200, 50);
+	signed char pwm_L = Int_to(int, sfp[1]);
+	signed char pwm_R = Int_to(int, sfp[2]);
+	signed char pwm_L0, pwm_R0;
+	balance_control(
+			(float)0,
+			(float)0,
+			(float)state.gyro,
+			(float)state.gyro_offset,
+			(float)state.diff_C_motor[1],
+			(float)state.diff_B_motor[1],
+			(float)ecrobot_get_battery_voltage(),
+			&pwm_L0,
+			&pwm_R0);
+	ecrobot_set_motor_speed(NXT_PORT_C, pwm_L);
+	ecrobot_set_motor_speed(NXT_PORT_B, pwm_R);
+	wai_sem(EVT_SEM);
+	state.timer += 4;
+#endif
+}
+
+static KMETHOD NXT_tailwalkPid(KonohaContext *kctx, KonohaStack *sfp)
+{
+#ifdef K_USING_TOPPERS
+#define delta_T            0.004
+#define KP                 0.38
+#define KI                 0.10
+#define KD                 0.08
+
+	int32_t forward_i = Int_to(int, sfp[1]);
+	F32 forward = (F32)forward_i;
+	F32 p, i, d;
+	state.pid_integral += (state.pid_diff[1] + state.pid_diff[0])/2.0 * delta_T;
+
+	p = state.pid_diff[1] * KP;
+	i = state.pid_integral * KI;
+	d = (state.pid_diff[1] - state.pid_diff[0])/delta_T * KD;
+
+	F32 turn = p + i + d;
+	if (turn > 100) turn = 100;
+	else if (turn < -50) turn = -100;
+
+	if (forward > 50) forward = 50;
+	turn = turn * forward / 50;
+
+	ecrobot_set_motor_speed(NXT_PORT_C, (forward + turn));
+	ecrobot_set_motor_speed(NXT_PORT_B, (forward - turn));
+	wai_sem(EVT_SEM);
+	state.timer += 4;
 #endif
 }
 
@@ -305,7 +360,6 @@ static KMETHOD NXT_getgyroOffset(KonohaContext *kctx, KonohaStack *sfp)
 static KMETHOD NXT_setgyroOffset(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
-	ecrobot_sound_tone(3000, 1000, 50);
 	state.gyro_offset = Int_to(int, sfp[1]);
 #endif
 }
@@ -320,8 +374,21 @@ static KMETHOD NXT_gettail(KonohaContext *kctx, KonohaStack *sfp)
 static KMETHOD NXT_settail(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
-	ecrobot_sound_tone(3000, 1000, 50);
 	state.tail = Int_to(int, sfp[1]);
+#endif
+}
+
+static KMETHOD NXT_getdistance(KonohaContext *kctx, KonohaStack *sfp)
+{
+#ifdef K_USING_TOPPERS
+	RETURNi_(state.distance);
+#endif
+}
+
+static KMETHOD NXT_setdistance(KonohaContext *kctx, KonohaStack *sfp)
+{
+#ifdef K_USING_TOPPERS
+	state.distance = Int_to(int, sfp[1]);
 #endif
 }
 
@@ -358,12 +425,16 @@ kbool_t tinykonoha_nxtMethodInit(KonohaContext *kctx, kNameSpace *ks)
 		_F(NXT_updateStatus), TY_NXT, MN_(NXT_updateStatus),
 		_F(NXT_balancePid), TY_NXT, MN_(NXT_balancePid),
 		_F(NXT_balance), TY_NXT, MN_(NXT_balance),
+		_F(NXT_tailwalk), TY_NXT, MN_(NXT_tailwalk),
+		_F(NXT_tailwalkPid), TY_NXT, MN_(NXT_tailwalkPid),
 		_F(NXT_getgrayFlag), TY_NXT, MN_(NXT_getgrayFlag),
 		_F(NXT_soundTone), TY_NXT, MN_(NXT_soundTone),
 		_F(NXT_getgyroOffset), TY_NXT, MN_(NXT_getgyroOffset),
 		_F(NXT_setgyroOffset), TY_NXT, MN_(NXT_setgyroOffset),
 		_F(NXT_gettail), TY_NXT, MN_(NXT_gettail),
 		_F(NXT_settail), TY_NXT, MN_(NXT_settail),
+		_F(NXT_getdistance), TY_NXT, MN_(NXT_getdistance),
+		_F(NXT_setdistance), TY_NXT, MN_(NXT_setdistance),
 		DEND,
 	};
 	KLIB kNameSpace_loadMethodData(kctx, ks, MethodData);
@@ -402,12 +473,16 @@ static	kbool_t nxt_initPackage(KonohaContext *kctx, kNameSpace *ks, int argc, co
 			_Public|_Static|_Imm, _F(NXT_updateStatus), TY_void, TY_NXT, MN_("updateStatus"), 0,
 			_Public|_Static|_Imm, _F(NXT_balancePid), TY_void, TY_NXT, MN_("balancePid"), 1, TY_int, FN_x,
 			_Public|_Static|_Imm, _F(NXT_balance), TY_void, TY_NXT, MN_("balance"), 2, TY_int, FN_x, TY_int, FN_y,
+			_Public|_Static|_Imm, _F(NXT_tailwalk), TY_void, TY_NXT, MN_("tailwalk"), 2, TY_int, FN_x, TY_int, FN_y,
+			_Public|_Static|_Imm, _F(NXT_tailwalkPid), TY_void, TY_NXT, MN_("tailwalkPid"), 1, TY_int, FN_x,
 			_Public|_Static|_Imm, _F(NXT_getgrayFlag), TY_boolean, TY_NXT, MN_("getgrayFlag"), 0,
 			_Public|_Static|_Imm, _F(NXT_soundTone), TY_boolean, TY_NXT, MN_("soundTone"), 2, TY_int, FN_x, TY_int, FN_y, 
 			_Public|_Static|_Imm, _F(NXT_getgyroOffset), TY_int, TY_NXT, MN_("getgyroOffset"), 0,
 			_Public|_Static|_Imm, _F(NXT_setgyroOffset), TY_void, TY_NXT, MN_("setgyroOffset"), 1, TY_int, FN_x,
 			_Public|_Static|_Imm, _F(NXT_gettail), TY_int, TY_NXT, MN_("gettail"), 0,
 			_Public|_Static|_Imm, _F(NXT_settail), TY_void, TY_NXT, MN_("settail"), 1, TY_int, FN_x,
+			_Public|_Static|_Imm, _F(NXT_getdistance), TY_int, TY_NXT, MN_("getdistance"), 0,
+			_Public|_Static|_Imm, _F(NXT_setdistance), TY_void, TY_NXT, MN_("setdistance"), 1, TY_int, FN_x,
 			DEND,
 	};
 	KLIB kNameSpace_loadMethodData(kctx, ks, MethodData);

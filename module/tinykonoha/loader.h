@@ -172,6 +172,7 @@ size_t bytecodesize[] = {
 static void loadByteCode(KonohaContext *kctx)
 {
 	int i = 0;
+	static int total_opsize = 0;
 	char buf[128] = {0};
 	do {
 		bluetooth_connect();
@@ -190,17 +191,18 @@ static void loadByteCode(KonohaContext *kctx)
 			break;
 		}
 		int opsize = (int32_t)*data; data += 4;//eat opsize
+		total_opsize += opsize;
 		int16_t cid = (int16_t)*data; data += 2;//eat cid
 		int16_t mn = (int16_t)*data; data += 2;//eat cid
 		size_t bytecode_mallocsize = 0;
 		int j = 0;
-		for (; j < KOPCODE_MAX; j++) {
-			int opcount = BUF16(data); data += 2;
-			bytecode_mallocsize += opcount * bytecodesize[j];
-		}
+		//for (; j < KOPCODE_MAX; j++) {
+		//	int opcount = BUF16(data); data += 2;
+		//	bytecode_mallocsize += opcount * bytecodesize[j];
+		//}
 		
 		/* bytecode loading loop */
-		TDBG_i("mallocsize", bytecode_mallocsize);
+		TDBG_i("totall opsize", total_opsize);
 		//VirtualMachineInstruction *pc = (VirtualMachineInstruction*)KLIB Kmalloc(kctx, bytecode_mallocsize);
 		VirtualMachineInstruction *pc = (VirtualMachineInstruction*)KLIB Kmalloc(kctx, sizeof(VirtualMachineInstruction) * opsize);
 		for (i = 0; i < opsize; i++) {

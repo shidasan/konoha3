@@ -30,7 +30,7 @@
 #include <windows.h>
 #include <winuser.h>
 
-#define PORT         "COM5:"
+#define PORT         "COM9:"
 #define BUFSIZE      128
 #define USLEEP_PARAM 50000
 //#define USLEEP_PARAM 2000000
@@ -191,7 +191,7 @@ static void sendBluetooth(KonohaContext *kctx, kMethod *mtd)
 			case TY_Method: {
 				kMethod *mtd = (kMethod*)op->n;
 				int16_t cid = mtd->typeId;
-				int16_t mn = SYM_UNMASK(mtd->mn);
+				int16_t mn = (mtd->mn);
 				printf("method %s\n", SYM_t(SYM_UNMASK(mtd->mn)));
 				printf("cid %d, mn %d\n", cid, mn);
 				bt_buffer_append(kctx, writebuf, &cid, sizeof(int16_t));

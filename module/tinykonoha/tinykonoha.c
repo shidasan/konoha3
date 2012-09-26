@@ -384,7 +384,7 @@ static KonohaContext *new_context(size_t stacksize)
 
 #define TAIL_ANGLE_STAND_UP 108 /* 完全停止時の角度[度] */
 #define TAIL_ANGLE_DRIVE      0 /* バランス走行時の角度[度] */
-#define P_GAIN             2.5F /* 完全停止用モータ制御比例係数 */
+#define P_GAIN             8.0F //2.5F /* 完全停止用モータ制御比例係数 */
 #define PWM_ABS_MAX          60 /* 完全停止用モータ制御PWM絶対最大値 */
 
 static char mstate;				/* 走行体の状態 */
@@ -429,7 +429,7 @@ static void execTopLevelExpression(KonohaContext *kctx)
 	kArray *array = kctx->share->topLevelMethodList;
 	size_t i, size = kArray_size(array);
 	//TDBG_i("size", size);
-	for (i = 0; i < size; i++) {
+	for (i = 4; i < size; i++) {
 		OPEXIT opEXIT = {OPCODE_EXIT};
 		krbp_t *rbp = (krbp_t*)kctx->esp;
 		rbp[K_PCIDX2].pc = (VirtualMachineInstruction*)&opEXIT;
@@ -475,11 +475,11 @@ void TaskMain(VP_INT exinf)
 	nxt_motor_set_count(NXT_PORT_C, 0);
 	nxt_motor_set_count(NXT_PORT_B, 0);
 	sta_cyc(CYC0);
-	TDBG_s("toplevel");
-	dly_tsk(1000);
+	//TDBG_s("toplevel");
+	//dly_tsk(1000);
 	execTopLevelExpression((KonohaContext*)kctx);
-	TDBG_s("end toplevel");
-	dly_tsk(1000);
+	//TDBG_s("end toplevel");
+	//dly_tsk(1000);
 	//act_tsk(TASK0);
 }
 

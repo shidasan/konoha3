@@ -114,10 +114,14 @@
 #define MN_NXT_updateStatus 103
 #define MN_NXT_balancePid 104
 #define MN_NXT_balance 105
-#define MN_NXT_getgrayFlag 16490
-#define MN_NXT_soundTone 107
-#define MN_NXT_getgyroOffset 16492
-#define MN_NXT_setgyroOffset 8300
-#define MN_NXT_gettail 16493
-#define MN_NXT_settail 8301
+#define MN_NXT_tailwalk 106
+#define MN_NXT_tailwalkPid 107
+#define MN_NXT_getgrayFlag 16492
+#define MN_NXT_soundTone 109
+#define MN_NXT_getgyroOffset 16494
+#define MN_NXT_setgyroOffset 8302
+#define MN_NXT_gettail 16495
+#define MN_NXT_settail 8303
+#define MN_NXT_getdistance 16496
+#define MN_NXT_setdistance 8304
 
