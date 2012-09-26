@@ -670,7 +670,7 @@ static void KCLASSTABLE_init(KonohaContextVar *kctx)
 	static KonohaRuntimeVar share;
 	kctx->share = &share;
 	KCLASSTABLE_initKonohaLib((KonohaLibVar*)kctx->klib);
-	KLIB Karray_init(kctx, &(share.classTable), MAX_CT * sizeof(KonohaClass));
+	KLIB Karray_init(kctx, &(share.classTable), MAX_CT * sizeof(KonohaClass*));
 	loadInitStructData(kctx);
 	KINITv(share.constNull, new_(Object, NULL));
 	kObject_setNullObject(share.constNull, 1);

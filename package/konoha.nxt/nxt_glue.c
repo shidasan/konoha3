@@ -409,7 +409,8 @@ kbool_t tinykonoha_nxtMethodInit(KonohaContext *kctx, kNameSpace *ks)
 	};
 
 	KonohaClass *cNXT = KLIB Konoha_defineClass(kctx, 0, PN_konoha, NULL, &defNXT, 0);
-	KINITv(((KonohaClassVar*)cNXT)->methodList, K_EMPTYARRAY);
+	KINITv(((KonohaClassVar*)cNXT)->methodList, new_(MethodArray, 32));
+	//KINITv(((KonohaClassVar*)cNXT)->methodList, K_EMPTYARRAY);
 	intptr_t MethodData[] = {
 		_F(NXT_init), TY_NXT, MN_(NXT_init),
 		_F(NXT_dly), TY_NXT, MN_(NXT_dly),

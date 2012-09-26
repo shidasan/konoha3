@@ -265,7 +265,8 @@ kbool_t tinykonoha_floatMethodInit(KonohaContext *kctx, kNameSpace *ks)
 	base->cFloat = KLIB Konoha_defineClass(kctx, 0, PN_konoha, NULL, &defFloat, 0);
 	//base->cFloat = Konoha_addClassDef(0/*ks->packid*/, PN_konoha, NULL, &defFloat, 0);
 	//base->cFloat = new_KonohaClass(kctx, NULL, &defFloat, 0);
-	KINITv(((KonohaClassVar*)base->cFloat)->methodList, K_EMPTYARRAY);
+	KINITv(((KonohaClassVar*)base->cFloat)->methodList, new_(MethodArray, 16));
+	//KINITv(((KonohaClassVar*)base->cFloat)->methodList, K_EMPTYARRAY);
 	//CT_setName(kctx, (KonohaClassVar*)base->cFloat, 0);
 
 	int FN_x = FN_("x");
