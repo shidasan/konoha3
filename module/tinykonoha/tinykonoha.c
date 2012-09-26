@@ -86,7 +86,6 @@ void TDBG_abort(const char *msg)
 
 #define K_STACK_SIZE 65
 
-extern nxt_state_t nxtstate;
 //nxt_state_t *getnxtstate() {
 //	return &nxtstate;
 //}

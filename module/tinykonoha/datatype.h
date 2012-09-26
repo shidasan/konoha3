@@ -681,7 +681,7 @@ static void KCLASSTABLE_init(KonohaContextVar *kctx)
 	initStructData(kctx);
 	tinykonoha_floatMethodInit(kctx, NULL);
 	tinykonoha_nxtMethodInit(kctx, NULL);
-	tinykonoha_arrayMethodInit(kctx, NULL);
+	//tinykonoha_arrayMethodInit(kctx, NULL);
 }
 
 #define _Public    kMethod_Public

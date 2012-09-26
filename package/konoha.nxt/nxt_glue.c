@@ -44,6 +44,39 @@ static signed char pwm_L, pwm_R;
 
 #endif
 
+typedef struct nxt_state_t {
+#ifdef K_USING_TOPPERS
+	int timer;
+	int tail;
+	U16 light;
+	U16 target_light;
+	int gyro;
+	int gyro_offset;
+	int gyro_prev;
+	BOOL grayflag;
+	F32 diff_C_motor[2];
+	F32 diff_B_motor[2];
+	int motor_velocity_C;
+	int motor_velocity_B;
+	int whitelight;
+	int blacklight;
+
+	S32 sonar;
+	int bottle_side;
+
+	S32 pid_diff[2];
+	U16 pid_integral;
+	
+	F32 distance;
+	F32 theta;
+#endif
+}nxt_state_t;
+
+typedef struct {
+	KonohaObjectHeader h;
+	nxt_state_t *state;
+} kNXT;
+
 nxt_state_t nxtstate;
 
 static void kNXT_init(KonohaContext *kctx, kObject *o, void *conf)
@@ -188,12 +221,9 @@ static KMETHOD NXT_balance(KonohaContext *kctx, KonohaStack *sfp)
 #endif
 }
 
-static KMETHOD NXT_tailwalk(KonohaContext *kctx, KonohaStack *sfp)
-{
 #ifdef K_USING_TOPPERS
-	//ecrobot_sound_tone(1000, 200, 50);
-	signed char pwm_L = Int_to(int, sfp[1]);
-	signed char pwm_R = Int_to(int, sfp[2]);
+static System_tailwalk(int pwm_L, int pwm_R)
+{
 	signed char pwm_L0, pwm_R0;
 	balance_control(
 			(float)0,
@@ -209,6 +239,16 @@ static KMETHOD NXT_tailwalk(KonohaContext *kctx, KonohaStack *sfp)
 	ecrobot_set_motor_speed(NXT_PORT_B, pwm_R);
 	wai_sem(EVT_SEM);
 	nxtstate.timer += 4;
+}
+#endif
+
+static KMETHOD NXT_tailwalk(KonohaContext *kctx, KonohaStack *sfp)
+{
+#ifdef K_USING_TOPPERS
+	//ecrobot_sound_tone(1000, 200, 50);
+	signed char pwm_L = Int_to(int, sfp[1]);
+	signed char pwm_R = Int_to(int, sfp[2]);
+	System_tailwalk(pwm_L, pwm_R);
 #endif
 }
 
@@ -268,7 +308,7 @@ static KMETHOD NXT_balancePid(KonohaContext *kctx, KonohaStack *sfp)
 #endif
 }
 
-static KMETHOD NXT_updateStatus(KonohaContext *kctx, KonohaStack *sfp)
+static void System_update()
 {
 #ifdef K_USING_TOPPERS
 
@@ -283,7 +323,7 @@ static KMETHOD NXT_updateStatus(KonohaContext *kctx, KonohaStack *sfp)
 	nxtstate.gyro = ecrobot_get_gyro_sensor(NXT_PORT_S1);
 	nxtstate.pid_diff[0] = nxtstate.pid_diff[1];
 	nxtstate.pid_diff[1] = nxtstate.light - nxtstate.target_light;
-	nxtstate.grayflag = abs(nxtstate.pid_diff[1] - nxtstate.pid_diff[0]) >= 10 ? 1 : 0;
+	nxtstate.grayflag = abs(nxtstate.pid_diff[1] - nxtstate.pid_diff[0]) >= 7 ? 1 : 0;
 	nxtstate.diff_C_motor[0] = nxtstate.diff_C_motor[1];
 	nxtstate.diff_C_motor[1] = nxt_motor_get_count(NXT_PORT_C);
 	nxtstate.diff_B_motor[0] = nxtstate.diff_B_motor[1];
@@ -298,12 +338,19 @@ static KMETHOD NXT_updateStatus(KonohaContext *kctx, KonohaStack *sfp)
 #endif
 }
 
+static KMETHOD NXT_updateStatus(KonohaContext *kctx, KonohaStack *sfp)
+{
+#ifdef K_USING_TOPPERS
+	System_update();
+#endif
+}
+
 static KMETHOD NXT_getgrayFlag(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
-	if (nxtstate.grayflag) {
-		ecrobot_sound_tone(2000, 200, 50);
-	}
+	//if (nxtstate.grayflag) {
+	//	ecrobot_sound_tone(2000, 200, 50);
+	//}
 	RETURNb_(nxtstate.grayflag);
 #else
 	RETURNb_(0);
@@ -375,14 +422,14 @@ static KMETHOD NXT_cleartimer(KonohaContext *kctx, KonohaStack *sfp)
 static KMETHOD NXT_gettheta(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
-	RETURNi_(nxtstate.theta);
+	RETURNi_((int)nxtstate.theta);
 #endif
 }
 
 static KMETHOD NXT_cleartheta(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
-	nxtstate.theta = 0;
+	nxtstate.theta = 0.0;
 #endif
 }
 static KMETHOD NXT_getlight(KonohaContext *kctx, KonohaStack *sfp)
@@ -395,6 +442,104 @@ static KMETHOD NXT_gettargetLight(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
 	RETURNi_(nxtstate.target_light);
+#endif
+}
+static KMETHOD NXT_resetMotor(KonohaContext *kctx, KonohaStack *sfp)
+{
+#ifdef K_USING_TOPPERS
+	balance_init();
+	nxt_motor_set_count(NXT_PORT_C, 0);
+	nxt_motor_set_count(NXT_PORT_B, 0);
+	nxtstate.diff_C_motor[0] = 0;
+	nxtstate.diff_C_motor[1] = 0;
+	nxtstate.diff_B_motor[0] = 0;
+	nxtstate.diff_B_motor[1] = 0;
+#endif
+}
+
+#ifdef K_USING_TOPPERS
+void System_tailwalk_strait(int pwm, float target_theta)
+{
+#define DIFF_PWM -4
+	int d = 0;
+	float diff = nxtstate.theta - target_theta;
+	if(diff >= 1.0) d = DIFF_PWM;
+	else if (diff <= -1.0) d = -DIFF_PWM;
+	System_tailwalk(pwm+d, pwm-d);
+}
+
+void change_state_rotate(float target)
+{
+	while (true) {
+		System_update();
+		float t = nxtstate.theta;
+		if (target - t < -2.0 || target - t > 2) break;
+		float turn;
+		if (t < target) {
+			turn = 30;
+		} else {
+			turn = -30;
+		}
+		System_tailwalk(turn, -turn);
+	}
+}
+
+static int abs(int n) {return n<0 ? -n : n; }
+static float fabs(float n) {return n<0 ? -n : n; }
+#endif
+static KMETHOD NXT_tailwalkWithBottle(KonohaContext *kctx, KonohaStack *sfp)
+{
+#ifdef K_USING_TOPPERS
+#define WALK_TURN_PWD 8
+#define WALK_PWM     -20
+	ecrobot_sound_tone(500, 200, 50);
+	int isLeft = Int_to(int, sfp[1]);
+	int _target = Int_to(int, sfp[2]);
+	int _dist   = Int_to(int, sfp[3]);
+	float target = target;
+	float dist = dist;
+
+	nxtstate.distance = 0.0;
+	int time1 = nxtstate.timer;
+	int time2 = nxtstate.timer;
+	float dist0 = 0;
+	float target0 = target;
+	while(nxtstate.distance < dist) {
+		System_update();
+		// error: not walking!
+		if(nxtstate.timer - time1 > 400) {
+			if(fabs(dist0 - nxtstate.distance) < 1.0) {
+				ecrobot_sound_tone(2000, 200, 50);
+				time1 = nxtstate.timer;
+				target += isLeft ? 20.0 : -20.0;
+				while(nxtstate.timer - time1 < 800) {
+					System_update();
+					System_tailwalk_strait(-20, target);
+				}
+				change_state_rotate(target);
+				time2 = nxtstate.timer;
+			}
+			dist0 = nxtstate.distance;
+			time1 = nxtstate.timer;
+		}
+		// error: direction changed
+		if(abs(target0 - nxtstate.theta) > 8.0 && nxtstate.timer-time2 > 2000) {
+			ecrobot_sound_tone(1500, 200, 50);
+			time2 = nxtstate.timer;
+			target = target0;
+			change_state_rotate(target);
+			time2 = nxtstate.timer;
+		}
+		System_tailwalk_strait(20, target);
+	}
+#endif
+}
+
+static KMETHOD NXT_rotate(KonohaContext *kctx, KonohaStack *sfp)
+{
+#ifdef K_USING_TOPPERS
+	int target = Int_to(int, sfp[1]);
+	change_state_rotate(target);
 #endif
 }
 
@@ -415,7 +560,7 @@ kbool_t tinykonoha_nxtMethodInit(KonohaContext *kctx, kNameSpace *ks)
 	};
 
 	KonohaClass *cNXT = KLIB Konoha_defineClass(kctx, 0, PN_konoha, NULL, &defNXT, 0);
-	KINITv(((KonohaClassVar*)cNXT)->methodList, new_(MethodArray, 32));
+	KINITv(((KonohaClassVar*)cNXT)->methodList, new_(MethodArray, 40));
 	//KINITv(((KonohaClassVar*)cNXT)->methodList, K_EMPTYARRAY);
 	intptr_t MethodData[] = {
 		_F(NXT_init), TY_NXT, MN_(NXT_init),
@@ -448,6 +593,9 @@ kbool_t tinykonoha_nxtMethodInit(KonohaContext *kctx, kNameSpace *ks)
 		_F(NXT_cleartheta), TY_NXT, MN_(NXT_cleartheta),
 		_F(NXT_getlight), TY_NXT, MN_(NXT_getlight),
 		_F(NXT_gettargetLight), TY_NXT, MN_(NXT_gettargetLight),
+		_F(NXT_resetMotor), TY_NXT, MN_(NXT_resetMotor),
+		_F(NXT_tailwalkWithBottle), TY_NXT, MN_(NXT_tailwalkWithBottle),
+		_F(NXT_rotate), TY_NXT, MN_(NXT_rotate),
 		DEND,
 	};
 	KLIB kNameSpace_loadMethodData(kctx, ks, MethodData);
@@ -468,6 +616,7 @@ static	kbool_t nxt_initPackage(KonohaContext *kctx, kNameSpace *ks, int argc, co
 	ktype_t TY_NXT = cNXT->typeId;
 	int FN_x = FN_("x");
 	int FN_y = FN_("y");
+	int FN_z = FN_("z");
 	intptr_t MethodData[] = {
 			//_Public             , _F(NXT_new), TY_NXT, TY_NXT, MN_("new"), 0, 
 			_Public|_Static|_Imm, _F(NXT_init), TY_void, TY_NXT, MN_("init"), 0,
@@ -502,6 +651,9 @@ static	kbool_t nxt_initPackage(KonohaContext *kctx, kNameSpace *ks, int argc, co
 			_Public|_Static|_Imm, _F(NXT_cleartheta), TY_void, TY_NXT, MN_("cleartheta"), 0,
 			_Public|_Static|_Imm, _F(NXT_getlight), TY_int, TY_NXT, MN_("getlight"), 0,
 			_Public|_Static|_Imm, _F(NXT_gettargetLight), TY_int, TY_NXT, MN_("gettargetLight"), 0,
+			_Public|_Static|_Imm, _F(NXT_resetMotor), TY_void, TY_NXT, MN_("resetMotor"), 0,
+			_Public|_Static|_Imm, _F(NXT_tailwalkWithBottle), TY_void, TY_NXT, MN_("tailwalkWithBottle"), 3, TY_boolean, FN_x, TY_int, FN_y, TY_int, FN_z, 
+			_Public|_Static|_Imm, _F(NXT_rotate), TY_void, TY_NXT, MN_("rotate"), 1, TY_int, FN_x,
 			DEND,
 	};
 	KLIB kNameSpace_loadMethodData(kctx, ks, MethodData);

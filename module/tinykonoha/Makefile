@@ -123,8 +123,8 @@ ifdef USE_CXX
 else
     UTASK_COBJS = $(UNAME).o\
 				  ../../package/konoha.nxt/nxt_glue.o\
-				  ../../package/konoha.array/array_glue.o\
 				  ../../package/konoha.float/float_glue.o\
+#../../package/konoha.array/array_glue.o\
 
 endif
 UTASK_CFLAGS =
