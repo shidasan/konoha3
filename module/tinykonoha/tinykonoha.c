@@ -465,6 +465,8 @@ void TaskMain(VP_INT exinf)
 		//TDBG_i("gyro_offset", gyro_offset);
 		dly_tsk(1);
 	}
+	TDBG_s("press enter");
+	check_enter();
 	balance_init();
 	nxt_motor_set_count(NXT_PORT_C, 0);
 	nxt_motor_set_count(NXT_PORT_B, 0);

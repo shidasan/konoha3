@@ -26,6 +26,7 @@
 #include "tinyvm_gen.h"
 #include "tinyvm.h"
 #include "constant.h"
+#include "nxt.h"
 
 static KMETHOD MethodFunc_runVirtualMachine(KonohaContext *kctx, KonohaStack *sfp)
 {
@@ -39,6 +40,7 @@ static char *receive_buf(unsigned char *buf)
 	int er;
 	//dly_tsk(500);
 	while ((er = bluetooth_receive(CONSOLE_PORTID, buf)) <= 0 || er < 97 || er > 107) {
+		tail_control(TAIL_ANGLE_STAND_UP);
 		dly_tsk(3);
 	}
 	if (er < 97 || er > 107) {
@@ -250,3 +252,10 @@ static void loadByteCode(KonohaContext *kctx)
 		}
 	}
 }
+
+int check_enter() {
+	char buf[128] = {0};
+	char *ptr = receive_buf(buf);
+	return ptr != NULL;
+}
+

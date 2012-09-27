@@ -277,6 +277,20 @@ static void bt_close(KonohaContext *kctx)
 	int8_t i = 0;
 	bt_buffer_append(kctx, &writebuf, &i, sizeof(int8_t));
 	sendBuf(kctx, hComm, &writebuf);
-	printf("bt_close end\n");
+	FlushFileBuffers(hComm);
+	printf("bt_send end\n");
+	printf("press enter\n");
+	usleep(USLEEP_PARAM);
+
+	getchar();
+	//while (getchar(stdin)) {
+	//	usleep(USLEEP_PARAM);
+	//}
+
+	bt_buffer_clear(kctx, &writebuf);
+	i = 0xff;
+	bt_buffer_append(kctx, &writebuf, &i, sizeof(int8_t));
+	sendBuf(kctx, hComm, &writebuf);
+	FlushFileBuffers(hComm);
 	CloseHandle(hComm);
 }

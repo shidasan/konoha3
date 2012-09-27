@@ -22,6 +22,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***************************************************************************/
 
+#ifndef _NXT_H_
+#define _NXT_H_
 #include "kernel_id.h"
 #include "ecrobot_base.h"
 #include "ecrobot_interface.h"
@@ -43,3 +45,4 @@ void tail_control(signed int angle);
 void TDBG_i(const char *key, int value);
 void TDBG_s(const char *key);
 void TDBG_abort(const char *msg);
+#endif //_NXT_H_

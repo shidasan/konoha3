@@ -494,7 +494,7 @@ static KMETHOD NXT_tailwalkWithBottle(KonohaContext *kctx, KonohaStack *sfp)
 	float dist0 = 0;
 	float target0 = target;
 	int errcount = 0;
-	TDBG_i("target", _target);
+	//TDBG_i("target", _target);
 	while(nxtstate.distance < dist) {
 		System_update();
 		// error: not walking!
