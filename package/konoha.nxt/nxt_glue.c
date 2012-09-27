@@ -222,9 +222,9 @@ static KMETHOD NXT_balance(KonohaContext *kctx, KonohaStack *sfp)
 }
 
 #ifdef K_USING_TOPPERS
-static System_tailwalk(int pwm_L, int pwm_R)
+static System_tailwalk(int pwm_Linput, int pwm_Rinput)
 {
-	signed char pwm_L0, pwm_R0;
+	//signed char pwm_L0, pwm_R0;
 	balance_control(
 			(float)0,
 			(float)0,
@@ -233,10 +233,10 @@ static System_tailwalk(int pwm_L, int pwm_R)
 			(float)nxtstate.diff_C_motor[1],
 			(float)nxtstate.diff_B_motor[1],
 			(float)ecrobot_get_battery_voltage(),
-			&pwm_L0,
-			&pwm_R0);
-	ecrobot_set_motor_speed(NXT_PORT_C, pwm_L);
-	ecrobot_set_motor_speed(NXT_PORT_B, pwm_R);
+			&pwm_L,
+			&pwm_R);
+	ecrobot_set_motor_speed(NXT_PORT_C, pwm_Linput);
+	ecrobot_set_motor_speed(NXT_PORT_B, pwm_Rinput);
 	wai_sem(EVT_SEM);
 	nxtstate.timer += 4;
 }
@@ -458,6 +458,8 @@ static KMETHOD NXT_resetMotor(KonohaContext *kctx, KonohaStack *sfp)
 }
 
 #ifdef K_USING_TOPPERS
+static int abs(int n) {return n<0 ? -n : n; }
+static float fabs(float n) {return n<0 ? -n : n; }
 void System_tailwalk_strait(int pwm, float target_theta)
 {
 #define DIFF_PWM -4
@@ -473,7 +475,7 @@ void change_state_rotate(float target)
 	while (true) {
 		System_update();
 		float t = nxtstate.theta;
-		if (target - t < -2.0 || target - t > 2) break;
+		if (fabs(target - t) < 2.0) break;
 		float turn;
 		if (t < target) {
 			turn = 30;
@@ -484,15 +486,12 @@ void change_state_rotate(float target)
 	}
 }
 
-static int abs(int n) {return n<0 ? -n : n; }
-static float fabs(float n) {return n<0 ? -n : n; }
 #endif
 static KMETHOD NXT_tailwalkWithBottle(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
 #define WALK_TURN_PWD 8
 #define WALK_PWM     -20
-	ecrobot_sound_tone(500, 200, 50);
 	int isLeft = Int_to(int, sfp[1]);
 	int _target = Int_to(int, sfp[2]);
 	int _dist   = Int_to(int, sfp[3]);
@@ -509,7 +508,7 @@ static KMETHOD NXT_tailwalkWithBottle(KonohaContext *kctx, KonohaStack *sfp)
 		// error: not walking!
 		if(nxtstate.timer - time1 > 400) {
 			if(fabs(dist0 - nxtstate.distance) < 1.0) {
-				ecrobot_sound_tone(2000, 200, 50);
+				//ecrobot_sound_tone(2000, 200, 50);
 				time1 = nxtstate.timer;
 				target += isLeft ? 20.0 : -20.0;
 				while(nxtstate.timer - time1 < 800) {
@@ -524,7 +523,7 @@ static KMETHOD NXT_tailwalkWithBottle(KonohaContext *kctx, KonohaStack *sfp)
 		}
 		// error: direction changed
 		if(abs(target0 - nxtstate.theta) > 8.0 && nxtstate.timer-time2 > 2000) {
-			ecrobot_sound_tone(1500, 200, 50);
+			//ecrobot_sound_tone(1500, 200, 50);
 			time2 = nxtstate.timer;
 			target = target0;
 			change_state_rotate(target);

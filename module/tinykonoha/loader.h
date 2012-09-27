@@ -73,7 +73,7 @@ static void genNSET(KonohaContext *kctx, char *buf, VirtualMachineInstruction *p
 	case TY_boolean:
 	case TY_float:
 	case TY_Int: {
-		int32_t n = BUF32(buf);
+		uint32_t n = BUF32(buf);
 		if (n < (1 << 16)) {
 			op->opcode = OPCODE_NSET16;
 			op->n = (int16_t)n;
