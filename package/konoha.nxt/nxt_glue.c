@@ -494,15 +494,16 @@ static KMETHOD NXT_tailwalkWithBottle(KonohaContext *kctx, KonohaStack *sfp)
 #define WALK_PWM     -20
 	int isLeft = Int_to(int, sfp[1]);
 	int _target = Int_to(int, sfp[2]);
-	int _dist   = Int_to(int, sfp[3]);
-	float target = target;
-	float dist = dist;
+	int dist_bind   = Int_to(int, sfp[3]);
+	float target = _target;
+	float dist = dist_bind;
 
 	nxtstate.distance = 0.0;
 	int time1 = nxtstate.timer;
 	int time2 = nxtstate.timer;
 	float dist0 = 0;
 	float target0 = target;
+	TDBG_i("target", _target);
 	while(nxtstate.distance < dist) {
 		System_update();
 		// error: not walking!
