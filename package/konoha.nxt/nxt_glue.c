@@ -126,8 +126,8 @@ static KMETHOD NXT_ecrobotIsRunning(KonohaContext *kctx, KonohaStack *sfp)
 static KMETHOD NXT_tailControl(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
-#define P_GAIN 2.5F
-#define PWM_ABS_MAX 60
+//#define P_GAIN 2.5F
+//#define PWM_ABS_MAX 60
 	int angle = Int_to(int, sfp[1]);
 	float pwm = (float)(angle - nxt_motor_get_count(NXT_PORT_A)) * P_GAIN;
 	if (pwm > PWM_ABS_MAX) {

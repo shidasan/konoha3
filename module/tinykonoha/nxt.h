@@ -26,6 +26,16 @@
 #include "ecrobot_base.h"
 #include "ecrobot_interface.h"
 
+/* 下記のパラメータはセンサ個体/環境に合わせてチューニングする必要があります */
+#define WHITE               500 /* 白色の光センサ値 */
+#define BLACK		        700 /* 黒色の光センサ値 */
+#define STOPWAIT            10	/* 停止までの時間(*40ms) */
+
+#define TAIL_ANGLE_STAND_UP 108 /* 完全停止時の角度[度] */
+#define TAIL_ANGLE_DRIVE      0 /* バランス走行時の角度[度] */
+#define P_GAIN             8.0F //2.5F /* 完全停止用モータ制御比例係数 */
+#define PWM_ABS_MAX          60 /* 完全停止用モータ制御PWM絶対最大値 */
+
 U16 getGyroOffset();
 int getSonarValue();
 int getWhiteLight();
