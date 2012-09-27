@@ -271,25 +271,12 @@ static void sendBluetooth(KonohaContext *kctx, kMethod *mtd)
 
 static void bt_close(KonohaContext *kctx)
 {
+	printf("bt_close\n");
 	bt_buffer_t writebuf;
 	bt_buffer_clear(kctx, &writebuf);
 	int8_t i = 0;
 	bt_buffer_append(kctx, &writebuf, &i, sizeof(int8_t));
 	sendBuf(kctx, hComm, &writebuf);
-	FlushFileBuffers(hComm);
-	printf("bt_send end\n");
-	printf("press enter\n");
-	usleep(USLEEP_PARAM);
-
-	getchar();
-	//while (getchar(stdin)) {
-	//	usleep(USLEEP_PARAM);
-	//}
-
-	bt_buffer_clear(kctx, &writebuf);
-	i = 0xff;
-	bt_buffer_append(kctx, &writebuf, &i, sizeof(int8_t));
-	sendBuf(kctx, hComm, &writebuf);
-	FlushFileBuffers(hComm);
+	printf("bt_close end\n");
 	CloseHandle(hComm);
 }

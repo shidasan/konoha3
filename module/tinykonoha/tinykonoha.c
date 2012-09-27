@@ -22,7 +22,58 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***************************************************************************/
 
+#ifdef K_USING_TOPPERS
+void TDBG_i(const char *key, int value)
+{
+	display_clear(0);
+	display_goto_xy(0, 0);
+	display_string(key);
+	display_goto_xy(0, 1);
+	display_int(value, 1);
+	display_update();
+	//dly_tsk(500);
+}
+void TDBG_s(const char *key)
+{
+	display_clear(0);
+	display_goto_xy(0, 0);
+	display_string(key);
+	display_update();
+	//dly_tsk(500);
+}
+void TDBG_abort(const char *msg)
+{
+	display_clear(0);
+	display_goto_xy(0, 0);
+	display_string("abort");
+	display_goto_xy(0, 1);
+	display_string(msg);
+	display_update();
+	while (1) {
+		dly_tsk(1000U);
+	}
+}
+#include "tinykonoha_config.h"
+#include "kernel_id.h"
+#include "ecrobot_base.h"
+#include "ecrobot_interface.h"
+#include "balancer.h"
+#include "loader.h"
 #include "nxt.h"
+#else
+
+#define TDBG_i(KEY, VALUE)						\
+	printf("%s %d\n", KEY, VALUE)               \
+
+#define TDBG_s(KEY)								\
+	printf("%s\n", KEY)                         \
+
+#define TDBG_abort(MSG)							\
+	printf("%s\n", MSG);                        \
+    assert(0)                                   \
+
+#include "stdio.h"
+#endif
 
 #include "tinykonoha.h"
 #include "allocate.h"
@@ -329,40 +380,8 @@ static KonohaContext *new_context(size_t stacksize)
 }
 
 #ifdef K_USING_TOPPERS
-#include "loader.h"
 
-void TDBG_i(const char *key, int value)
-{
-	display_clear(0);
-	display_goto_xy(0, 0);
-	display_string(key);
-	display_goto_xy(0, 1);
-	display_int(value, 1);
-	display_update();
-	//dly_tsk(500);
-}
-void TDBG_s(const char *key)
-{
-	display_clear(0);
-	display_goto_xy(0, 0);
-	display_string(key);
-	display_update();
-	//dly_tsk(500);
-}
-void TDBG_abort(const char *msg)
-{
-	display_clear(0);
-	display_goto_xy(0, 0);
-	display_string("abort");
-	display_goto_xy(0, 1);
-	display_string(msg);
-	display_update();
-	while (1) {
-		dly_tsk(1000U);
-	}
-}
-
-char mstate;				/* 走行体の状態 */
+static char mstate;				/* 走行体の状態 */
 static char keystate;			/* タッチセンサーの状態 */
 static U16 gyro_offset_value;
 static int sonar_value;
@@ -440,14 +459,11 @@ void TaskMain(VP_INT exinf)
 	mstate = MWAIT;
 	ecrobot_set_light_sensor_active(NXT_PORT_S3);
 	while (mstate != MRUNNING) {
-		TDBG_s("calibration");
-		tail_control(TAIL_ANGLE_STAND_UP);
-		dly_tsk(1);
-	}
-	while (!check_enter()) {
-		TDBG_s("press enter.");
+		//TDBG_i("invoke ptr", (int32_t)MethodFunc_runVirtualMachine);
 		tail_control(TAIL_ANGLE_STAND_UP);
 		gyro_offset_value = ecrobot_get_gyro_sensor(NXT_PORT_S1);
+		//TDBG_i("gyro_offset", gyro_offset);
+		dly_tsk(1);
 	}
 	balance_init();
 	nxt_motor_set_count(NXT_PORT_C, 0);
@@ -469,7 +485,7 @@ void TaskDisp(VP_INT exinf)
 	char key;
 	ER ercd;
 
-	int button_state = -1;
+	int button_state = 0;
 
 	vmsk_log(LOG_UPTO(LOG_INFO), LOG_UPTO(LOG_EMERG));
 	syscall(serial_ctl_por(CONSOLE_PORTID,	(IOCTL_CRLF | IOCTL_FCSND | IOCTL_FCRCV)));
