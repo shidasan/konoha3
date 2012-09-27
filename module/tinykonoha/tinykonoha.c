@@ -466,6 +466,7 @@ void TaskMain(VP_INT exinf)
 		dly_tsk(1);
 	}
 	TDBG_s("press enter");
+	ecrobot_sound_tone(1000, 200, 50);
 	check_enter();
 	balance_init();
 	nxt_motor_set_count(NXT_PORT_C, 0);
@@ -524,6 +525,7 @@ void TaskDisp(VP_INT exinf)
 				dly_tsk(1000U);
 			} else if (button_state == 1) {
 				button_state = 2;
+				ecrobot_sound_tone(1000, 200, 50);
 				dly_tsk(1000U);
 			} else if (button_state == 2) {
 				if (mstate == MWAIT) {
