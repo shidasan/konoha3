@@ -27,22 +27,14 @@
 #include<minikonoha/sugar.h>
 #include<minikonoha/float.h>
 #else
+#include "nxt.h"
 #include "tinykonoha.h"
 #include "tinyvm_gen.h"
 #include "constant.h"
 #endif
 
-#ifdef K_USING_TOPPERS
-#include "tinykonoha_config.h"
-#include "kernel_id.h"
-#include "ecrobot_base.h"
-#include "ecrobot_interface.h"
-#include "balancer.h"
-#include "nxt.h"
 
 static signed char pwm_L, pwm_R;
-
-#endif
 
 typedef struct nxt_state_t {
 #ifdef K_USING_TOPPERS
