@@ -53,7 +53,7 @@ volatile void TDBG_abort(const char *msg);
 
 #define TAIL_ANGLE_STAND_UP 108 /* 完全停止時の角度[度] */
 #define TAIL_ANGLE_DRIVE      0 /* バランス走行時の角度[度] */
-#define P_GAIN             8.0F //2.5F /* 完全停止用モータ制御比例係数 */
+#define P_GAIN             32.0F //2.5F /* 完全停止用モータ制御比例係数 */
 #define PWM_ABS_MAX          60 /* 完全停止用モータ制御PWM絶対最大値 */
 
 extern char mstate;
