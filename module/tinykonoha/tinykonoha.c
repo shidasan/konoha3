@@ -459,7 +459,7 @@ void TaskMain(VP_INT exinf)
 	mstate = MWAIT;
 	ecrobot_set_light_sensor_active(NXT_PORT_S3);
 	while (mstate != MRUNNING) {
-		//TDBG_i("invoke ptr", (int32_t)MethodFunc_runVirtualMachine);
+		TDBG_s("calibration");
 		tail_control(TAIL_ANGLE_STAND_UP);
 		gyro_offset_value = ecrobot_get_gyro_sensor(NXT_PORT_S1);
 		//TDBG_i("gyro_offset", gyro_offset);
