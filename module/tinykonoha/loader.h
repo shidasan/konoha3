@@ -34,6 +34,29 @@ static KMETHOD MethodFunc_runVirtualMachine(KonohaContext *kctx, KonohaStack *sf
 	KonohaVirtualMachine_run(kctx, sfp, mtd->pc_start);
 }
 
+#define TIMEOUT_MS 10
+
+static char *receive_buf_timeout(unsigned char *buf)
+{
+	int er;
+	int i = 0;
+	for (; i < TIMEOUT_MS/2 && ((er = bluetooth_receive(CONSOLE_PORTID, buf)) <= 0 || er < 97 || er > 107); i++) {
+		dly_tsk(2);
+	}
+
+	if (i == TIMEOUT_MS) {
+		return NULL;
+	}
+
+	if (er < 97 || er > 107) {
+		TDBG_abort("invalid er");
+	}
+	int pos = 0;
+	for (; buf[pos] != ' '; pos++) ;
+	pos++; //eat ' '
+	return buf + pos;
+}
+
 static char *receive_buf(unsigned char *buf)
 {
 	int er;
@@ -207,6 +230,12 @@ static void loadByteCode(KonohaContext *kctx)
 		magicValue = data[0];
 		data++;// eat magicValue
 		if (magicValue != -1) {
+			if (magicValue != 0xff) {
+				//while (1) {
+				//	TDBG_i("BT_Load failed", total_opsize);
+				//	dly_tsk(1000);
+				//}
+			}
 			break;
 		}
 		int opsize = (int32_t)*data; data += 4;//eat opsize
@@ -249,4 +278,10 @@ static void loadByteCode(KonohaContext *kctx)
 			}
 		}
 	}
+}
+
+int check_enter() {
+	char buf[128] = {0};
+	char *ptr = receive_buf_timeout(buf);
+	return ptr != NULL;
 }

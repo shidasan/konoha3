@@ -22,9 +22,29 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***************************************************************************/
 
+#ifdef K_USING_TOPPERS
+volatile void TDBG_i(const char *key, int value);
+volatile void TDBG_s(const char *key);
+volatile void TDBG_abort(const char *msg);
+#include "tinykonoha_config.h"
 #include "kernel_id.h"
 #include "ecrobot_base.h"
 #include "ecrobot_interface.h"
+#include "balancer.h"
+#else
+
+#define TDBG_i(KEY, VALUE)						\
+	printf("%s %d\n", KEY, VALUE)               \
+
+#define TDBG_s(KEY)								\
+	printf("%s\n", KEY)                         \
+
+#define TDBG_abort(MSG)							\
+	printf("%s\n", MSG);                        \
+    assert(0)                                   \
+
+#include "stdio.h"
+#endif
 
 /* 下記のパラメータはセンサ個体/環境に合わせてチューニングする必要があります */
 #define WHITE               500 /* 白色の光センサ値 */
@@ -35,6 +55,8 @@
 #define TAIL_ANGLE_DRIVE      0 /* バランス走行時の角度[度] */
 #define P_GAIN             32.0F //2.5F /* 完全停止用モータ制御比例係数 */
 #define PWM_ABS_MAX          60 /* 完全停止用モータ制御PWM絶対最大値 */
+
+extern char mstate;
 
 U16 getGyroOffset();
 int getSonarValue();
