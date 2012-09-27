@@ -224,17 +224,6 @@ static KMETHOD NXT_balance(KonohaContext *kctx, KonohaStack *sfp)
 #ifdef K_USING_TOPPERS
 static System_tailwalk(int pwm_Linput, int pwm_Rinput)
 {
-	//signed char pwm_L0, pwm_R0;
-	balance_control(
-			(float)0,
-			(float)0,
-			(float)nxtstate.gyro,
-			(float)nxtstate.gyro_offset,
-			(float)nxtstate.diff_C_motor[1],
-			(float)nxtstate.diff_B_motor[1],
-			(float)ecrobot_get_battery_voltage(),
-			&pwm_L,
-			&pwm_R);
 	ecrobot_set_motor_speed(NXT_PORT_C, pwm_Linput);
 	ecrobot_set_motor_speed(NXT_PORT_B, pwm_Rinput);
 	wai_sem(EVT_SEM);
@@ -495,6 +484,7 @@ static KMETHOD NXT_tailwalkWithBottle(KonohaContext *kctx, KonohaStack *sfp)
 	int isLeft = Int_to(int, sfp[1]);
 	int _target = Int_to(int, sfp[2]);
 	int dist_bind   = Int_to(int, sfp[3]);
+	int isCheckLight = Int_to(int, sfp[4]);
 	float target = _target;
 	float dist = dist_bind;
 
@@ -503,6 +493,7 @@ static KMETHOD NXT_tailwalkWithBottle(KonohaContext *kctx, KonohaStack *sfp)
 	int time2 = nxtstate.timer;
 	float dist0 = 0;
 	float target0 = target;
+	int errcount = 0;
 	TDBG_i("target", _target);
 	while(nxtstate.distance < dist) {
 		System_update();
@@ -511,7 +502,14 @@ static KMETHOD NXT_tailwalkWithBottle(KonohaContext *kctx, KonohaStack *sfp)
 			if(fabs(dist0 - nxtstate.distance) < 1.0) {
 				//ecrobot_sound_tone(2000, 200, 50);
 				time1 = nxtstate.timer;
-				target += isLeft ? 20.0 : -20.0;
+				if(errcount == 2) {
+					target += isLeft ? -60.0 : 60.0;
+					isLeft = !isLeft;
+					errcount = 0;
+				} else {
+					target += isLeft ? 20.0 : -20.0;
+					errcount++;
+				}
 				while(nxtstate.timer - time1 < 800) {
 					System_update();
 					System_tailwalk_strait(-20, target);
@@ -529,6 +527,10 @@ static KMETHOD NXT_tailwalkWithBottle(KonohaContext *kctx, KonohaStack *sfp)
 			target = target0;
 			change_state_rotate(target);
 			time2 = nxtstate.timer;
+		}
+		// check light sensor
+		if(isCheckLight && nxtstate.light > nxtstate.target_light) {
+			break;
 		}
 		System_tailwalk_strait(20, target);
 	}
@@ -617,6 +619,7 @@ static	kbool_t nxt_initPackage(KonohaContext *kctx, kNameSpace *ks, int argc, co
 	int FN_x = FN_("x");
 	int FN_y = FN_("y");
 	int FN_z = FN_("z");
+	int FN_w = FN_("w");
 	intptr_t MethodData[] = {
 			//_Public             , _F(NXT_new), TY_NXT, TY_NXT, MN_("new"), 0, 
 			_Public|_Static|_Imm, _F(NXT_init), TY_void, TY_NXT, MN_("init"), 0,
@@ -652,7 +655,8 @@ static	kbool_t nxt_initPackage(KonohaContext *kctx, kNameSpace *ks, int argc, co
 			_Public|_Static|_Imm, _F(NXT_getlight), TY_int, TY_NXT, MN_("getlight"), 0,
 			_Public|_Static|_Imm, _F(NXT_gettargetLight), TY_int, TY_NXT, MN_("gettargetLight"), 0,
 			_Public|_Static|_Imm, _F(NXT_resetMotor), TY_void, TY_NXT, MN_("resetMotor"), 0,
-			_Public|_Static|_Imm, _F(NXT_tailwalkWithBottle), TY_void, TY_NXT, MN_("tailwalkWithBottle"), 3, TY_boolean, FN_x, TY_int, FN_y, TY_int, FN_z, 
+			_Public|_Static|_Imm, _F(NXT_tailwalkWithBottle), TY_void, TY_NXT, MN_("tailwalkWithBottle"), 4, 
+					TY_boolean, FN_x, TY_int, FN_y, TY_int, FN_z, TY_boolean, FN_w,
 			_Public|_Static|_Imm, _F(NXT_rotate), TY_void, TY_NXT, MN_("rotate"), 1, TY_int, FN_x,
 			DEND,
 	};
