@@ -265,24 +265,24 @@ kbool_t tinykonoha_floatMethodInit(KonohaContext *kctx, kNameSpace *ks)
 	base->cFloat = KLIB Konoha_defineClass(kctx, 0, PN_konoha, NULL, &defFloat, 0);
 	//base->cFloat = Konoha_addClassDef(0/*ks->packid*/, PN_konoha, NULL, &defFloat, 0);
 	//base->cFloat = new_KonohaClass(kctx, NULL, &defFloat, 0);
-	KINITv(((KonohaClassVar*)base->cFloat)->methodList, new_(MethodArray, 16));
+	KINITv(((KonohaClassVar*)base->cFloat)->methodList, new_(MethodArray, 2));
 	//KINITv(((KonohaClassVar*)base->cFloat)->methodList, K_EMPTYARRAY);
 	//CT_setName(kctx, (KonohaClassVar*)base->cFloat, 0);
 
 	int FN_x = FN_("x");
 	intptr_t MethodData[] = {
-		_F(Float_opADD), TY_float, MN_(float_opADD),
-		_F(Float_opSUB), TY_float, MN_(float_opSUB),
-		_F(Float_opMUL), TY_float, MN_(float_opMUL),
-		_F(Float_opDIV), TY_float, MN_(float_opDIV),
-		_F(Float_opEQ),  TY_float, MN_(float_opEQ),
-		_F(Float_opNEQ), TY_float, MN_(float_opNEQ),
-		_F(Float_opLT),  TY_float, MN_(float_opLT),
-		_F(Float_opLTE), TY_float, MN_(float_opLTE),
-		_F(Float_opGT),  TY_float, MN_(float_opGT),
-		_F(Float_opGTE), TY_float, MN_(float_opGTE),
-		_F(Float_toInt), TY_float, MN_to(float, int),
-		_F(Int_toFloat), TY_Int, MN_to(int, float),
+		//_F(Float_opADD), TY_float, MN_(float_opADD),
+		//_F(Float_opSUB), TY_float, MN_(float_opSUB),
+		//_F(Float_opMUL), TY_float, MN_(float_opMUL),
+		//_F(Float_opDIV), TY_float, MN_(float_opDIV),
+		//_F(Float_opEQ),  TY_float, MN_(float_opEQ),
+		//_F(Float_opNEQ), TY_float, MN_(float_opNEQ),
+		//_F(Float_opLT),  TY_float, MN_(float_opLT),
+		//_F(Float_opLTE), TY_float, MN_(float_opLTE),
+		//_F(Float_opGT),  TY_float, MN_(float_opGT),
+		//_F(Float_opGTE), TY_float, MN_(float_opGTE),
+		//_F(Float_toInt), TY_float, MN_to(float, int),
+		//_F(Int_toFloat), TY_Int, MN_to(int, float),
 		//_F(Float_toString), TY_float, MN_to(float, String),
 		DEND,
 	};

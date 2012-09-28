@@ -42,12 +42,25 @@
 
 static signed char pwm_L, pwm_R;
 
+typedef struct {
+	float kp;
+	float ki;
+	float kd;
+} PIDParam;
+
+//static void setPID(PIDParam);
+
+static const PIDParam PID_BASIC = { 0.36, 0.08, 0.05 };
+static const PIDParam PID_LINE  = { 0.36, 0.08, 0.05 };
+static const PIDParam PID_CURVE = { 0.38, 0.08, 0.05 };
+
 #endif
 
 typedef struct nxt_state_t {
 #ifdef K_USING_TOPPERS
 	int timer;
 	int tail;
+	U16 light_previous;
 	U16 light;
 	U16 target_light;
 	int gyro;
@@ -70,9 +83,12 @@ typedef struct nxt_state_t {
 	F32 distance;
 	F32 theta;
 
-	F32 kp;
-	F32 ki;
-	F32 kd;
+	PIDParam pidParam;
+
+	int turn_offset;
+	//F32 kp;
+	//F32 ki;
+	//F32 kd;
 #endif
 }nxt_state_t;
 
@@ -80,7 +96,6 @@ typedef struct {
 	KonohaObjectHeader h;
 	nxt_state_t *state;
 } kNXT;
-
 nxt_state_t nxtstate;
 
 static void kNXT_init(KonohaContext *kctx, kObject *o, void *conf)
@@ -108,20 +123,18 @@ static KMETHOD NXT_init(KonohaContext *kctx, KonohaStack *sfp)
 	nxtstate.pid_integral = 0;
 	nxtstate.light = ecrobot_get_light_sensor(NXT_PORT_S3);
 	nxtstate.blacklight = nxtstate.light;
-	nxtstate.target_light = (getWhiteLight() + nxtstate.blacklight)/2 - 15;
-	nxtstate.bottle_side = 0;
-	nxtstate.kp = 0.38;
-	nxtstate.ki = 0.10;
-	nxtstate.kd = 0.08;
+	nxtstate.target_light = (getWhiteLight() + nxtstate.blacklight)/2 - 25;
+	nxtstate.pidParam = PID_BASIC;
+	nxtstate.turn_offset = 0;
 #endif
 }
-static KMETHOD NXT_dly(KonohaContext *kctx, KonohaStack *sfp)
-{
-#ifdef K_USING_TOPPERS
-	int delay = Int_to(int, sfp[1]);
-	dly_tsk(delay);
-#endif
-}
+//static KMETHOD NXT_dly(KonohaContext *kctx, KonohaStack *sfp)
+//{
+//#ifdef K_USING_TOPPERS
+//	int delay = Int_to(int, sfp[1]);
+//	dly_tsk(delay);
+//#endif
+//}
 static KMETHOD NXT_ecrobotIsRunning(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
@@ -167,29 +180,29 @@ static KMETHOD NXT_ecrobotGetLightSensor(KonohaContext *kctx, KonohaStack *sfp)
 	RETURNi_(0);
 #endif
 }
-static KMETHOD NXT_waiSem(KonohaContext *kctx, KonohaStack *sfp)
-{
-#ifdef K_USING_TOPPERS
-	wai_sem(EVT_SEM);
-#endif
-}
-static KMETHOD NXT_balanceControl(KonohaContext *kctx, KonohaStack *sfp)
-{
-#ifdef K_USING_TOPPERS
-	balance_control(
-			Int_to(int, sfp[1]),
-			Int_to(int, sfp[2]),
-			ecrobot_get_gyro_sensor(NXT_PORT_S1),
-			nxtstate.gyro_offset,
-			nxt_motor_get_count(NXT_PORT_C),
-			nxt_motor_get_count(NXT_PORT_B),
-			ecrobot_get_battery_voltage(),
-			&pwm_L,
-			&pwm_R);
-	ecrobot_set_motor_speed(NXT_PORT_C, pwm_L);
-	ecrobot_set_motor_speed(NXT_PORT_B, pwm_R);
-#endif
-}
+//static KMETHOD NXT_waiSem(KonohaContext *kctx, KonohaStack *sfp)
+//{
+//#ifdef K_USING_TOPPERS
+//	wai_sem(EVT_SEM);
+//#endif
+//}
+//static KMETHOD NXT_balanceControl(KonohaContext *kctx, KonohaStack *sfp)
+//{
+//#ifdef K_USING_TOPPERS
+//	balance_control(
+//			Int_to(int, sfp[1]),
+//			Int_to(int, sfp[2]),
+//			ecrobot_get_gyro_sensor(NXT_PORT_S1),
+//			nxtstate.gyro_offset,
+//			nxt_motor_get_count(NXT_PORT_C),
+//			nxt_motor_get_count(NXT_PORT_B),
+//			ecrobot_get_battery_voltage(),
+//			&pwm_L,
+//			&pwm_R);
+//	ecrobot_set_motor_speed(NXT_PORT_C, pwm_L);
+//	ecrobot_set_motor_speed(NXT_PORT_B, pwm_R);
+//#endif
+//}
 
 static KMETHOD NXT_getSonarSensor(KonohaContext *kctx, KonohaStack *sfp)
 {
@@ -212,8 +225,10 @@ static void NXT_balance_inner(float forward, float turn)
 			(float)ecrobot_get_battery_voltage(),
 			&pwm_L,
 			&pwm_R);
-	ecrobot_set_motor_speed(NXT_PORT_C, pwm_L);
-	ecrobot_set_motor_speed(NXT_PORT_B, pwm_R);
+	//ecrobot_set_motor_speed(NXT_PORT_C, pwm_L);
+	//ecrobot_set_motor_speed(NXT_PORT_B, pwm_R);
+	ecrobot_set_motor_speed(NXT_PORT_C, (1.189 *pwm_L));      /* 左モータPWM出力セット */
+	ecrobot_set_motor_speed(NXT_PORT_B, (1.13 * pwm_R));      /* 右モータPWM出力セット */
 	wai_sem(EVT_SEM);
 	nxtstate.timer += 4;
 #endif
@@ -261,11 +276,11 @@ static KMETHOD NXT_tailwalkPid(KonohaContext *kctx, KonohaStack *sfp)
 	F32 p, i, d;
 	nxtstate.pid_integral += (nxtstate.pid_diff[1] + nxtstate.pid_diff[0])/2.0 * delta_T;
 
-	p = nxtstate.pid_diff[1] * nxtstate.kp;
-	i = nxtstate.pid_integral * nxtstate.ki;
-	d = (nxtstate.pid_diff[1] - nxtstate.pid_diff[0])/delta_T * nxtstate.kd;
+	p = nxtstate.pid_diff[1] * nxtstate.pidParam.kp;
+	i = nxtstate.pid_integral * nxtstate.pidParam.ki;
+	d = (nxtstate.pid_diff[1] - nxtstate.pid_diff[0])/delta_T * nxtstate.pidParam.kd;
 
-	F32 turn = p + i + d;
+	F32 turn = p + i + d + nxtstate.turn_offset;
 	if (turn > 100) turn = 100;
 	else if (turn < -50) turn = -100;
 
@@ -279,30 +294,53 @@ static KMETHOD NXT_tailwalkPid(KonohaContext *kctx, KonohaStack *sfp)
 #endif
 }
 
-static KMETHOD NXT_balancePid(KonohaContext *kctx, KonohaStack *sfp)
-{
 #ifdef K_USING_TOPPERS
-
-//#define delta_T            0.004
-//#define KP                 0.38
-//#define KI                 0.10
-//#define KD                 0.08
-
+static void balancePid(float forward)
+{
 	F32 p, i, d;
 	nxtstate.pid_integral += (nxtstate.pid_diff[1] + nxtstate.pid_diff[0])/2.0 * delta_T;
 
-	p = nxtstate.pid_diff[1] * nxtstate.kp;
-	i = nxtstate.pid_integral * nxtstate.ki;
-	d = (nxtstate.pid_diff[1] - nxtstate.pid_diff[0]) / delta_T * nxtstate.kd;
+	p = nxtstate.pid_diff[1] * nxtstate.pidParam.kp;
+	i = nxtstate.pid_integral * nxtstate.pidParam.ki;
+	d = (nxtstate.pid_diff[1] - nxtstate.pid_diff[0]) / delta_T * nxtstate.pidParam.kd;
 
-	F32 turn = p + i + d;
+	F32 turn = p + i + d + nxtstate.turn_offset;
 	if (100 < turn) turn = 100;
 	else if (turn < -100) turn = -100;
-
-	int forward = Int_to(int, sfp[1]);
 	NXT_balance_inner(forward, turn);
+}
+#endif
+
+static KMETHOD NXT_balancePid(KonohaContext *kctx, KonohaStack *sfp)
+{
+#ifdef K_USING_TOPPERS
+	int forward = Int_to(int, sfp[1]);
+	balancePid(forward);
 #endif
 }
+
+//// method System.update()
+//void System_update() {
+//	tail_control(share->tail); /* バランス走行用角度に制御 */
+//	share->light_previous = share->light;
+//	share->light = (PID_FILTER * ecrobot_get_light_sensor(NXT_PORT_S3) + (1.0 - PID_FILTER) * share->light_previous);
+//	share->gyro_prev = share->gyro;
+//	share->gyro = (GYRO_FILTER * ecrobot_get_gyro_sensor(NXT_PORT_S1) + (1.0 - GYRO_FILTER) * share->gyro_prev);
+//	share->pid_diff[0] = share->pid_diff[1];
+//	share->pid_diff[1] = share->light - share->target_light;
+//	share->grayflag = abs(share->pid_diff[1] - share->pid_diff[0]) >= 7 ? ON : OFF;
+//	share->diff_C_motor[0] = share->diff_C_motor[1];
+//	share->diff_C_motor[1] = nxt_motor_get_count(NXT_PORT_C);
+//	share->diff_B_motor[0] = share->diff_B_motor[1];
+//	share->diff_B_motor[1] = nxt_motor_get_count(NXT_PORT_B);
+//	share->motor_velocity_C = (share->diff_C_motor[1] - share->diff_C_motor[0])/delta_T;
+//	share->motor_velocity_B = (share->diff_B_motor[1] - share->diff_B_motor[0])/delta_T;
+//
+//	float r_len = 2 * M_PI * WHEEL_RADIUS * (share->diff_C_motor[1] - share->diff_C_motor[0]) / 360;
+//	float l_len = 2 * M_PI * WHEEL_RADIUS * (share->diff_B_motor[1] - share->diff_B_motor[0]) / 360;
+//	share->distance += (r_len + l_len)/2;
+//	share->theta    += 360.0 * (r_len - l_len) / (2 * M_PI *ROBOT_BREADTH);
+//}
 
 static void System_update()
 {
@@ -311,10 +349,15 @@ static void System_update()
 #define M_PI          3.14
 #define ROBOT_BREADTH 16
 #define WHEEL_RADIUS  4
+#define PID_FILTER 0.5
+#define GYRO_FILTER 0.8
+
 
 	tail_control(nxtstate.tail); /* 繝舌Λ繝ｳ繧ｹ襍ｰ陦檎畑隗貞ｺｦ縺ｫ蛻ｶ蠕｡ */
 	nxtstate.sonar = getSonarValue();
-	nxtstate.light = ecrobot_get_light_sensor(NXT_PORT_S3);
+	nxtstate.light_previous = nxtstate.light;
+	nxtstate.light = (PID_FILTER * ecrobot_get_light_sensor(NXT_PORT_S3) + (1.0 - PID_FILTER) * nxtstate.light_previous);
+	//nxtstate.light = ecrobot_get_light_sensor(NXT_PORT_S3);
 	nxtstate.gyro_prev = nxtstate.gyro;
 	nxtstate.gyro = ecrobot_get_gyro_sensor(NXT_PORT_S1);
 	nxtstate.pid_diff[0] = nxtstate.pid_diff[1];
@@ -441,6 +484,12 @@ static KMETHOD NXT_gettargetLight(KonohaContext *kctx, KonohaStack *sfp)
 	RETURNi_(nxtstate.target_light);
 #endif
 }
+static KMETHOD NXT_settargetLight(KonohaContext *kctx, KonohaStack *sfp)
+{
+#ifdef K_USING_TOPPERS
+	nxtstate.target_light = Int_to(int, sfp[1]);
+#endif
+}
 static KMETHOD NXT_resetMotor(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
@@ -482,6 +531,13 @@ void change_state_rotate(float target)
 		System_tailwalk(turn, -turn);
 	}
 }
+
+//static void setPID(PIDParam p)
+//{
+//	nxtstate.kp = p.KP;
+//	nxtstate.ki = p.KP;
+//	nxtstate.kd = p.KD;
+//}
 
 #endif
 static KMETHOD NXT_tailwalkWithBottle(KonohaContext *kctx, KonohaStack *sfp)
@@ -559,11 +615,82 @@ static KMETHOD NXT_initPID(KonohaContext *kctx, KonohaStack *sfp)
 	float kp = Float_to(float, sfp[1]);
 	float ki = Float_to(float, sfp[2]);
 	float kd = Float_to(float, sfp[3]);
-	nxtstate.kp = kp;
-	nxtstate.ki = ki;
-	nxtstate.kd = kd;
+	nxtstate.pidParam.kp = kp;
+	nxtstate.pidParam.ki = ki;
+	nxtstate.pidParam.kd = kd;
 #endif
 }
+
+#define L_SLOPE 238 // in: 238, out: 160
+
+#define BALANCE_PID(cond, offset) \
+    nxtstate.turn_offset = 0.0;\
+    while(cond) { \
+        System_update(); \
+        balancePid(100); \
+    } \
+    /*ecrobot_sound_tone(1000, 200, 50);*/
+
+static KMETHOD NXT_basicStage(KonohaContext *kctx, KonohaStack *sfp)
+{
+#ifdef K_USING_TOPPERS
+    /* 1: start */
+	nxtstate.distance = 0;
+	nxtstate.timer = 0;
+    nxtstate.pidParam = PID_BASIC;
+
+	while(nxtstate.timer < 1000) {
+		System_update();
+        balancePid(100);
+    }
+    ecrobot_sound_tone(1000, 200, 50);
+
+    nxtstate.pidParam = PID_LINE;
+    BALANCE_PID(nxtstate.distance < (L_SLOPE-20), 100.0);
+
+    /* 2: to previous slope */
+	nxtstate.theta = 0;
+    BALANCE_PID(nxtstate.distance < (L_SLOPE+20), 100.0);
+
+    /* 3: to slope downing */
+    BALANCE_PID(nxtstate.distance < (L_SLOPE+180), 100.0);
+
+    /* 4 */
+    nxtstate.pidParam = PID_CURVE;
+    BALANCE_PID(nxtstate.theta < 80, 100.0);
+
+    /* 5 */
+    nxtstate.distance = 0;
+    nxtstate.pidParam = PID_LINE;
+    BALANCE_PID(nxtstate.distance < 150, 100.0);
+
+    /* 6 */
+	nxtstate.theta = 0;
+    nxtstate.pidParam = PID_CURVE;
+    BALANCE_PID(nxtstate.theta < 180, 100.0);
+
+    /* 7 */
+    nxtstate.distance = 0;
+    nxtstate.pidParam = PID_LINE;
+    BALANCE_PID(nxtstate.distance < 140, 100.0);
+
+    /* 8 */
+	nxtstate.theta = 0;
+    nxtstate.pidParam = PID_CURVE;
+    BALANCE_PID(nxtstate.theta > -160, 70.0);
+
+    /* 9 */
+    nxtstate.distance = 0;
+    nxtstate.pidParam = PID_LINE;
+    BALANCE_PID(nxtstate.distance < 120, 100.0);
+
+    /* 10 */
+	nxtstate.theta = 0;
+    nxtstate.pidParam = PID_CURVE;
+    BALANCE_PID(nxtstate.theta < 70, 100.0);
+#endif
+}
+
 
 #define _Public   kMethod_Public
 #define _Static   kMethod_Static
@@ -586,14 +713,14 @@ kbool_t tinykonoha_nxtMethodInit(KonohaContext *kctx, kNameSpace *ks)
 	//KINITv(((KonohaClassVar*)cNXT)->methodList, K_EMPTYARRAY);
 	intptr_t MethodData[] = {
 		_F(NXT_init), TY_NXT, MN_(NXT_init),
-		_F(NXT_dly), TY_NXT, MN_(NXT_dly),
+		//_F(NXT_dly), TY_NXT, MN_(NXT_dly),
 		_F(NXT_ecrobotIsRunning), TY_NXT, MN_(NXT_ecrobotIsRunning),
 		_F(NXT_tailControl), TY_NXT, MN_(NXT_tailControl),
 		_F(NXT_manipulateTail), TY_NXT, MN_(NXT_manipulateTail),
 		_F(NXT_ecrobotGetGyroSensor), TY_NXT, MN_(NXT_ecrobotGetGyroSensor),
 		_F(NXT_ecrobotGetLightSensor), TY_NXT, MN_(NXT_ecrobotGetLightSensor),
-		_F(NXT_waiSem), TY_NXT, MN_(NXT_waiSem),
-		_F(NXT_balanceControl), TY_NXT, MN_(NXT_balanceControl),
+		//_F(NXT_waiSem), TY_NXT, MN_(NXT_waiSem),
+		//_F(NXT_balanceControl), TY_NXT, MN_(NXT_balanceControl),
 		_F(NXT_getSonarSensor), TY_NXT, MN_(NXT_getsonarSensor),
 
 		_F(NXT_updateStatus), TY_NXT, MN_(NXT_updateStatus),
@@ -615,10 +742,12 @@ kbool_t tinykonoha_nxtMethodInit(KonohaContext *kctx, kNameSpace *ks)
 		_F(NXT_cleartheta), TY_NXT, MN_(NXT_cleartheta),
 		_F(NXT_getlight), TY_NXT, MN_(NXT_getlight),
 		_F(NXT_gettargetLight), TY_NXT, MN_(NXT_gettargetLight),
+		_F(NXT_settargetLight), TY_NXT, MN_(NXT_settargetLight),
 		_F(NXT_resetMotor), TY_NXT, MN_(NXT_resetMotor),
 		_F(NXT_tailwalkWithBottle), TY_NXT, MN_(NXT_tailwalkWithBottle),
 		_F(NXT_rotate), TY_NXT, MN_(NXT_rotate),
 		_F(NXT_initPID), TY_NXT, MN_(NXT_initPID),
+		_F(NXT_basicStage), TY_NXT, MN_(NXT_basicStage),
 		DEND,
 	};
 	KLIB kNameSpace_loadMethodData(kctx, ks, MethodData);
@@ -645,15 +774,15 @@ static	kbool_t nxt_initPackage(KonohaContext *kctx, kNameSpace *ks, int argc, co
 			//_Public             , _F(NXT_new), TY_NXT, TY_NXT, MN_("new"), 0, 
 			_Public|_Static|_Imm, _F(NXT_init), TY_void, TY_NXT, MN_("init"), 0,
 
-			_Public|_Static|_Imm, _F(NXT_balanceControl), TY_void, TY_NXT, MN_("balanceControl"), 2, TY_int, FN_x, TY_int, FN_y, 
+			//_Public|_Static|_Imm, _F(NXT_balanceControl), TY_void, TY_NXT, MN_("balanceControl"), 2, TY_int, FN_x, TY_int, FN_y, 
 			//_Public|_Static|_Imm, _F(NXT_balanceInit), TY_void, TY_NXT, MN_("balanceInit"), 0,
-			_Public|_Static|_Imm, _F(NXT_dly), TY_void, TY_NXT, MN_("dly"), 1, TY_int, FN_x, 
+			//_Public|_Static|_Imm, _F(NXT_dly), TY_void, TY_NXT, MN_("dly"), 1, TY_int, FN_x, 
 			_Public|_Static|_Imm, _F(NXT_ecrobotIsRunning), TY_boolean, TY_NXT, MN_("ecrobotIsRunning"), 0, 
 			_Public|_Static|_Imm, _F(NXT_tailControl), TY_void, TY_NXT, MN_("tailControl"), 1, TY_int, FN_x, 
 			_Public|_Static|_Imm, _F(NXT_manipulateTail), TY_void, TY_NXT, MN_("manipulateTail"), 0,
 			_Public|_Static|_Imm, _F(NXT_ecrobotGetGyroSensor), TY_int, TY_NXT, MN_("ecrobotGetGyroSensor"), 0,
 			_Public|_Static|_Imm, _F(NXT_ecrobotGetLightSensor), TY_int, TY_NXT, MN_("ecrobotGetLightSensor"), 0,
-			_Public|_Static|_Imm, _F(NXT_waiSem), TY_void, TY_NXT, MN_("waiSem"), 0,
+			//_Public|_Static|_Imm, _F(NXT_waiSem), TY_void, TY_NXT, MN_("waiSem"), 0,
 			_Public|_Static|_Imm, _F(NXT_getSonarSensor), TY_int, TY_NXT, MN_("getsonarSensor"), 0,
 
 			_Public|_Static|_Imm, _F(NXT_updateStatus), TY_void, TY_NXT, MN_("updateStatus"), 0,
@@ -675,11 +804,13 @@ static	kbool_t nxt_initPackage(KonohaContext *kctx, kNameSpace *ks, int argc, co
 			_Public|_Static|_Imm, _F(NXT_cleartheta), TY_void, TY_NXT, MN_("cleartheta"), 0,
 			_Public|_Static|_Imm, _F(NXT_getlight), TY_int, TY_NXT, MN_("getlight"), 0,
 			_Public|_Static|_Imm, _F(NXT_gettargetLight), TY_int, TY_NXT, MN_("gettargetLight"), 0,
+			_Public|_Static|_Imm, _F(NXT_settargetLight), TY_void, TY_NXT, MN_("settargetLight"), 1, TY_int, FN_x,
 			_Public|_Static|_Imm, _F(NXT_resetMotor), TY_void, TY_NXT, MN_("resetMotor"), 0,
 			_Public|_Static|_Imm, _F(NXT_tailwalkWithBottle), TY_void, TY_NXT, MN_("tailwalkWithBottle"), 4, 
 					TY_boolean, FN_x, TY_int, FN_y, TY_int, FN_z, TY_boolean, FN_w,
 			_Public|_Static|_Imm, _F(NXT_rotate), TY_void, TY_NXT, MN_("rotate"), 1, TY_int, FN_x,
 			_Public|_Static|_Imm, _F(NXT_initPID), TY_void, TY_NXT, MN_("initPID"), 3, TY_float, FN_x, TY_float, FN_y, TY_float, FN_z,
+			_Public|_Static|_Imm, _F(NXT_basicStage), TY_void, TY_NXT, MN_("basicStage"), 0,
 			DEND,
 	};
 	KLIB kNameSpace_loadMethodData(kctx, ks, MethodData);
