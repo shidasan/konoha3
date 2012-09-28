@@ -539,6 +539,13 @@ void change_state_rotate(float target)
 //	nxtstate.kd = p.KD;
 //}
 
+void System_balance_walk_straight(float forward, float theta) {
+	float turn = 0;
+	if(nxtstate.theta-theta > 2.0) turn = -5.0;
+	if(nxtstate.theta-theta < -2.0) turn = 5.0;
+	NXT_balance_inner(forward, turn);
+}
+
 #endif
 static KMETHOD NXT_tailwalkWithBottle(KonohaContext *kctx, KonohaStack *sfp)
 {
@@ -624,70 +631,154 @@ static KMETHOD NXT_initPID(KonohaContext *kctx, KonohaStack *sfp)
 #define L_SLOPE 238 // in: 238, out: 160
 
 #define BALANCE_PID(cond, offset) \
-    nxtstate.turn_offset = 0.0;\
+    /*nxtstate.turn_offset = 0.0;*/\
     while(cond) { \
         System_update(); \
-        balancePid(100); \
+        balancePid(offset); \
     } \
     /*ecrobot_sound_tone(1000, 200, 50);*/
 
 static KMETHOD NXT_basicStage(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
-    /* 1: start */
-	nxtstate.distance = 0;
+	const int FORWARD_LINE = 140;
+	const int FORWARD_CURVE1 = 125;
+	const int FORWARD_CURVE2 = 100;
+
+	/* 0: startup */
+	System_update();
 	nxtstate.timer = 0;
-    nxtstate.pidParam = PID_BASIC;
-
-	while(nxtstate.timer < 1000) {
+	nxtstate.distance = 0;
+	while(nxtstate.timer < 1500) {
 		System_update();
-        balancePid(100);
-    }
-    ecrobot_sound_tone(1000, 200, 50);
+		System_balance_walk_straight(60.0, 0.0);
+	}
+	///* debug upstair */
+	//while(nxtstate.timer < 4000 || !System_getGrayFlag()) {
+	//	System_update();
+	//	System_balancePid(80.0);
+	//}
+	//ecrobot_sound_tone(1000, 200, 50);
+	//change_state_outside_kaidan();
 
-    nxtstate.pidParam = PID_LINE;
-    BALANCE_PID(nxtstate.distance < (L_SLOPE-20), 100.0);
+	/* 1: start */
+	nxtstate.timer = 0;
+	nxtstate.pidParam = PID_BASIC;
 
-    /* 2: to previous slope */
+	while(nxtstate.timer < 1000) { 
+		System_update(); 
+		balancePid(100); 
+	}
+	//ecrobot_sound_tone(1000, 200, 50);
+
+	nxtstate.pidParam = PID_LINE;
+	BALANCE_PID(nxtstate.distance < (L_SLOPE-20), FORWARD_LINE);
+
+	/* 2: to previous slope */
+	//syslog_0(LOG_NOTICE, " 2: to previous slope (int)p, (int)i, (int)d, (int)turn");
 	nxtstate.theta = 0;
-    BALANCE_PID(nxtstate.distance < (L_SLOPE+20), 100.0);
+	BALANCE_PID(nxtstate.distance < (L_SLOPE+20), 90.0);
 
-    /* 3: to slope downing */
-    BALANCE_PID(nxtstate.distance < (L_SLOPE+180), 100.0);
+	/* 3: to slope downing */
+	//syslog_0(LOG_NOTICE, " 3: to slope downing (int)p, (int)i, (int)d, (int)turn");
+	BALANCE_PID(nxtstate.distance < (L_SLOPE+180), FORWARD_LINE);
 
-    /* 4 */
-    nxtstate.pidParam = PID_CURVE;
-    BALANCE_PID(nxtstate.theta < 80, 100.0);
+	/* 4 */
+	//syslog_0(LOG_NOTICE, " 4 (int)p, (int)i, (int)d, (int)turn");
+	nxtstate.pidParam = PID_CURVE;
+	BALANCE_PID(nxtstate.theta < 80, FORWARD_CURVE1);
 
-    /* 5 */
-    nxtstate.distance = 0;
-    nxtstate.pidParam = PID_LINE;
-    BALANCE_PID(nxtstate.distance < 150, 100.0);
+	/* 5 */
+	//syslog_0(LOG_NOTICE, " 5 (int)p, (int)i, (int)d, (int)turn");
+	nxtstate.distance = 0;
+	nxtstate.pidParam = PID_LINE;
+	BALANCE_PID(nxtstate.distance < 150, FORWARD_LINE);
 
-    /* 6 */
+	/* 6 */
+	//syslog_0(LOG_NOTICE, " 6 (int)p, (int)i, (int)d, (int)turn");
 	nxtstate.theta = 0;
-    nxtstate.pidParam = PID_CURVE;
-    BALANCE_PID(nxtstate.theta < 180, 100.0);
+	nxtstate.pidParam = PID_CURVE;
+	BALANCE_PID(nxtstate.theta < 180, FORWARD_CURVE2);
 
-    /* 7 */
-    nxtstate.distance = 0;
-    nxtstate.pidParam = PID_LINE;
-    BALANCE_PID(nxtstate.distance < 140, 100.0);
+	/* 7 */
+	//syslog_0(LOG_NOTICE, " 7 (int)p, (int)i, (int)d, (int)turn");
+	nxtstate.distance = 0;
+	nxtstate.pidParam = PID_LINE;
+	BALANCE_PID(nxtstate.distance < 120, FORWARD_LINE);
 
-    /* 8 */
+	/* 8 */
+	//syslog_0(LOG_NOTICE, " 8 (int)p, (int)i, (int)d, (int)turn");
 	nxtstate.theta = 0;
-    nxtstate.pidParam = PID_CURVE;
-    BALANCE_PID(nxtstate.theta > -160, 70.0);
+	nxtstate.pidParam = PID_CURVE;
+	BALANCE_PID(nxtstate.theta > -160, FORWARD_CURVE1);
 
-    /* 9 */
-    nxtstate.distance = 0;
-    nxtstate.pidParam = PID_LINE;
-    BALANCE_PID(nxtstate.distance < 120, 100.0);
+	/* 9 */
+	//syslog_0(LOG_NOTICE, " 9 (int)p, (int)i, (int)d, (int)turn");
+	nxtstate.distance = 0;
+	nxtstate.pidParam = PID_LINE;
+	BALANCE_PID(nxtstate.distance < 120, FORWARD_LINE);
 
-    /* 10 */
+	/* 10 */
+	//syslog_0(LOG_NOTICE, " 10 (int)p, (int)i, (int)d, (int)turn");
 	nxtstate.theta = 0;
-    nxtstate.pidParam = PID_CURVE;
-    BALANCE_PID(nxtstate.theta < 70, 100.0);
+	nxtstate.pidParam = PID_CURVE;
+	BALANCE_PID(nxtstate.theta < 70, FORWARD_CURVE1);
+
+	nxtstate.pidParam = PID_LINE;
+    ///* 1: start */
+	//nxtstate.distance = 0;
+	//nxtstate.timer = 0;
+    //nxtstate.pidParam = PID_BASIC;
+
+	//while(nxtstate.timer < 1000) {
+	//	System_update();
+    //    balancePid(100);
+    //}
+    //ecrobot_sound_tone(1000, 200, 50);
+
+    //nxtstate.pidParam = PID_LINE;
+    //BALANCE_PID(nxtstate.distance < (L_SLOPE-20), 100.0);
+
+    ///* 2: to previous slope */
+	//nxtstate.theta = 0;
+    //BALANCE_PID(nxtstate.distance < (L_SLOPE+20), 100.0);
+
+    ///* 3: to slope downing */
+    //BALANCE_PID(nxtstate.distance < (L_SLOPE+180), 100.0);
+
+    ///* 4 */
+    //nxtstate.pidParam = PID_CURVE;
+    //BALANCE_PID(nxtstate.theta < 80, 100.0);
+
+    ///* 5 */
+    //nxtstate.distance = 0;
+    //nxtstate.pidParam = PID_LINE;
+    //BALANCE_PID(nxtstate.distance < 150, 100.0);
+
+    ///* 6 */
+	//nxtstate.theta = 0;
+    //nxtstate.pidParam = PID_CURVE;
+    //BALANCE_PID(nxtstate.theta < 180, 100.0);
+
+    ///* 7 */
+    //nxtstate.distance = 0;
+    //nxtstate.pidParam = PID_LINE;
+    //BALANCE_PID(nxtstate.distance < 140, 100.0);
+
+    ///* 8 */
+	//nxtstate.theta = 0;
+    //nxtstate.pidParam = PID_CURVE;
+    //BALANCE_PID(nxtstate.theta > -160, 70.0);
+
+    ///* 9 */
+    //nxtstate.distance = 0;
+    //nxtstate.pidParam = PID_LINE;
+    //BALANCE_PID(nxtstate.distance < 120, 100.0);
+
+    ///* 10 */
+	//nxtstate.theta = 0;
+    //nxtstate.pidParam = PID_CURVE;
+    //BALANCE_PID(nxtstate.theta < 70, 100.0);
 #endif
 }
 
