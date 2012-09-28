@@ -362,7 +362,7 @@ static void System_update()
 	nxtstate.gyro = ecrobot_get_gyro_sensor(NXT_PORT_S1);
 	nxtstate.pid_diff[0] = nxtstate.pid_diff[1];
 	nxtstate.pid_diff[1] = nxtstate.light - nxtstate.target_light;
-	nxtstate.grayflag = (nxtstate.pid_diff[1] - nxtstate.pid_diff[0]) >= 5 ? 1 : 0;
+	nxtstate.grayflag = (nxtstate.pid_diff[1] - nxtstate.pid_diff[0]) >= 6 ? 1 : 0;
 	//nxtstate.grayflag = abs(nxtstate.pid_diff[1] - nxtstate.pid_diff[0]) >= 7 ? 1 : 0;
 	nxtstate.diff_C_motor[0] = nxtstate.diff_C_motor[1];
 	nxtstate.diff_C_motor[1] = nxt_motor_get_count(NXT_PORT_C);
@@ -637,14 +637,14 @@ static KMETHOD NXT_initPID(KonohaContext *kctx, KonohaStack *sfp)
         System_update(); \
         balancePid(forward); \
     } \
-    /*ecrobot_sound_tone(1000, 200, 50);*/
+    ecrobot_sound_tone(1000, 200, 50);
 
 static KMETHOD NXT_basicStage(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
-	const int FORWARD_LINE = 150;
-	const int FORWARD_CURVE1 = 150;
-	const int FORWARD_CURVE2 = 150;
+	const int FORWARD_LINE = 140;
+	const int FORWARD_CURVE1 = 130;
+	const int FORWARD_CURVE2 = 120;
 
 	/* 0: startup */
 	System_update();
@@ -680,6 +680,10 @@ static KMETHOD NXT_basicStage(KonohaContext *kctx, KonohaStack *sfp)
 	nxtstate.theta = 0;
 	BALANCE_PID(nxtstate.distance < (L_SLOPE+20), 90.0, 0);
 
+	/* 3.5: to slope downing */
+	//syslog_0(LOG_NOTICE, " 3: to slope downing (int)p, (int)i, (int)d, (int)turn");
+	BALANCE_PID(nxtstate.distance < (L_SLOPE+100), FORWARD_LINE-20, 0);
+
 	/* 3: to slope downing */
 	//syslog_0(LOG_NOTICE, " 3: to slope downing (int)p, (int)i, (int)d, (int)turn");
 	BALANCE_PID(nxtstate.distance < (L_SLOPE+180), FORWARD_LINE, 0);
@@ -693,13 +697,13 @@ static KMETHOD NXT_basicStage(KonohaContext *kctx, KonohaStack *sfp)
 	//syslog_0(LOG_NOTICE, " 5 (int)p, (int)i, (int)d, (int)turn");
 	nxtstate.distance = 0;
 	nxtstate.pidParam = PID_LINE;
-	BALANCE_PID(nxtstate.distance < 150, FORWARD_LINE, 0);
+	BALANCE_PID(nxtstate.distance < 165, FORWARD_LINE, 0);
 
 	/* 6 */
 	//syslog_0(LOG_NOTICE, " 6 (int)p, (int)i, (int)d, (int)turn");
 	nxtstate.theta = 0;
 	nxtstate.pidParam = PID_CURVE;
-	BALANCE_PID(nxtstate.theta < 180, FORWARD_CURVE2, 30);
+	BALANCE_PID(nxtstate.theta < 180, FORWARD_CURVE2, 20);
 
 	/* 7 */
 	//syslog_0(LOG_NOTICE, " 7 (int)p, (int)i, (int)d, (int)turn");
@@ -711,7 +715,7 @@ static KMETHOD NXT_basicStage(KonohaContext *kctx, KonohaStack *sfp)
 	//syslog_0(LOG_NOTICE, " 8 (int)p, (int)i, (int)d, (int)turn");
 	nxtstate.theta = 0;
 	nxtstate.pidParam = PID_CURVE;
-	BALANCE_PID(nxtstate.theta > -160, FORWARD_CURVE1, -20);
+	BALANCE_PID(nxtstate.theta > -160, FORWARD_CURVE1, -10);
 
 	/* 9 */
 	//syslog_0(LOG_NOTICE, " 9 (int)p, (int)i, (int)d, (int)turn");
@@ -723,7 +727,7 @@ static KMETHOD NXT_basicStage(KonohaContext *kctx, KonohaStack *sfp)
 	//syslog_0(LOG_NOTICE, " 10 (int)p, (int)i, (int)d, (int)turn");
 	nxtstate.theta = 0;
 	nxtstate.pidParam = PID_CURVE;
-	BALANCE_PID(nxtstate.theta < 70, FORWARD_CURVE1, 20);
+	BALANCE_PID(nxtstate.theta < 70, FORWARD_CURVE1, 10);
 
 	nxtstate.turn_offset = 0;
 
@@ -809,8 +813,8 @@ kbool_t tinykonoha_nxtMethodInit(KonohaContext *kctx, kNameSpace *ks)
 		_F(NXT_init), TY_NXT, MN_(NXT_init),
 		//_F(NXT_dly), TY_NXT, MN_(NXT_dly),
 		_F(NXT_ecrobotIsRunning), TY_NXT, MN_(NXT_ecrobotIsRunning),
-		_F(NXT_tailControl), TY_NXT, MN_(NXT_tailControl),
-		_F(NXT_manipulateTail), TY_NXT, MN_(NXT_manipulateTail),
+		//_F(NXT_tailControl), TY_NXT, MN_(NXT_tailControl),
+		//_F(NXT_manipulateTail), TY_NXT, MN_(NXT_manipulateTail),
 		_F(NXT_ecrobotGetGyroSensor), TY_NXT, MN_(NXT_ecrobotGetGyroSensor),
 		_F(NXT_ecrobotGetLightSensor), TY_NXT, MN_(NXT_ecrobotGetLightSensor),
 		//_F(NXT_waiSem), TY_NXT, MN_(NXT_waiSem),

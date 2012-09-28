@@ -32,7 +32,7 @@
 
 #define PORT         "COM5:"
 #define BUFSIZE      128
-#define USLEEP_PARAM 50000
+#define USLEEP_PARAM 40000
 //#define USLEEP_PARAM 2000000
 
 typedef struct bt_buffer_t {
@@ -282,7 +282,8 @@ static void bt_close(KonohaContext *kctx)
 	printf("press enter\n");
 	usleep(USLEEP_PARAM);
 
-	getchar();
+	while(1) {
+		getchar();
 	//while (getchar(stdin)) {
 	//	usleep(USLEEP_PARAM);
 	//}
@@ -292,5 +293,6 @@ static void bt_close(KonohaContext *kctx)
 	bt_buffer_append(kctx, &writebuf, &i, sizeof(int8_t));
 	sendBuf(kctx, hComm, &writebuf);
 	FlushFileBuffers(hComm);
+	}
 	CloseHandle(hComm);
 }
