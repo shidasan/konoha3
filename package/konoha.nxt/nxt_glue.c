@@ -569,7 +569,7 @@ static KMETHOD NXT_tailwalkWithBottle(KonohaContext *kctx, KonohaStack *sfp)
 	while(nxtstate.distance < dist) {
 		System_update();
 		// error: not walking!
-		if(nxtstate.timer - time1 > 400) {
+		if(nxtstate.timer - time1 > 200) {
 			if(fabs(dist0 - nxtstate.distance) < 1.0) {
 				//ecrobot_sound_tone(2000, 200, 50);
 				time1 = nxtstate.timer;
@@ -630,20 +630,21 @@ static KMETHOD NXT_initPID(KonohaContext *kctx, KonohaStack *sfp)
 
 #define L_SLOPE 238 // in: 238, out: 160
 
-#define BALANCE_PID(cond, offset) \
+#define BALANCE_PID(cond, forward, offset) \
     /*nxtstate.turn_offset = 0.0;*/\
+	nxtstate.turn_offset = offset;\
     while(cond) { \
         System_update(); \
-        balancePid(offset); \
+        balancePid(forward); \
     } \
     /*ecrobot_sound_tone(1000, 200, 50);*/
 
 static KMETHOD NXT_basicStage(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
-	const int FORWARD_LINE = 140;
-	const int FORWARD_CURVE1 = 125;
-	const int FORWARD_CURVE2 = 100;
+	const int FORWARD_LINE = 150;
+	const int FORWARD_CURVE1 = 150;
+	const int FORWARD_CURVE2 = 150;
 
 	/* 0: startup */
 	System_update();
@@ -672,57 +673,59 @@ static KMETHOD NXT_basicStage(KonohaContext *kctx, KonohaStack *sfp)
 	//ecrobot_sound_tone(1000, 200, 50);
 
 	nxtstate.pidParam = PID_LINE;
-	BALANCE_PID(nxtstate.distance < (L_SLOPE-20), FORWARD_LINE);
+	BALANCE_PID(nxtstate.distance < (L_SLOPE-20), FORWARD_LINE, 0);
 
 	/* 2: to previous slope */
 	//syslog_0(LOG_NOTICE, " 2: to previous slope (int)p, (int)i, (int)d, (int)turn");
 	nxtstate.theta = 0;
-	BALANCE_PID(nxtstate.distance < (L_SLOPE+20), 90.0);
+	BALANCE_PID(nxtstate.distance < (L_SLOPE+20), 90.0, 0);
 
 	/* 3: to slope downing */
 	//syslog_0(LOG_NOTICE, " 3: to slope downing (int)p, (int)i, (int)d, (int)turn");
-	BALANCE_PID(nxtstate.distance < (L_SLOPE+180), FORWARD_LINE);
+	BALANCE_PID(nxtstate.distance < (L_SLOPE+180), FORWARD_LINE, 0);
 
 	/* 4 */
 	//syslog_0(LOG_NOTICE, " 4 (int)p, (int)i, (int)d, (int)turn");
 	nxtstate.pidParam = PID_CURVE;
-	BALANCE_PID(nxtstate.theta < 80, FORWARD_CURVE1);
+	BALANCE_PID(nxtstate.theta < 80, FORWARD_CURVE1, 20);
 
 	/* 5 */
 	//syslog_0(LOG_NOTICE, " 5 (int)p, (int)i, (int)d, (int)turn");
 	nxtstate.distance = 0;
 	nxtstate.pidParam = PID_LINE;
-	BALANCE_PID(nxtstate.distance < 150, FORWARD_LINE);
+	BALANCE_PID(nxtstate.distance < 150, FORWARD_LINE, 0);
 
 	/* 6 */
 	//syslog_0(LOG_NOTICE, " 6 (int)p, (int)i, (int)d, (int)turn");
 	nxtstate.theta = 0;
 	nxtstate.pidParam = PID_CURVE;
-	BALANCE_PID(nxtstate.theta < 180, FORWARD_CURVE2);
+	BALANCE_PID(nxtstate.theta < 180, FORWARD_CURVE2, 30);
 
 	/* 7 */
 	//syslog_0(LOG_NOTICE, " 7 (int)p, (int)i, (int)d, (int)turn");
 	nxtstate.distance = 0;
 	nxtstate.pidParam = PID_LINE;
-	BALANCE_PID(nxtstate.distance < 120, FORWARD_LINE);
+	BALANCE_PID(nxtstate.distance < 120, FORWARD_LINE, 0);
 
 	/* 8 */
 	//syslog_0(LOG_NOTICE, " 8 (int)p, (int)i, (int)d, (int)turn");
 	nxtstate.theta = 0;
 	nxtstate.pidParam = PID_CURVE;
-	BALANCE_PID(nxtstate.theta > -160, FORWARD_CURVE1);
+	BALANCE_PID(nxtstate.theta > -160, FORWARD_CURVE1, -20);
 
 	/* 9 */
 	//syslog_0(LOG_NOTICE, " 9 (int)p, (int)i, (int)d, (int)turn");
 	nxtstate.distance = 0;
 	nxtstate.pidParam = PID_LINE;
-	BALANCE_PID(nxtstate.distance < 120, FORWARD_LINE);
+	BALANCE_PID(nxtstate.distance < 120, FORWARD_LINE, 0);
 
 	/* 10 */
 	//syslog_0(LOG_NOTICE, " 10 (int)p, (int)i, (int)d, (int)turn");
 	nxtstate.theta = 0;
 	nxtstate.pidParam = PID_CURVE;
-	BALANCE_PID(nxtstate.theta < 70, FORWARD_CURVE1);
+	BALANCE_PID(nxtstate.theta < 70, FORWARD_CURVE1, 20);
+
+	nxtstate.turn_offset = 0;
 
 	nxtstate.pidParam = PID_LINE;
     ///* 1: start */
@@ -869,8 +872,8 @@ static	kbool_t nxt_initPackage(KonohaContext *kctx, kNameSpace *ks, int argc, co
 			//_Public|_Static|_Imm, _F(NXT_balanceInit), TY_void, TY_NXT, MN_("balanceInit"), 0,
 			//_Public|_Static|_Imm, _F(NXT_dly), TY_void, TY_NXT, MN_("dly"), 1, TY_int, FN_x, 
 			_Public|_Static|_Imm, _F(NXT_ecrobotIsRunning), TY_boolean, TY_NXT, MN_("ecrobotIsRunning"), 0, 
-			_Public|_Static|_Imm, _F(NXT_tailControl), TY_void, TY_NXT, MN_("tailControl"), 1, TY_int, FN_x, 
-			_Public|_Static|_Imm, _F(NXT_manipulateTail), TY_void, TY_NXT, MN_("manipulateTail"), 0,
+			//_Public|_Static|_Imm, _F(NXT_tailControl), TY_void, TY_NXT, MN_("tailControl"), 1, TY_int, FN_x, 
+			//_Public|_Static|_Imm, _F(NXT_manipulateTail), TY_void, TY_NXT, MN_("manipulateTail"), 0,
 			_Public|_Static|_Imm, _F(NXT_ecrobotGetGyroSensor), TY_int, TY_NXT, MN_("ecrobotGetGyroSensor"), 0,
 			_Public|_Static|_Imm, _F(NXT_ecrobotGetLightSensor), TY_int, TY_NXT, MN_("ecrobotGetLightSensor"), 0,
 			//_Public|_Static|_Imm, _F(NXT_waiSem), TY_void, TY_NXT, MN_("waiSem"), 0,
