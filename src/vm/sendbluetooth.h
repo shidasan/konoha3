@@ -30,7 +30,7 @@
 #include <windows.h>
 #include <winuser.h>
 
-#define PORT         "COM9:"
+#define PORT         "COM5:"
 #define BUFSIZE      128
 #define USLEEP_PARAM 50000
 //#define USLEEP_PARAM 2000000
@@ -199,7 +199,7 @@ static void sendBluetooth(KonohaContext *kctx, kMethod *mtd)
 				break;
 			}
 			default: {
-				if (KonohaContext_getFloatModule(kctx) != NULL && pc->opcode == TY_float) {
+				if (KonohaContext_getFloatModule(kctx) != NULL && op->ty->typeId == TY_float) {
 					bt_buffer_append(kctx, writebuf, &n, sizeof(int32_t));
 				}
 			}

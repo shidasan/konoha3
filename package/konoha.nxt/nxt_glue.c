@@ -69,6 +69,10 @@ typedef struct nxt_state_t {
 	
 	F32 distance;
 	F32 theta;
+
+	F32 kp;
+	F32 ki;
+	F32 kd;
 #endif
 }nxt_state_t;
 
@@ -104,8 +108,11 @@ static KMETHOD NXT_init(KonohaContext *kctx, KonohaStack *sfp)
 	nxtstate.pid_integral = 0;
 	nxtstate.light = ecrobot_get_light_sensor(NXT_PORT_S3);
 	nxtstate.blacklight = nxtstate.light;
-	nxtstate.target_light = (getWhiteLight() + nxtstate.blacklight)/2 - 25;
+	nxtstate.target_light = (getWhiteLight() + nxtstate.blacklight)/2 - 15;
 	nxtstate.bottle_side = 0;
+	nxtstate.kp = 0.38;
+	nxtstate.ki = 0.10;
+	nxtstate.kd = 0.08;
 #endif
 }
 static KMETHOD NXT_dly(KonohaContext *kctx, KonohaStack *sfp)
@@ -245,18 +252,18 @@ static KMETHOD NXT_tailwalkPid(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
 #define delta_T            0.004
-#define KP                 0.38
-#define KI                 0.10
-#define KD                 0.08
+//#define KP                 0.12
+//#define KI                 0.20
+//#define KD                 0.12
 
 	int32_t forward_i = Int_to(int, sfp[1]);
 	F32 forward = (F32)forward_i;
 	F32 p, i, d;
 	nxtstate.pid_integral += (nxtstate.pid_diff[1] + nxtstate.pid_diff[0])/2.0 * delta_T;
 
-	p = nxtstate.pid_diff[1] * KP;
-	i = nxtstate.pid_integral * KI;
-	d = (nxtstate.pid_diff[1] - nxtstate.pid_diff[0])/delta_T * KD;
+	p = nxtstate.pid_diff[1] * nxtstate.kp;
+	i = nxtstate.pid_integral * nxtstate.ki;
+	d = (nxtstate.pid_diff[1] - nxtstate.pid_diff[0])/delta_T * nxtstate.kd;
 
 	F32 turn = p + i + d;
 	if (turn > 100) turn = 100;
@@ -276,17 +283,17 @@ static KMETHOD NXT_balancePid(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
 
-#define delta_T            0.004
-#define KP                 0.38
-#define KI                 0.10
-#define KD                 0.08
+//#define delta_T            0.004
+//#define KP                 0.38
+//#define KI                 0.10
+//#define KD                 0.08
 
 	F32 p, i, d;
 	nxtstate.pid_integral += (nxtstate.pid_diff[1] + nxtstate.pid_diff[0])/2.0 * delta_T;
 
-	p = nxtstate.pid_diff[1] * KP;
-	i = nxtstate.pid_integral * KI;
-	d = (nxtstate.pid_diff[1] - nxtstate.pid_diff[0]) / delta_T * KD;
+	p = nxtstate.pid_diff[1] * nxtstate.kp;
+	i = nxtstate.pid_integral * nxtstate.ki;
+	d = (nxtstate.pid_diff[1] - nxtstate.pid_diff[0]) / delta_T * nxtstate.kd;
 
 	F32 turn = p + i + d;
 	if (100 < turn) turn = 100;
@@ -312,7 +319,8 @@ static void System_update()
 	nxtstate.gyro = ecrobot_get_gyro_sensor(NXT_PORT_S1);
 	nxtstate.pid_diff[0] = nxtstate.pid_diff[1];
 	nxtstate.pid_diff[1] = nxtstate.light - nxtstate.target_light;
-	nxtstate.grayflag = abs(nxtstate.pid_diff[1] - nxtstate.pid_diff[0]) >= 7 ? 1 : 0;
+	nxtstate.grayflag = (nxtstate.pid_diff[1] - nxtstate.pid_diff[0]) >= 5 ? 1 : 0;
+	//nxtstate.grayflag = abs(nxtstate.pid_diff[1] - nxtstate.pid_diff[0]) >= 7 ? 1 : 0;
 	nxtstate.diff_C_motor[0] = nxtstate.diff_C_motor[1];
 	nxtstate.diff_C_motor[1] = nxt_motor_get_count(NXT_PORT_C);
 	nxtstate.diff_B_motor[0] = nxtstate.diff_B_motor[1];
@@ -545,6 +553,18 @@ static KMETHOD NXT_rotate(KonohaContext *kctx, KonohaStack *sfp)
 #endif
 }
 
+static KMETHOD NXT_initPID(KonohaContext *kctx, KonohaStack *sfp)
+{
+#ifdef K_USING_TOPPERS
+	float kp = Float_to(float, sfp[1]);
+	float ki = Float_to(float, sfp[2]);
+	float kd = Float_to(float, sfp[3]);
+	nxtstate.kp = kp;
+	nxtstate.ki = ki;
+	nxtstate.kd = kd;
+#endif
+}
+
 #define _Public   kMethod_Public
 #define _Static   kMethod_Static
 #define _Imm      kMethod_Immutable
@@ -598,6 +618,7 @@ kbool_t tinykonoha_nxtMethodInit(KonohaContext *kctx, kNameSpace *ks)
 		_F(NXT_resetMotor), TY_NXT, MN_(NXT_resetMotor),
 		_F(NXT_tailwalkWithBottle), TY_NXT, MN_(NXT_tailwalkWithBottle),
 		_F(NXT_rotate), TY_NXT, MN_(NXT_rotate),
+		_F(NXT_initPID), TY_NXT, MN_(NXT_initPID),
 		DEND,
 	};
 	KLIB kNameSpace_loadMethodData(kctx, ks, MethodData);
@@ -658,6 +679,7 @@ static	kbool_t nxt_initPackage(KonohaContext *kctx, kNameSpace *ks, int argc, co
 			_Public|_Static|_Imm, _F(NXT_tailwalkWithBottle), TY_void, TY_NXT, MN_("tailwalkWithBottle"), 4, 
 					TY_boolean, FN_x, TY_int, FN_y, TY_int, FN_z, TY_boolean, FN_w,
 			_Public|_Static|_Imm, _F(NXT_rotate), TY_void, TY_NXT, MN_("rotate"), 1, TY_int, FN_x,
+			_Public|_Static|_Imm, _F(NXT_initPID), TY_void, TY_NXT, MN_("initPID"), 3, TY_float, FN_x, TY_float, FN_y, TY_float, FN_z,
 			DEND,
 	};
 	KLIB kNameSpace_loadMethodData(kctx, ks, MethodData);

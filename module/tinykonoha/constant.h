@@ -133,4 +133,5 @@
 #define MN_NXT_resetMotor 121
 #define MN_NXT_tailwalkWithBottle 122
 #define MN_NXT_rotate 123
+#define MN_NXT_initPID 124
 
