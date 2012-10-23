@@ -50,8 +50,8 @@ typedef struct {
 
 //static void setPID(PIDParam);
 
-static const PIDParam PID_BASIC = { 0.36, 0.08, 0.05 };
-static const PIDParam PID_LINE  = { 0.36, 0.08, 0.05 };
+static const PIDParam PID_BASIC = { 0.38, 0.08, 0.05 };
+static const PIDParam PID_LINE  = { 0.38, 0.08, 0.04 };
 static const PIDParam PID_CURVE = { 0.38, 0.08, 0.05 };
 
 #endif
@@ -128,13 +128,13 @@ static KMETHOD NXT_init(KonohaContext *kctx, KonohaStack *sfp)
 	nxtstate.turn_offset = 0;
 #endif
 }
-//static KMETHOD NXT_dly(KonohaContext *kctx, KonohaStack *sfp)
-//{
-//#ifdef K_USING_TOPPERS
-//	int delay = Int_to(int, sfp[1]);
-//	dly_tsk(delay);
-//#endif
-//}
+static KMETHOD NXT_dly(KonohaContext *kctx, KonohaStack *sfp)
+{
+#ifdef K_USING_TOPPERS
+	int delay = Int_to(int, sfp[1]);
+	dly_tsk(delay);
+#endif
+}
 static KMETHOD NXT_ecrobotIsRunning(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
@@ -180,29 +180,29 @@ static KMETHOD NXT_ecrobotGetLightSensor(KonohaContext *kctx, KonohaStack *sfp)
 	RETURNi_(0);
 #endif
 }
-//static KMETHOD NXT_waiSem(KonohaContext *kctx, KonohaStack *sfp)
-//{
-//#ifdef K_USING_TOPPERS
-//	wai_sem(EVT_SEM);
-//#endif
-//}
-//static KMETHOD NXT_balanceControl(KonohaContext *kctx, KonohaStack *sfp)
-//{
-//#ifdef K_USING_TOPPERS
-//	balance_control(
-//			Int_to(int, sfp[1]),
-//			Int_to(int, sfp[2]),
-//			ecrobot_get_gyro_sensor(NXT_PORT_S1),
-//			nxtstate.gyro_offset,
-//			nxt_motor_get_count(NXT_PORT_C),
-//			nxt_motor_get_count(NXT_PORT_B),
-//			ecrobot_get_battery_voltage(),
-//			&pwm_L,
-//			&pwm_R);
-//	ecrobot_set_motor_speed(NXT_PORT_C, pwm_L);
-//	ecrobot_set_motor_speed(NXT_PORT_B, pwm_R);
-//#endif
-//}
+static KMETHOD NXT_waiSem(KonohaContext *kctx, KonohaStack *sfp)
+{
+#ifdef K_USING_TOPPERS
+	wai_sem(EVT_SEM);
+#endif
+}
+static KMETHOD NXT_balanceControl(KonohaContext *kctx, KonohaStack *sfp)
+{
+#ifdef K_USING_TOPPERS
+	balance_control(
+			Int_to(int, sfp[1]),
+			Int_to(int, sfp[2]),
+			ecrobot_get_gyro_sensor(NXT_PORT_S1),
+			nxtstate.gyro_offset,
+			nxt_motor_get_count(NXT_PORT_C),
+			nxt_motor_get_count(NXT_PORT_B),
+			ecrobot_get_battery_voltage(),
+			&pwm_L,
+			&pwm_R);
+	ecrobot_set_motor_speed(NXT_PORT_C, pwm_L);
+	ecrobot_set_motor_speed(NXT_PORT_B, pwm_R);
+#endif
+}
 
 static KMETHOD NXT_getSonarSensor(KonohaContext *kctx, KonohaStack *sfp)
 {
@@ -642,9 +642,9 @@ static KMETHOD NXT_initPID(KonohaContext *kctx, KonohaStack *sfp)
 static KMETHOD NXT_basicStage(KonohaContext *kctx, KonohaStack *sfp)
 {
 #ifdef K_USING_TOPPERS
-	const int FORWARD_LINE = 140;
-	const int FORWARD_CURVE1 = 130;
-	const int FORWARD_CURVE2 = 120;
+	const int FORWARD_LINE = 130;
+	const int FORWARD_CURVE1 = 120;
+	const int FORWARD_CURVE2 = 110;
 
 	/* 0: startup */
 	System_update();
@@ -729,6 +729,12 @@ static KMETHOD NXT_basicStage(KonohaContext *kctx, KonohaStack *sfp)
 	nxtstate.pidParam = PID_CURVE;
 	BALANCE_PID(nxtstate.theta < 70, FORWARD_CURVE1, 10);
 
+	/* 10 */
+	//syslog_0(LOG_NOTICE, " 10 (int)p, (int)i, (int)d, (int)turn");
+	nxtstate.theta = 0;
+	nxtstate.pidParam = PID_CURVE;
+	BALANCE_PID(nxtstate.theta < 170, 60, 0);
+
 	nxtstate.turn_offset = 0;
 
 	nxtstate.pidParam = PID_LINE;
@@ -811,14 +817,14 @@ kbool_t tinykonoha_nxtMethodInit(KonohaContext *kctx, kNameSpace *ks)
 	//KINITv(((KonohaClassVar*)cNXT)->methodList, K_EMPTYARRAY);
 	intptr_t MethodData[] = {
 		_F(NXT_init), TY_NXT, MN_(NXT_init),
-		//_F(NXT_dly), TY_NXT, MN_(NXT_dly),
+		_F(NXT_dly), TY_NXT, MN_(NXT_dly),
 		_F(NXT_ecrobotIsRunning), TY_NXT, MN_(NXT_ecrobotIsRunning),
-		//_F(NXT_tailControl), TY_NXT, MN_(NXT_tailControl),
-		//_F(NXT_manipulateTail), TY_NXT, MN_(NXT_manipulateTail),
+		_F(NXT_tailControl), TY_NXT, MN_(NXT_tailControl),
+		_F(NXT_manipulateTail), TY_NXT, MN_(NXT_manipulateTail),
 		_F(NXT_ecrobotGetGyroSensor), TY_NXT, MN_(NXT_ecrobotGetGyroSensor),
 		_F(NXT_ecrobotGetLightSensor), TY_NXT, MN_(NXT_ecrobotGetLightSensor),
-		//_F(NXT_waiSem), TY_NXT, MN_(NXT_waiSem),
-		//_F(NXT_balanceControl), TY_NXT, MN_(NXT_balanceControl),
+		_F(NXT_waiSem), TY_NXT, MN_(NXT_waiSem),
+		_F(NXT_balanceControl), TY_NXT, MN_(NXT_balanceControl),
 		_F(NXT_getSonarSensor), TY_NXT, MN_(NXT_getsonarSensor),
 
 		_F(NXT_updateStatus), TY_NXT, MN_(NXT_updateStatus),
@@ -872,15 +878,15 @@ static	kbool_t nxt_initPackage(KonohaContext *kctx, kNameSpace *ks, int argc, co
 			//_Public             , _F(NXT_new), TY_NXT, TY_NXT, MN_("new"), 0, 
 			_Public|_Static|_Imm, _F(NXT_init), TY_void, TY_NXT, MN_("init"), 0,
 
-			//_Public|_Static|_Imm, _F(NXT_balanceControl), TY_void, TY_NXT, MN_("balanceControl"), 2, TY_int, FN_x, TY_int, FN_y, 
+			_Public|_Static|_Imm, _F(NXT_balanceControl), TY_void, TY_NXT, MN_("balanceControl"), 2, TY_int, FN_x, TY_int, FN_y, 
 			//_Public|_Static|_Imm, _F(NXT_balanceInit), TY_void, TY_NXT, MN_("balanceInit"), 0,
-			//_Public|_Static|_Imm, _F(NXT_dly), TY_void, TY_NXT, MN_("dly"), 1, TY_int, FN_x, 
+			_Public|_Static|_Imm, _F(NXT_dly), TY_void, TY_NXT, MN_("dly"), 1, TY_int, FN_x, 
 			_Public|_Static|_Imm, _F(NXT_ecrobotIsRunning), TY_boolean, TY_NXT, MN_("ecrobotIsRunning"), 0, 
-			//_Public|_Static|_Imm, _F(NXT_tailControl), TY_void, TY_NXT, MN_("tailControl"), 1, TY_int, FN_x, 
-			//_Public|_Static|_Imm, _F(NXT_manipulateTail), TY_void, TY_NXT, MN_("manipulateTail"), 0,
+			_Public|_Static|_Imm, _F(NXT_tailControl), TY_void, TY_NXT, MN_("tailControl"), 1, TY_int, FN_x, 
+			_Public|_Static|_Imm, _F(NXT_manipulateTail), TY_void, TY_NXT, MN_("manipulateTail"), 0,
 			_Public|_Static|_Imm, _F(NXT_ecrobotGetGyroSensor), TY_int, TY_NXT, MN_("ecrobotGetGyroSensor"), 0,
 			_Public|_Static|_Imm, _F(NXT_ecrobotGetLightSensor), TY_int, TY_NXT, MN_("ecrobotGetLightSensor"), 0,
-			//_Public|_Static|_Imm, _F(NXT_waiSem), TY_void, TY_NXT, MN_("waiSem"), 0,
+			_Public|_Static|_Imm, _F(NXT_waiSem), TY_void, TY_NXT, MN_("waiSem"), 0,
 			_Public|_Static|_Imm, _F(NXT_getSonarSensor), TY_int, TY_NXT, MN_("getsonarSensor"), 0,
 
 			_Public|_Static|_Imm, _F(NXT_updateStatus), TY_void, TY_NXT, MN_("updateStatus"), 0,

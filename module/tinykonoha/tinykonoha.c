@@ -383,6 +383,7 @@ static KonohaContext *new_context(size_t stacksize)
 
 static char mstate;				/* 走行体の状態 */
 static char keystate;			/* タッチセンサーの状態 */
+int manual_start = 0;
 static U16 gyro_offset_value;
 static int sonar_value;
 static int whitelight;
@@ -516,7 +517,7 @@ void TaskDisp(VP_INT exinf)
 		//	}
 		//}
 		key = ecrobot_get_touch_sensor(NXT_PORT_S4);
-		if(key != keystate){	/* KEYセンサーの検知 */
+		if(key != 0){	/* KEYセンサーの検知 */
 			if (button_state == 0) {
 				whitelight = ecrobot_get_light_sensor(NXT_PORT_S3);
 				key = 0;
@@ -524,16 +525,18 @@ void TaskDisp(VP_INT exinf)
 				ecrobot_sound_tone(1000, 200, 50);
 				dly_tsk(1000U);
 			} else if (button_state == 1) {
-				button_state = 2;
-				ecrobot_sound_tone(1000, 200, 50);
-				dly_tsk(1000U);
-			} else if (button_state == 2) {
+				key = 0;
 				if (mstate == MWAIT) {
 					mstate = MRUNNING;
 				} else if (mstate == MRUNNING) {
 					mstate = MSTOP1;
 					wtime = STOPWAIT;
 				}
+				button_state = 2;
+				ecrobot_sound_tone(1000, 200, 50);
+				dly_tsk(1000U);
+			} else if (button_state == 2) {
+				manual_start = 1;
 			}
 			keystate = key;
 		}

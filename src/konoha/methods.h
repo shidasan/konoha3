@@ -132,9 +132,25 @@ static KMETHOD Int_opGTE(KonohaContext *kctx, KonohaStack *sfp)
 //## @Const method String Int.asString();
 static KMETHOD Int_toString(KonohaContext *kctx, KonohaStack *sfp)
 {
+#ifdef K_USING_TINYVM
+	TDBG_s("int_tostr");
+	dly_tsk(1000);
+	int i = sfp[0].intValue, count = 0;
+	char buf[40] = {0};
+	buf[0] = '0';
+	while (i > 0) {
+		buf[count] = i % 10 + '0';
+		count++;
+		i = i / 10;
+	}
+	TDBG_s(buf);
+	kStringVar *string = (kStringVar*)KLIB new_kObject(kctx, CT_(TY_String), (uintptr_t)buf);
+	RETURN_(string);
+#else
 	char buf[40];
 	PLATAPI snprintf_i(buf, sizeof(buf), "%ld", (intptr_t)sfp[0].intValue);
 	RETURN_(KLIB new_kString(kctx, buf, strlen(buf), SPOL_ASCII));
+#endif
 }
 
 //## @Const method Object Boolean.box();

@@ -35,12 +35,15 @@ static KMETHOD MethodFunc_runVirtualMachine(KonohaContext *kctx, KonohaStack *sf
 	KonohaVirtualMachine_run(kctx, sfp, mtd->pc_start);
 }
 
-static char *receive_buf(unsigned char *buf)
+static char *receive_buf(unsigned char *buf, int isStart)
 {
 	int er;
 	//dly_tsk(500);
 	while ((er = bluetooth_receive(CONSOLE_PORTID, buf)) <= 0 || er < 97 || er > 107) {
 		tail_control(TAIL_ANGLE_STAND_UP);
+		if (isStart && manual_start) {
+			return;
+		}
 		dly_tsk(3);
 	}
 	if (er < 97 || er > 107) {
@@ -206,7 +209,7 @@ static void loadByteCode(KonohaContext *kctx)
 	int counter = 0;
 	while (1) {
 		counter++;
-		char *data = receive_buf(buf);
+		char *data = receive_buf(buf, 0);
 		magicValue = data[0];
 		data++;// eat magicValue
 		if (magicValue != -1) {
@@ -228,7 +231,7 @@ static void loadByteCode(KonohaContext *kctx)
 		//VirtualMachineInstruction *pc = (VirtualMachineInstruction*)KLIB Kmalloc(kctx, bytecode_mallocsize);
 		VirtualMachineInstruction *pc = (VirtualMachineInstruction*)KLIB Kmalloc(kctx, sizeof(VirtualMachineInstruction) * opsize);
 		for (i = 0; i < opsize; i++) {
-			data = receive_buf(buf);
+			data = receive_buf(buf, 0);
 			int8_t opcode = data[0];
 			pc[i].opcode = opcode;
 			if (genCode[opcode] != NULL) {
@@ -256,7 +259,7 @@ static void loadByteCode(KonohaContext *kctx)
 
 int check_enter() {
 	char buf[128] = {0};
-	char *ptr = receive_buf(buf);
+	char *ptr = receive_buf(buf, 1);
 	return ptr != NULL;
 }
 

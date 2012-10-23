@@ -1,130 +1,139 @@
-//#define CLASS_Tvoid 0
-//#define CLASS_Tvar 1
-//#define CLASS_Object 2
-//#define CLASS_Boolean 3
-//#define CLASS_Int 4
-//#define CLASS_String 5
-//#define CLASS_Array 6
-//#define CLASS_Param 7
-//#define CLASS_Method 8
-//#define CLASS_Func 9
-//#define CLASS_System 10
-//#define CLASS_T0 11
-//#define CLASS_BasicBlock 12
-//#define CLASS_KonohaCode 13
-//#define CLASS_KonohaSpace 14
-//#define CLASS_Token 15
-//#define CLASS_Expr 16
-//#define CLASS_Stmt 17
-//#define CLASS_Block 18
-//#define CLASS_Gamma 19
-//
-//#define MN_Object_toString 49157
-//#define MN_Boolean_opNOT 15
-//#define MN_Boolean_opNEQ 14
-//#define MN_Boolean_opEQ 13
-//#define MN_Int_opMINUS 7
-//#define MN_Int_opADD 6
-//#define MN_Int_opSUB 8
-//#define MN_Int_opMUL 4
-//#define MN_Int_opDIV 2
-//#define MN_Int_opMOD 3
-//#define MN_Int_opEQ 13
-//#define MN_Int_opNEQ 14
-//#define MN_Int_opLT 9
-//#define MN_Int_opLTE 10
-//#define MN_Int_opGT 11
-//#define MN_Int_opGTE 12
-//#define MN_Int_toString 49157
-//#define MN_String_opEQ 13
-//#define MN_String_opNEQ 14
-//#define MN_String_toInt 49156
-//#define MN_String_opADD 6
-//#define MN_System_assert 18
-//#define MN_System_p 19
-//#define MN_System_gc 21
-//#define MN_KonohaSpace_importPackage 23
-//#define MN_KonohaSpace_import 24
-//#define MN_KonohaSpace_load 25
-//
-////static kopl_u opl0[] = {
-////  /* L_00 */{.opOSET = {OPCODE_OSET, 8/*r*/, 0/*n*/}},
-////  /* L_01 */{.opOSET = {OPCODE_OSET, 10/*r*/, 1/*n*/}},
-////  /* L_02 */{.opSCALL = {OPCODE_SCALL, 8/*r*/, 12/*r*/, 14/*cid*/, 24/*mn of import*/, }},
-////  /* L_03 */{.opNMOV = {OPCODE_NMOV, -7/*r*/, 1/*r*/, 2/*cid*/, }},
-////  /* L_04 */{.opRET = {OPCODE_RET}},
-////};
-////
-////static kconstdata_t data0[] = {
-////  //{14, NULL /* default constant */},
-////  //{5, (void*)"konoha.nxt"},
-////  {CLASS_Tvoid, (void*)NULL},/* sentinel */
-////};
-////
-////static kmethoddecl_t decl0 = {
-////0/*cid*/, 0/*method */,
-////data0, opl0
-////};
-//
-//#define CLASS_Float 21
-//
-//#define MN_Int_toFloat 49173
-//#define MN_String_toFloat 49173
-//#define MN_Float_opADD 6
-//#define MN_Float_opSUB 8
-//#define MN_Float_opMUL 4
-//#define MN_Float_opDIV 2
-//#define MN_Float_opEQ 13
-//#define MN_Float_opNEQ 14
-//#define MN_Float_opLT 9
-//#define MN_Float_opLTE 10
-//#define MN_Float_opGT 11
-//#define MN_Float_opGTE 12
-//#define MN_Float_toInt 49156
-//#define MN_Float_toString 49157
-//#define MN_Float_opMINUS 7
-//#define MN_Float_random 27
-//
-//#define CLASS_Float 21
-//
-//#define MN_System_balanceInit 29
-//#define MN_System_dly 30
-//#define MN_System_actMainTask 31
-//#define MN_System_ecrobotIsRunning 32
-//#define MN_System_tailControl 33
-//#define MN_System_manipulateTail 34
-//#define MN_System_ecrobotInitNxtstate 35
-//#define MN_System_ecrobotInitSensors 36
-//#define MN_System_ecrobotSetLightSensorActive 37
-//#define MN_System_ecrobotGetGyroSensor 38
-//#define MN_System_ecrobotGetLightSensor 39
-//#define MN_System_nxtMotorSetSpeed 40
-//#define MN_System_nxtMotorSetCount 41
-//#define MN_System_nxtMotorGetCount 42
-//#define MN_System_staCyc 43
-//#define MN_System_waiSem 44
-//#define MN_System_balanceControl 45
-//
-//
-//
-////static kopl_u opl1[] = {
-////  /* L_00 */{.opNMOV = {OPCODE_NMOV, 10/*r*/, 0/*r*/, 2/*cid*/, }},
-////  /* L_01 */{.opOSET = {OPCODE_OSET, 12/*r*/, 2/*n*/}},
-////  /* L_02 */{.opSCALL = {OPCODE_SCALL, 10/*r*/, 14/*r*/, 10/*cid*/, 19/*mn of p*/, }},
-////  /* L_03 */{.opRET = {OPCODE_RET}},
-////};
-////
-////static kconstdata_t data1[] = {
-////  {5, (void*)"hello"},
-////  {CLASS_Tvoid, (void*)NULL},/* sentinel */
-////};
-////
-////static kmethoddecl_t decl1 = {
-////0/*cid*/, 0/*method */,
-////data1, opl1
-////};
-////
-////static kmethoddecl_t *decls[] = {
-////  &decl0,
-////  &decl1,
-////};
+#define TY_void 0
+#define TY_var 1
+#define TY_Object 2
+#define TY_boolean 3
+#define TY_int 4
+#define TY_String 5
+#define TY_Array 6
+#define TY_Param 7
+#define TY_Method 8
+#define TY_Func 9
+#define TY_System 10
+#define TY_0 11
+#define TY_BasicBlock 12
+#define TY_ByteCode 13
+#define TY_NameSpace 14
+#define TY_Token 15
+#define TY_Expr 16
+#define TY_Stmt 17
+#define TY_Block 18
+#define TY_Gamma 19
+
+#define MN_Object_String 49195
+#define MN_boolean_opNOT 28
+#define MN_boolean_opEQ 24
+#define MN_boolean_opNEQ 25
+#define MN_boolean_box 56
+#define MN_int_opSUB 19
+#define MN_int_opADD 18
+#define MN_int_opSUB 19
+#define MN_int_opMUL 17
+#define MN_int_opDIV 15
+#define MN_int_opMOD 16
+#define MN_int_opEQ 24
+#define MN_int_opNEQ 25
+#define MN_int_opLT 20
+#define MN_int_opLTE 21
+#define MN_int_opGT 22
+#define MN_int_opGTE 23
+#define MN_int_String 49195
+#define MN_int_box 56
+#define MN_String_opEQ 24
+#define MN_String_opNEQ 25
+#define MN_String_int 49186
+#define MN_String_opADD 18
+#define MN_Func_new 40
+#define MN_Func_invoke 57
+#define MN_System_assert 58
+#define MN_System_p 59
+#define MN_System_gc 61
+#define MN_NameSpace_import 62
+#define MN_NameSpace_load 64
+
+#define TY_float 22
+
+#define MN_int_opADD 18
+#define MN_int_opSUB 19
+#define MN_int_opMUL 17
+#define MN_int_opDIV 15
+#define MN_int_opEQ 24
+#define MN_int_opNEQ 25
+#define MN_int_opLT 20
+#define MN_int_opLTE 21
+#define MN_int_opGT 22
+#define MN_int_opGTE 23
+#define MN_int_float 49220
+#define MN_String_float 49220
+#define MN_float_opADD 18
+#define MN_float_opADD 18
+#define MN_float_opSUB 19
+#define MN_float_opMUL 17
+#define MN_float_opDIV 15
+#define MN_float_opEQ 24
+#define MN_float_opNEQ 25
+#define MN_float_opLT 20
+#define MN_float_opLTE 21
+#define MN_float_opGT 22
+#define MN_float_opGTE 23
+#define MN_float_int 49186
+#define MN_float_String 49195
+#define MN_float_opSUB 19
+
+
+#define MN_Array_get 16384
+#define MN_Array_set 8192
+#define MN_Array_removeAt 75
+#define MN_Array_getSize 16460
+#define MN_Array_getlength 16461
+#define MN_Array_add 78
+#define MN_Array_push 79
+#define MN_Array_pop 80
+#define MN_Array_shift 81
+#define MN_Array_unshift 82
+#define MN_Array_reverse 83
+#define MN_Array_concat 84
+#define MN_Array_indexOf 86
+#define MN_Array_lastIndexOf 87
+#define MN_Array_String 49195
+#define MN_Array_new 40
+#define MN_Array_newArray 89
+#define MN_Array_newList 90
+
+#define TY_NXT 24
+
+#define MN_NXT_init 95
+#define MN_NXT_balanceControl 96
+#define MN_NXT_dly 97
+#define MN_NXT_ecrobotIsRunning 98
+#define MN_NXT_tailControl 99
+#define MN_NXT_manipulateTail 100
+#define MN_NXT_ecrobotGetGyroSensor 101
+#define MN_NXT_ecrobotGetLightSensor 102
+#define MN_NXT_waiSem 103
+#define MN_NXT_getsonarSensor 16488
+#define MN_NXT_updateStatus 105
+#define MN_NXT_balancePid 106
+#define MN_NXT_balance 107
+#define MN_NXT_tailwalk 108
+#define MN_NXT_tailwalkPid 109
+#define MN_NXT_getgrayFlag 16494
+#define MN_NXT_soundTone 111
+#define MN_NXT_getgyroOffset 16496
+#define MN_NXT_setgyroOffset 8304
+#define MN_NXT_gettail 16497
+#define MN_NXT_settail 8305
+#define MN_NXT_getdistance 16498
+#define MN_NXT_setdistance 8306
+#define MN_NXT_gettimer 16499
+#define MN_NXT_cleartimer 116
+#define MN_NXT_gettheta 16501
+#define MN_NXT_cleartheta 118
+#define MN_NXT_getlight 16503
+#define MN_NXT_gettargetLight 16504
+#define MN_NXT_settargetLight 8312
+#define MN_NXT_resetMotor 121
+#define MN_NXT_tailwalkWithBottle 122
+#define MN_NXT_rotate 123
+#define MN_NXT_initPID 124
+#define MN_NXT_basicStage 125
+

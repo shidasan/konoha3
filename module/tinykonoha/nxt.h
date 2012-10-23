@@ -45,4 +45,5 @@ void tail_control(signed int angle);
 void TDBG_i(const char *key, int value);
 void TDBG_s(const char *key);
 void TDBG_abort(const char *msg);
+extern int manual_start;
 #endif //_NXT_H_

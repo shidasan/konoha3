@@ -708,11 +708,11 @@ static void KCLASSTABLE_loadMethod(KonohaContext *kctx)
 		_F(Int_opLTE),     TY_Int,     MN_(int_opLTE),
 		_F(Int_opGT),      TY_Int,     MN_(int_opGT),
 		_F(Int_opGTE),     TY_Int,     MN_(int_opGTE),
-		//_F(Int_toString), TY_Int, MN_to(int, String),
+		_F(Int_toString), TY_Int, MN_to(int, String),
 		//_F(String_toInt), TY_String, MN_to(String, Int),
 		//_F(String_opADD), TY_String, MN_(String_opADD),
 		//_F(System_assert), TY_System, MN_(System_assert),
-		//_F(System_p), TY_System, MN_(System_p),
+		_F(System_p), TY_System, MN_(System_p),
 		//_F(System_gc), TY_System, MN_(System_gc),
 		DEND,
 	};
