@@ -527,3 +527,9 @@ DEBUG_CFLAGS = -g2 -I../../include -I.
 #
 debug :
 	$(DEBUG_CC) $(UNAME).c -o $(UNAME) $(DEBUG_CFLAGS) -DK_USING_TINYVM=1
+
+install : all
+	@echo Executing NeXTTool to upload jsp.rxe...
+	./$(SRCDIR)/OBJ/MINDSTORMSNXT/nexttool/NeXTTool.exe /COM=usb -download=tinykonoha.rxe
+	./$(SRCDIR)/OBJ/MINDSTORMSNXT/nexttool/NeXTTool.exe /COM=usb -listfiles=tinykonoha.rxe
+	@echo NeXTTool is terminated.
