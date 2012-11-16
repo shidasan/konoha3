@@ -81,7 +81,7 @@ DBGENV := GDB_STUB
 #  カーネルライブラリ（libkernel.a）のディレクトリ名
 #  （カーネルライブラリも make 対象にする時は，空に定義する）
 #
-KERNEL_LIB = jsp-1.4.4-nxt/OBJ/MINDSTORMSNXT/libkernel
+# KERNEL_LIB = jsp-1.4.4-nxt/OBJ/MINDSTORMSNXT/libkernel
 
 #
 #  ターゲット依存の定義のインクルード
