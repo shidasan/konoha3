@@ -424,7 +424,7 @@ static void execTopLevelExpression(KonohaContext *kctx)
 	kArray *array = kctx->share->topLevelMethodList;
 	size_t i, size = kArray_size(array);
 	//TDBG_i("size", size);
-	for (i = 4; i < size; i++) {
+	for (i = 0; i < size; i++) {
 		OPEXIT opEXIT = {OPCODE_EXIT};
 		krbp_t *rbp = (krbp_t*)kctx->esp;
 		rbp[K_PCIDX2].pc = (VirtualMachineInstruction*)&opEXIT;
