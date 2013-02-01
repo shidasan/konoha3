@@ -45,6 +45,26 @@
 #
 all:
 
+INCLUDES := -I../../../include $(INCLUDES)
+
+TINYKONOHA_SRCDIR=../../
+TINYKONOHA_MODULEDIR=$(TINYKONOHA_SRCDIR)/module
+TINYKONOHA_EXECDIR=$(TINYKONOHA_SRCDIR)/exec
+
+
+TINYKONOHA_MODULEOBJS=MiniVM.o MSGC.o
+
+TINY_EXECOBJS=
+
+MiniVM.o: $(TINYKONOHA_MODULEDIR)/MiniVM/MiniVM.c
+	$(CC) -c $(CFLAGS) $(SYSSVC_CFLAGS) $<
+
+MSGC.o: $(TINYKONOHA_MODULEDIR)/MSGC/MSGC.c
+	$(CC) -c $(CFLAGS) $(SYSSVC_CFLAGS) $<
+
+#$(TINYKONOHA_MODULEOBJS): %.o: $(TINYKONOHA_MODULEDIR)/%.c
+#	$(CC) -c $(CFLAGS) $(SYSSVC_CFLAGS) $<
+
 #
 #  ターゲット略称の定義
 #
@@ -151,7 +171,7 @@ LDFLAGS := $(LDFLAGS)
 CFG1_OUT_LDFLAGS := $(CFG1_OUT_LDFLAGS) 
 CFG2_OUT_LDFLAGS := $(CFG2_OUT_LDFLAGS) 
 CFG3_OUT_LDFLAGS := $(CFG3_OUT_LDFLAGS) 
-LIBS := $(LIBS) $(CXXLIBS)
+LIBS := $(LIBS) $(CXXLIBS) -lgcc -lc
 CFLAGS = $(COPTS) $(CDEFS) $(INCLUDES)
 
 #
@@ -167,7 +187,7 @@ ifdef USE_CXX
   APPL_CXXOBJS = $(APPLNAME).o 
   APPL_COBJS =
 else
-  APPL_COBJS = $(APPLNAME).o 
+  APPL_COBJS = $(APPLNAME).o
 endif
 APPL_COBJS := $(APPL_COBJS) log_output.o vasyslog.o t_perror.o strerror.o
 APPL_CFLAGS =
@@ -408,9 +428,10 @@ banner.o: kernel_cfg.timestamp $(filter-out banner.o,$(ALL2_OBJS)) $(LIBS_DEP)
 #
 #  全体のリンク
 #
-$(OBJFILE): $(APPL_CFG) kernel_cfg.timestamp $(ALL_OBJS) $(LIBS_DEP)
+$(OBJFILE): $(APPL_CFG) kernel_cfg.timestamp $(ALL_OBJS) $(LIBS_DEP) $(TINYKONOHA_MODULEOBJS)
 	$(LINK) $(CFLAGS) $(LDFLAGS) -o $(OBJFILE) $(START_OBJS) \
-			$(APPL_OBJS) $(SYSSVC_OBJS) $(CFG_OBJS) $(ALL_LIBS) $(END_OBJS)
+			$(TINYKONOHA_MODULEOBJS) $(APPL_OBJS) $(SYSSVC_OBJS) $(CFG_OBJS) $(ALL_LIBS) $(END_OBJS)
+
 	$(NM) -n $(OBJFILE) > $(OBJNAME).syms
 ifdef USE_CFG_PASS3
 	diff cfg3_out.syms $(OBJNAME).syms
