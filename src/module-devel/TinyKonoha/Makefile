@@ -63,7 +63,7 @@ endif
 #
 #  ソースファイルのディレクトリの定義
 #
-SRCDIR = ..
+SRCDIR = ./hrp2/
 
 #
 #  オブジェクトファイル名の拡張子の設定
@@ -391,10 +391,12 @@ endif
 #
 #  カーネルライブラリファイルの生成
 #
-libkernel.a: $(OFFSET_H) $(KERNEL_LIB_OBJS)
-	rm -f libkernel.a
-	$(AR) -rcs libkernel.a $(KERNEL_LIB_OBJS)
-	$(RANLIB) libkernel.a
+#libkernel.a: $(OFFSET_H) $(KERNEL_LIB_OBJS)
+#	rm -f libkernel.a
+#	$(AR) -rcs libkernel.a $(KERNEL_LIB_OBJS)
+#	$(RANLIB) libkernel.a
+$(KERNEL_LIB)/libkernel.a:
+	$(MAKE) -C $(KERNEL_LIB) libkernel.a
 
 #
 #  特別な依存関係の定義
@@ -407,6 +409,7 @@ banner.o: kernel_cfg.timestamp $(filter-out banner.o,$(ALL2_OBJS)) $(LIBS_DEP)
 #  全体のリンク
 #
 $(OBJFILE): $(APPL_CFG) kernel_cfg.timestamp $(ALL_OBJS) $(LIBS_DEP)
+	$(MAKE) -C $(KERNEL_LIB) libkernel.a
 	$(LINK) $(CFLAGS) $(LDFLAGS) -o $(OBJFILE) $(START_OBJS) \
 			$(APPL_OBJS) $(SYSSVC_OBJS) $(CFG_OBJS) $(ALL_LIBS) $(END_OBJS)
 	$(NM) -n $(OBJFILE) > $(OBJNAME).syms
@@ -439,9 +442,8 @@ clean:
 	rm -f $(CFG3_OUT) cfg3_out.tf cfg3_out.syms cfg3_out.srec
 	rm -f kernel_cfg.timestamp $(CFG2_OUT_SRCS) $(CFG3_OUT_SRCS)
 	rm -f cfg1_out.c $(CFG1_OUT) cfg1_out.syms cfg1_out.srec
-ifndef KERNEL_LIB
-	rm -f libkernel.a
-endif
+	rm -f cfg2_out.ld cfg3_out.ld ldscript.ld
+	$(MAKE) -C $(KERNEL_LIB) clean
 	rm -f makeoffset.s offset.h
 
 .PHONY: cleankernel
