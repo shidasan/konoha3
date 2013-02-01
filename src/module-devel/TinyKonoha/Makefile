@@ -171,7 +171,7 @@ LDFLAGS := $(LDFLAGS)
 CFG1_OUT_LDFLAGS := $(CFG1_OUT_LDFLAGS) 
 CFG2_OUT_LDFLAGS := $(CFG2_OUT_LDFLAGS) 
 CFG3_OUT_LDFLAGS := $(CFG3_OUT_LDFLAGS) 
-LIBS := $(LIBS) $(CXXLIBS) -lgcc -lc
+LIBS := $(LIBS) $(CXXLIBS) 
 CFLAGS = $(COPTS) $(CDEFS) $(INCLUDES)
 
 #
@@ -184,10 +184,10 @@ APPL_CFG = $(APPLNAME).cfg
 APPL_DIR = $(APPLDIR) $(SRCDIR)/library
 APPL_ASMOBJS =
 ifdef USE_CXX
-  APPL_CXXOBJS = $(APPLNAME).o 
+  APPL_CXXOBJS = $(APPLNAME).o
   APPL_COBJS =
 else
-  APPL_COBJS = $(APPLNAME).o
+  APPL_COBJS = $(APPLNAME).o dummy.o
 endif
 APPL_COBJS := $(APPL_COBJS) log_output.o vasyslog.o t_perror.o strerror.o
 APPL_CFLAGS =
@@ -284,7 +284,7 @@ ALL3_OBJS = $(START_OBJS) $(APPL_OBJS) $(SYSSVC_OBJS) $(CFG3_OBJS) \
 ALL_OBJS = $(START_OBJS) $(APPL_OBJS) $(SYSSVC_OBJS) $(CFG_OBJS) \
 											$(END_OBJS) $(HIDDEN_OBJS)
 ##ifdef KERNEL_LIB
-  ALL_LIBS = $(APPL_LIBS) $(SYSSVC_LIBS) -lkernel $(LIBS)
+  ALL_LIBS = $(APPL_LIBS) $(SYSSVC_LIBS) -lkernel $(LIBS) -lc 
   LIBS_DEP = $(filter %.a,$(ALL_LIBS)) $(KERNEL_LIB)/libkernel.a
   LDFLAGS := $(LDFLAGS) -L$(KERNEL_LIB)
   CFG2_OUT_LDFLAGS := $(CFG2_OUT_LDFLAGS) -L$(KERNEL_LIB)
@@ -429,7 +429,7 @@ banner.o: kernel_cfg.timestamp $(filter-out banner.o,$(ALL2_OBJS)) $(LIBS_DEP)
 #  全体のリンク
 #
 $(OBJFILE): $(APPL_CFG) kernel_cfg.timestamp $(ALL_OBJS) $(LIBS_DEP) $(TINYKONOHA_MODULEOBJS)
-	$(LINK) $(CFLAGS) $(LDFLAGS) -o $(OBJFILE) $(START_OBJS) \
+	$(LINK) -static -ffunction-sections -Wl,--gc-sections $(CFLAGS) $(LDFLAGS) -o $(OBJFILE) $(START_OBJS) \
 			$(TINYKONOHA_MODULEOBJS) $(APPL_OBJS) $(SYSSVC_OBJS) $(CFG_OBJS) $(ALL_LIBS) $(END_OBJS)
 
 	$(NM) -n $(OBJFILE) > $(OBJNAME).syms
