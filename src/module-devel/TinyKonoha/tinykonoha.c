@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: sample1.c 837 2012-12-26 15:09:59Z ertl-hiro $
+ *  $Id: tinykonoha.c 837 2012-12-26 15:09:59Z ertl-hiro $
  */
 
 /* 
@@ -116,7 +116,7 @@
 #include "syssvc/serial.h"
 #include "syssvc/syslog.h"
 #include "kernel_cfg.h"
-#include "sample1.h"
+#include "tinykonoha.h"
 
 /*
  *  サービスコールのエラーのログ出力

@@ -63,7 +63,7 @@ endif
 #
 #  ソースファイルのディレクトリの定義
 #
-SRCDIR = ./hrp2/
+SRCDIR = ..
 
 #
 #  オブジェクトファイル名の拡張子の設定
@@ -79,7 +79,7 @@ DBGENV :=
 #  カーネルライブラリ（libkernel.a）のディレクトリ名
 #  （カーネルライブラリもmake対象にする時は，空に定義する）
 #
-KERNEL_LIB = ./hrp2/libkernel
+KERNEL_LIB = 
 
 #
 #  カーネルを関数単位でコンパイルするかどうかの定義
@@ -263,16 +263,16 @@ ALL3_OBJS = $(START_OBJS) $(APPL_OBJS) $(SYSSVC_OBJS) $(CFG3_OBJS) \
 											$(END_OBJS) $(HIDDEN_OBJS)
 ALL_OBJS = $(START_OBJS) $(APPL_OBJS) $(SYSSVC_OBJS) $(CFG_OBJS) \
 											$(END_OBJS) $(HIDDEN_OBJS)
-##ifdef KERNEL_LIB
+ifdef KERNEL_LIB
   ALL_LIBS = $(APPL_LIBS) $(SYSSVC_LIBS) -lkernel $(LIBS)
   LIBS_DEP = $(filter %.a,$(ALL_LIBS)) $(KERNEL_LIB)/libkernel.a
   LDFLAGS := $(LDFLAGS) -L$(KERNEL_LIB)
   CFG2_OUT_LDFLAGS := $(CFG2_OUT_LDFLAGS) -L$(KERNEL_LIB)
   CFG3_OUT_LDFLAGS := $(CFG3_OUT_LDFLAGS) -L$(KERNEL_LIB)
-##else
-#  ALL_LIBS = $(APPL_LIBS) $(SYSSVC_LIBS) $(KERNEL_LIB)/libkernel.a $(LIBS)
-#  LIBS_DEP = $(filter %.a,$(ALL_LIBS))
-##endif
+else
+  ALL_LIBS = $(APPL_LIBS) $(SYSSVC_LIBS) libkernel.a $(LIBS)
+  LIBS_DEP = $(filter %.a,$(ALL_LIBS))
+endif
 
 ifdef TEXT_START_ADDRESS
   LDFLAGS := $(LDFLAGS) -Wl,-Ttext,$(TEXT_START_ADDRESS)
@@ -391,12 +391,10 @@ endif
 #
 #  カーネルライブラリファイルの生成
 #
-#libkernel.a: $(OFFSET_H) $(KERNEL_LIB_OBJS)
-#	rm -f libkernel.a
-#	$(AR) -rcs libkernel.a $(KERNEL_LIB_OBJS)
-#	$(RANLIB) libkernel.a
-$(KERNEL_LIB)/libkernel.a:
-	$(MAKE) -C $(KERNEL_LIB) libkernel.a
+libkernel.a: $(OFFSET_H) $(KERNEL_LIB_OBJS)
+	rm -f libkernel.a
+	$(AR) -rcs libkernel.a $(KERNEL_LIB_OBJS)
+	$(RANLIB) libkernel.a
 
 #
 #  特別な依存関係の定義
@@ -441,8 +439,9 @@ clean:
 	rm -f $(CFG3_OUT) cfg3_out.tf cfg3_out.syms cfg3_out.srec
 	rm -f kernel_cfg.timestamp $(CFG2_OUT_SRCS) $(CFG3_OUT_SRCS)
 	rm -f cfg1_out.c $(CFG1_OUT) cfg1_out.syms cfg1_out.srec
-	rm -f cfg2_out.ld cfg3_out.ld ldscript.ld
-	$(MAKE) -C $(KERNEL_LIB) clean
+ifndef KERNEL_LIB
+	rm -f libkernel.a
+endif
 	rm -f makeoffset.s offset.h
 
 .PHONY: cleankernel
