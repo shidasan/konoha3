@@ -79,6 +79,7 @@
  */
 #ifndef TOPPERS_MACRO_ONLY
 #include <stddef.h>
+#include <stdint.h>
 #include <limits.h>
 #endif /* TOPPERS_MACRO_ONLY */
 
@@ -105,8 +106,8 @@ typedef unsigned char		uint8_t;	/* 符号無し8ビット整数 */
 typedef signed short		int16_t;	/* 符号付き16ビット整数 */
 typedef unsigned short		uint16_t;	/* 符号無し16ビット整数 */
 
-typedef signed int			int32_t;	/* 符号付き32ビット整数 */
-typedef unsigned int		uint32_t;	/* 符号無し32ビット整数 */
+//typedef signed int			int32_t;	/* 符号付き32ビット整数 */
+//typedef unsigned int		uint32_t;	/* 符号無し32ビット整数 */
 
 typedef signed long long	int64_t;	/* 符号付き64ビット整数 */
 typedef unsigned long long	uint64_t;	/* 符号無し64ビット整数 */
@@ -114,8 +115,8 @@ typedef unsigned long long	uint64_t;	/* 符号無し64ビット整数 */
 typedef int8_t				int_least8_t;	/* 8ビット以上の符号付き整数 */
 typedef uint8_t				uint_least8_t;	/* 8ビット以上の符号無し整数 */
 
-typedef long				intptr_t;	/* ポインタを格納できる符号付き整数 */
-typedef unsigned long		uintptr_t;	/* ポインタを格納できる符号無し整数 */
+//typedef long				intptr_t;	/* ポインタを格納できる符号付き整数 */
+//typedef unsigned long		uintptr_t;	/* ポインタを格納できる符号無し整数 */
 
 #endif /* TOPPERS_MACRO_ONLY */
 
@@ -157,25 +158,25 @@ typedef unsigned long		uintptr_t;	/* ポインタを格納できる符号無し整数 */
 /*
  *  コンパイラ依存のデータ型に格納できる最大値と最小値の定義
  */
-#define INT8_MAX			SCHAR_MAX
-#define INT8_MIN			SCHAR_MIN
-#define UINT8_MAX			UCHAR_MAX
-
-#define INT16_MAX			SHRT_MAX
-#define INT16_MIN			SHRT_MIN
-#define UINT16_MAX			USHRT_MAX
-
-#define INT32_MAX			INT_MAX
-#define INT32_MIN			INT_MIN
-#define UINT32_MAX			UINT_MAX
-
-#define INT64_MAX			LLONG_MAX
-#define INT64_MIN			LLONG_MIN
-#define UINT64_MAX			ULLONG_MAX
-
-#define INT_LEAST8_MAX		INT8_MAX
-#define INT_LEAST8_MIN		INT8_MIN
-#define UINT_LEAST8_MAX		INT8_MAX
+//#define INT8_MAX			SCHAR_MAX
+//#define INT8_MIN			SCHAR_MIN
+//#define UINT8_MAX			UCHAR_MAX
+//
+//#define INT16_MAX			SHRT_MAX
+//#define INT16_MIN			SHRT_MIN
+//#define UINT16_MAX			USHRT_MAX
+//
+//#define INT32_MAX			INT_MAX
+//#define INT32_MIN			INT_MIN
+//#define UINT32_MAX			UINT_MAX
+//
+//#define INT64_MAX			LLONG_MAX
+//#define INT64_MIN			LLONG_MIN
+//#define UINT64_MAX			ULLONG_MAX
+//
+//#define INT_LEAST8_MAX		INT8_MAX
+//#define INT_LEAST8_MIN		INT8_MIN
+//#define UINT_LEAST8_MAX		INT8_MAX
 
 #endif /* TOPPERS_STDINT_TYPE1 */
 

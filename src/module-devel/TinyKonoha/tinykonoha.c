@@ -116,9 +116,10 @@
 #include "syssvc/serial.h"
 #include "syssvc/syslog.h"
 #include "kernel_cfg.h"
-#include "tinykonoha.h"
 
 #include <stdlib.h>
+
+#include "tinykonoha.h"
 
 #include "minikonoha/minikonoha.h"
 #include "minikonoha/sugar.h"

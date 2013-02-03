@@ -57,6 +57,12 @@ TINYKONOHA_MODULEOBJS=MSGC.o MiniVM.o
 
 TINY_EXECOBJS=
 
+minikonoha.o: $(TINYKONOHA_SRCDIR)/konoha/minikonoha.c
+	$(CC) -c $(CFLAGS) $(SYSSVC_CFLAGS) $<
+
+parser.o: $(TINYKONOHA_SRCDIR)/parser/parser.c
+	$(CC) -c $(CFLAGS) $(SYSSVC_CFLAGS) $<
+
 MiniVM.o: $(TINYKONOHA_MODULEDIR)/MiniVM/MiniVM.c
 	$(CC) -c $(CFLAGS) $(SYSSVC_CFLAGS) $<
 
@@ -159,7 +165,7 @@ ALL_CFG_OBJS := $(CFG_OBJS) cfg1_out.o kernel_mem2.o kernel_mem3.o
 #
 #  共通コンパイルオプションの定義
 #
-COPTS := $(COPTS) -g 
+COPTS := $(COPTS) -g
 ifndef OMIT_WARNING_ALL
   COPTS := $(COPTS) -Wall
 endif
