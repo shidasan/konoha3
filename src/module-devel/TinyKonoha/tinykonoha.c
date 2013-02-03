@@ -110,6 +110,7 @@
  *  'q' : 発行したシステムコールを表示しない．
  */
 
+#include <stdlib.h>
 #include <kernel.h>
 #include <t_syslog.h>
 #include <t_stdlib.h>
