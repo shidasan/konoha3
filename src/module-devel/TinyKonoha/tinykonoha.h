@@ -47,6 +47,9 @@
 /*
  *  ターゲット依存の定義
  */
+
+#ifndef _TINYKONOHA_H_
+#define _TINYKONOHA_H_
 #include "target_test.h"
 
 /*
@@ -94,3 +97,4 @@ extern void	overrun_handler(ID tskid, intptr_t exinf);
 #endif /* TOPPERS_SUPPORT_OVRHDR */
 
 #endif /* TOPPERS_MACRO_ONLY */
+#endif /* _TINYKONOHA_H_ */

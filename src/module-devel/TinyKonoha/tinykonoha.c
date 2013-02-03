@@ -110,7 +110,6 @@
  *  'q' : 発行したシステムコールを表示しない．
  */
 
-#include <stdlib.h>
 #include <kernel.h>
 #include <t_syslog.h>
 #include <t_stdlib.h>
@@ -118,6 +117,12 @@
 #include "syssvc/syslog.h"
 #include "kernel_cfg.h"
 #include "tinykonoha.h"
+
+#include <stdlib.h>
+
+#include "minikonoha/minikonoha.h"
+#include "minikonoha/sugar.h"
+#include "minikonoha/klib.h"
 
 /*
  *  サービスコールのエラーのログ出力
@@ -245,7 +250,7 @@ overrun_handler(ID tskid, intptr_t exinf)
  */
 void main_task(intptr_t exinf)
 {
-
+	struct KonohaFactory factry = {};
 }
 //void main_task(intptr_t exinf)
 //{
