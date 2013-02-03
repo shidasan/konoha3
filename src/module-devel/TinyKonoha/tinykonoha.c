@@ -110,6 +110,8 @@
  *  'q' : 発行したシステムコールを表示しない．
  */
 
+#define __TOPPERS__
+
 #include <kernel.h>
 #include <t_syslog.h>
 #include <t_stdlib.h>
@@ -124,6 +126,7 @@
 #include "minikonoha/minikonoha.h"
 #include "minikonoha/sugar.h"
 #include "minikonoha/klib.h"
+#include "minikonoha/platform.h"
 
 /*
  *  サービスコールのエラーのログ出力
@@ -246,12 +249,29 @@ overrun_handler(ID tskid, intptr_t exinf)
 
 #endif /* TOPPERS_SUPPORT_OVRHDR */
 
+static kbool_t Konoha_ParseCommandOption(KonohaContext* kctx, int argc, char **argv)
+{
+	kbool_t ret = true;
+	int scriptidx = 0;
+	KBaseTrace(trace);
+	//scriptidx = optind;
+	//CommandLine_SetARGV(kctx, argc - scriptidx, argv + scriptidx, trace);
+	if(scriptidx < argc) {
+		//ret = Konoha_LoadScript(kctx, argv[scriptidx]);
+	}
+	return ret;
+}
 /*
  *  メインタスク
  */
 void main_task(intptr_t exinf)
 {
-	struct KonohaFactory factry = {};
+	int argc = 0;
+	char **argv = NULL;
+	struct KonohaFactory factory = {};
+	KonohaFactory_SetDefaultFactory(&factory, ToppersFactory, argc, argv);
+	KonohaContext *konoha = KonohaFactory_CreateKonoha(&factory);
+	Konoha_ParseCommandOption(konoha, argc, argv);
 }
 //void main_task(intptr_t exinf)
 //{

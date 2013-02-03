@@ -43,6 +43,8 @@ extern int verbose_debug;
 #include <minikonoha/platform_msvc.h>
 #elif defined(__MINGW32__)
 #include <minikonoha/platform_mingw.h>
+#elif defined(__TOPPERS__)
+#include <minikonoha/platform_toppers.h>
 #else
 #include <minikonoha/platform_posix.h>
 #endif
