@@ -138,12 +138,15 @@ ALL_CFG_OBJS := $(CFG_OBJS) cfg1_out.o kernel_mem2.o kernel_mem3.o
 #
 #  共通コンパイルオプションの定義
 #
-COPTS := $(COPTS) -g 
+COPTS := $(COPTS) -g -ffunction-sections -fdata-sections
 ifndef OMIT_WARNING_ALL
   COPTS := $(COPTS) -Wall
 endif
+OMIT_OPTIMIZATION=1
 ifndef OMIT_OPTIMIZATION
   COPTS := $(COPTS) -O2
+else
+  COPTS := $(COPTS) -Os
 endif
 CDEFS := $(CDEFS) 
 INCLUDES := -I. -I$(SRCDIR)/include -I$(SRCDIR)/arch -I$(SRCDIR) $(INCLUDES)

@@ -45,6 +45,7 @@
 #
 all:
 
+OMIT_OPTIMIZATION=1
 INCLUDES := -I../../../include $(INCLUDES)
 
 TINYKONOHA_SRCDIR=../../
@@ -53,7 +54,7 @@ TINYKONOHA_EXECDIR=$(TINYKONOHA_SRCDIR)/exec
 
 
 #TINYKONOHA_MODULEOBJS=
-TINYKONOHA_MODULEOBJS=MSGC.o MiniVM.o
+TINYKONOHA_MODULEOBJS=minikonoha.o parser.o MSGC.o 
 
 TINY_EXECOBJS=
 
@@ -165,12 +166,14 @@ ALL_CFG_OBJS := $(CFG_OBJS) cfg1_out.o kernel_mem2.o kernel_mem3.o
 #
 #  共通コンパイルオプションの定義
 #
-COPTS := $(COPTS) -g
+COPTS := $(COPTS) -ffunction-sections -fdata-sections
 ifndef OMIT_WARNING_ALL
   COPTS := $(COPTS) -Wall
 endif
 ifndef OMIT_OPTIMIZATION
   COPTS := $(COPTS) -O2
+else
+  COPTS := $(COPTS) -Os
 endif
 CDEFS := $(CDEFS) 
 INCLUDES := -I. -I$(SRCDIR)/include -I$(SRCDIR)/arch -I$(SRCDIR) $(INCLUDES)

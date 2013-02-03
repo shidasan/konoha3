@@ -6,3 +6,4 @@ void _fstat() {};
 void _isatty() {};
 void _lseek() {};
 void _read() {};
+void __aeabi_uldivmod() {};
