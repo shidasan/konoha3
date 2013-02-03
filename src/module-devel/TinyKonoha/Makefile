@@ -54,7 +54,7 @@ TINYKONOHA_EXECDIR=$(TINYKONOHA_SRCDIR)/exec
 
 
 #TINYKONOHA_MODULEOBJS=
-TINYKONOHA_MODULEOBJS=minikonoha.o parser.o MSGC.o 
+TINYKONOHA_MODULEOBJS=minikonoha.o parser.o MSGC.o MiniVM.o
 
 TINY_EXECOBJS=
 
@@ -166,7 +166,7 @@ ALL_CFG_OBJS := $(CFG_OBJS) cfg1_out.o kernel_mem2.o kernel_mem3.o
 #
 #  共通コンパイルオプションの定義
 #
-COPTS := $(COPTS) -ffunction-sections -fdata-sections
+COPTS := $(COPTS) -g -ffunction-sections -fdata-sections
 ifndef OMIT_WARNING_ALL
   COPTS := $(COPTS) -Wall
 endif
@@ -473,7 +473,7 @@ clean:
 	rm -f kernel_cfg.timestamp $(CFG2_OUT_SRCS) $(CFG3_OUT_SRCS)
 	rm -f cfg1_out.c $(CFG1_OUT) cfg1_out.syms cfg1_out.srec
 	rm -f cfg2_out.ld cfg3_out.ld ldscript.ld
-	$(MAKE) -C $(KERNEL_LIB) clean
+#$(MAKE) -C $(KERNEL_LIB) clean
 	rm -f makeoffset.s offset.h
 
 .PHONY: cleankernel

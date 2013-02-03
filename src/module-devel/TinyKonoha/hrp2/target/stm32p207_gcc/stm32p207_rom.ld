@@ -1,7 +1,7 @@
 MEMORY
 {
-    FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 512K
-    SRAM (rwx) : ORIGIN = 0x20000000, LENGTH = 112K
+    FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 1024K
+    SRAM (rwx) : ORIGIN = 0x20000000, LENGTH = 180K
 }
 
 PROVIDE(hardware_init_hook = 0);
