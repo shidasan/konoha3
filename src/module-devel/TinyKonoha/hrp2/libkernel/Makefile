@@ -146,7 +146,7 @@ OMIT_OPTIMIZATION=1
 ifndef OMIT_OPTIMIZATION
   COPTS := $(COPTS) -O2
 else
-  COPTS := $(COPTS) -Os
+  COPTS := $(COPTS) -O0
 endif
 CDEFS := $(CDEFS) 
 INCLUDES := -I. -I$(SRCDIR)/include -I$(SRCDIR)/arch -I$(SRCDIR) $(INCLUDES)

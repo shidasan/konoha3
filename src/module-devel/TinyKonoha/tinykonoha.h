@@ -52,6 +52,8 @@
 #define _TINYKONOHA_H_
 #include "target_test.h"
 
+#define HEAP_SIZE (64 * 1024)/* 100KB */
+
 /*
  *  各タスクの優先度の定義
  */
