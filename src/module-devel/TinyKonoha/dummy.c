@@ -11,14 +11,14 @@
 
 void _sbrk(int bytes)
 {
-	static char HEAP[HEAP_SIZE];
-	static char *break_block = HEAP;
-	char *old_break_block = break_block;
-	break_block += bytes;
-	if (break_block < HEAP || break_block > HEAP + HEAP_SIZE) {
-		return -1;
-	}
-	return old_break_block;
+	//static char HEAP[HEAP_SIZE];
+	//static char *break_block = HEAP;
+	//char *old_break_block = break_block;
+	//break_block += bytes;
+	//if (break_block < HEAP || break_block > HEAP + HEAP_SIZE) {
+	//	return -1;
+	//}
+	//return old_break_block;
 }
 void abort() {}
 void _write() {}
