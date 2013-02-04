@@ -122,11 +122,14 @@
 #include <stdlib.h>
 
 #include "tinykonoha.h"
+#include "allocate.h"
 
 #include "minikonoha/minikonoha.h"
 #include "minikonoha/sugar.h"
 #include "minikonoha/klib.h"
 #include "minikonoha/platform.h"
+
+char HEAP[HEAP_SIZE];
 
 /*
  *  サービスコールのエラーのログ出力
@@ -269,6 +272,7 @@ void main_task(intptr_t exinf)
 	int argc = 0;
 	char **argv = NULL;
 	struct KonohaFactory factory = {};
+	heap_init();
 	KonohaFactory_SetDefaultFactory(&factory, ToppersFactory, argc, argv);
 	KonohaContext *konoha = KonohaFactory_CreateKonoha(&factory);
 	Konoha_ParseCommandOption(konoha, argc, argv);

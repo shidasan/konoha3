@@ -247,7 +247,7 @@ static inline void do_memcpy(void *s1, void *s2, size_t size)
 
 static inline void *do_malloc(size_t size)
 {
-	void *ptr = malloc(size);
+	void *ptr = tiny_malloc(size);
 	do_bzero(ptr, size);
 	//DBG_CHECK_MALLOCED_INC_SIZE(size);
 	return ptr;
@@ -255,7 +255,8 @@ static inline void *do_malloc(size_t size)
 
 static inline void *do_calloc(size_t count, size_t size)
 {
-	void *ptr = calloc(count, size);
+	void *ptr = tiny_malloc(count * size);
+	do_bzero(ptr, count * size);
 	//DBG_CHECK_MALLOCED_INC_SIZE(size);
 	return ptr;
 }

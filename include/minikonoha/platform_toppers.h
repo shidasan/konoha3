@@ -734,8 +734,8 @@ static kunused void ToppersFactory(KonohaFactory *factory)
 	factory->name            = "toppers";
 	factory->stacksize       = K_PAGESIZE * 4;
 	//factory->getenv_i        = (const char *(*)(const char *))getenv;
-	//factory->malloc_i        = malloc;
-	//factory->free_i          = free;
+	factory->malloc_i        = tiny_malloc;
+	factory->free_i          = tiny_free;
 	//factory->setjmp_i        = ksetjmp;
 	//factory->longjmp_i       = klongjmp;
 
