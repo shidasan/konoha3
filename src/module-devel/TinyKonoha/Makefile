@@ -46,7 +46,7 @@
 all:
 
 OMIT_OPTIMIZATION=1
-INCLUDES := -I../../../include $(INCLUDES)
+INCLUDES := -I../../../include -I./lib/include $(INCLUDES)
 
 TINYKONOHA_SRCDIR=../../
 TINYKONOHA_MODULEDIR=$(TINYKONOHA_SRCDIR)/module
