@@ -971,7 +971,7 @@ struct KRuntimeContextVar {
 };
 
 // module
-#define KRuntimeModule_MAXSIZE    32
+#define KRuntimeModule_MAXSIZE    6
 #define MOD_gc         1
 #define MOD_sugar      3
 #define MOD_konoha     6

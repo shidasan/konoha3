@@ -48,11 +48,7 @@ extern "C" {
 #endif
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
-#include <sys/stat.h>
-#include <errno.h>
-#include <fcntl.h>
 
 #define kunused __attribute__((unused))
 
@@ -93,6 +89,11 @@ static kbool_t FormatModulePath(KonohaFactory *factory, char *buf, size_t bufsiz
 	return false;
 }
 
+static void InitDefaultModule(KonohaContext *kctx)
+{
+	(void*)kctx;
+}	
+
 static kbool_t LoadPlatformModule(KonohaFactory *factory, const char *moduleName, ModuleType type)
 {
 	//char pathbuf[K_PATHMAX];
@@ -107,6 +108,14 @@ static kbool_t LoadPlatformModule(KonohaFactory *factory, const char *moduleName
 	//		}
 	//	}
 	//}
+	if (moduleName[4] == 'V' && moduleName[5] == 'M') {
+		return LoadMiniVMModule(factory, type);
+	} else if (moduleName[0] == 'M' && moduleName[1] == 'S') {
+		return LoadMSGCModule(factory, type);
+	} else if (moduleName[0] == 'J' && moduleName[1] == 's') {
+		factory->InitJsonContext = InitDefaultModule;
+		return true;
+	}
 	return false;
 }
 
@@ -115,8 +124,8 @@ static kbool_t LoadPlatformModule(KonohaFactory *factory, const char *moduleName
 
 static const char* ShortPackageName(const char *str)
 {
-	char *p = (char *) strrchr(str, '.');
-	return (p == NULL) ? str : (const char *)p+1;
+	//char *p = (char *) strrchr(str, '.');
+	//return (p == NULL) ? str : (const char *)p+1;
 }
 
 static const char* FormatPackagePath(KonohaContext *kctx, char *buf, size_t bufsiz, const char *packageName, const char *ext)
@@ -367,13 +376,13 @@ static int kpthread_cond_destroy(kmutex_cond_t *cond)
 
 static kbool_t isDir(const char *path)
 {
-	struct stat buf;
+//	struct stat buf;
 //	char pathbuf[K_PATHMAX];
 //	if(stat(I18N_formatSystemPath(pathbuf, sizeof(pathbuf), path), &buf) == 0) {
-	if(stat(path, &buf) == 0) {
-		return S_ISDIR(buf.st_mode);
-	}
-	return false;
+//	if(stat(path, &buf) == 0) {
+//		return S_ISDIR(buf.st_mode);
+//	}
+//	return false;
 }
 
 // -------------------------------------------------------------------------
@@ -728,18 +737,34 @@ static void exit_i(int status, const char *file, int line)
 	//exit(status);
 }
 
+static char *kgetenv(char *c)
+{
+	if (!strcmp("KONOHA_GC", c)) {
+		return "MSGC";
+	}
+	return NULL;
+}
+static void ksyslog_i(int priority, const char *message, ...) __PRINTFMT(2, 3)
+{
+
+}
+static int kprintf(const char *fmt, ...) __PRINTFMT(2, 3)
+{
+
+}
+
 // --------------------------------------------------------------------------
 static kunused void ToppersFactory(KonohaFactory *factory)
 {
 	factory->name            = "toppers";
 	factory->stacksize       = K_PAGESIZE * 4;
-	//factory->getenv_i        = (const char *(*)(const char *))getenv;
+	factory->getenv_i        = (const char *(*)(const char *))kgetenv;
 	factory->malloc_i        = tiny_malloc;
 	factory->free_i          = tiny_free;
 	//factory->setjmp_i        = ksetjmp;
 	//factory->longjmp_i       = klongjmp;
 
-	//factory->printf_i        = printf;
+	factory->printf_i        = kprintf;
 	//factory->vprintf_i       = vprintf;
 	//factory->snprintf_i      = snprintf;  // avoid to use Xsnprintf
 	//factory->vsnprintf_i     = vsnprintf; // retreating..
@@ -781,7 +806,7 @@ static kunused void ToppersFactory(KonohaFactory *factory)
 	PlatformApi_loadReadline(factory);
 
 	// logger
-//	factory->syslog_i              = syslog;
+	factory->syslog_i              = ksyslog_i;
 //	factory->vsyslog_i             = vsyslog;
 //	factory->TraceDataLog          = TraceDataLog;
 

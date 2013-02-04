@@ -113,7 +113,7 @@ static KonohaContextVar* new_KonohaContext(KonohaContext *kctx, const PlatformAp
 	static volatile size_t ctxid_counter = 0;
 	ctxid_counter++;
 	if(kctx == NULL) {  // NULL means first one
-		KonohaLibVar *klib = (KonohaLibVar *)calloc(sizeof(KonohaLib) + sizeof(KonohaContextVar), 1);
+		KonohaLibVar *klib = (KonohaLibVar *)tiny_malloc(sizeof(KonohaLib) + sizeof(KonohaContextVar) * 1);
 		klib_Init(klib);
 		klib->KRuntime_SetModule  = KRuntime_SetModule;
 		klib->KonohaContext_Init = new_KonohaContext;
@@ -125,8 +125,8 @@ static KonohaContextVar* new_KonohaContext(KonohaContext *kctx, const PlatformAp
 		newctx->klib = (KonohaLib *)klib;
 		newctx->platApi = platApi;
 		kctx = (KonohaContext *)newctx;
-		newctx->modshare = (KRuntimeModule**)calloc(sizeof(KRuntimeModule *), KRuntimeModule_MAXSIZE);
-		newctx->modlocal = (KContextModule**)calloc(sizeof(KContextModule *), KRuntimeModule_MAXSIZE);
+		newctx->modshare = (KRuntimeModule**)tiny_malloc(sizeof(KRuntimeModule *) * KRuntimeModule_MAXSIZE);
+		newctx->modlocal = (KContextModule**)tiny_malloc(sizeof(KContextModule *) * KRuntimeModule_MAXSIZE);
 		DBG_ASSERT(PLATAPI InitGcContext != NULL);
 		PLATAPI InitGcContext(newctx);
 		PLATAPI InitJsonContext(newctx);
@@ -302,8 +302,8 @@ static kbool_t DiagnosisCheckSoftwareTestIsPass(KonohaContext *kctx, const char 
 kbool_t KonohaFactory_LoadPlatformModule(KonohaFactory *factory, const char *name, ModuleType option)
 {
 	if(!factory->LoadPlatformModule(factory, name, option)) {
-		factory->syslog_i(ErrTag, "failed to load platform module: %s\n", name);
-		factory->printf_i("failed to load platform module: %s\n", name);
+		//factory->syslog_i(ErrTag, "failed to load platform module: %s\n", name);
+		//factory->printf_i("failed to load platform module: %s\n", name);
 		return true;
 	}
 	return false;
