@@ -46,15 +46,14 @@
 all:
 
 OMIT_OPTIMIZATION=1
-INCLUDES := -I../../../include -I./lib/include $(INCLUDES)
+INCLUDES := -I../../../include -I./lib/inc -I./lib $(INCLUDES)
 
 TINYKONOHA_SRCDIR=../../
 TINYKONOHA_MODULEDIR=$(TINYKONOHA_SRCDIR)/module
 TINYKONOHA_EXECDIR=$(TINYKONOHA_SRCDIR)/exec
 
-
 #TINYKONOHA_MODULEOBJS=
-TINYKONOHA_MODULEOBJS=minikonoha.o parser.o MSGC.o MiniVM.o
+TINYKONOHA_MODULEOBJS=minikonoha.o parser.o MSGC.o MiniVM.o stm32f2xx_fsmc.o stm32f2xx_rcc.o stm32f2xx_gpio.o
 
 TINY_EXECOBJS=
 
@@ -68,6 +67,15 @@ MiniVM.o: $(TINYKONOHA_MODULEDIR)/MiniVM/MiniVM.c
 	$(CC) -c $(CFLAGS) $(SYSSVC_CFLAGS) $<
 
 MSGC.o: $(TINYKONOHA_MODULEDIR)/MSGC/MSGC.c
+	$(CC) -c $(CFLAGS) $(SYSSVC_CFLAGS) $<
+
+stm32f2xx_fsmc.o: ./lib/src/stm32f2xx_fsmc.c
+	$(CC) -c $(CFLAGS) $(SYSSVC_CFLAGS) $<
+
+stm32f2xx_rcc.o: ./lib/src/stm32f2xx_rcc.c
+	$(CC) -c $(CFLAGS) $(SYSSVC_CFLAGS) $<
+
+stm32f2xx_gpio.o: ./lib/src/stm32f2xx_gpio.c
 	$(CC) -c $(CFLAGS) $(SYSSVC_CFLAGS) $<
 
 #$(TINYKONOHA_MODULEOBJS): %.o: $(TINYKONOHA_MODULEDIR)/%.c

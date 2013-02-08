@@ -52,8 +52,10 @@
 #define _TINYKONOHA_H_
 #include "target_test.h"
 
-#define HEAP_SIZE (64 * 1024)/* 64KB */
-#define HEAP (0x10000000)
+#define EXT_SRAM_BASE_ADDRESS 0x60000000
+#define EXT_SRAM_SIZE (512 * 1024)
+#define HEAP_SIZE EXT_SRAM_SIZE
+#define HEAP EXT_SRAM_BASE_ADDRESS
 
 /*
  *  各タスクの優先度の定義
