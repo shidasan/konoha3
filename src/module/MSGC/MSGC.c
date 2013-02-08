@@ -61,7 +61,7 @@ extern "C" {
 
 #define PageObjectSize(i) (K_PAGESIZE / sizeof(kGCObject##i))
 
-#define ArenaTable_InitSize     32
+#define ArenaTable_InitSize     1
 
 #define Object_unsetMark(o) KFlag_Set0(uintptr_t,(o)->h.magicflag,kObjectFlag_GCFlag)
 #define Object_SetMark(o)   KFlag_Set1(uintptr_t,(o)->h.magicflag,kObjectFlag_GCFlag)
@@ -275,7 +275,7 @@ static inline void do_Free(void *ptr, size_t size)
 	memset(ptr, 0xa, size);
 #endif
 	//DBG_CHECK_MALLOCED_DEC_SIZE(size);
-	free(ptr);
+	tiny_free(ptr);
 }
 
 static ssize_t klib_malloced = 0;
@@ -565,7 +565,8 @@ static void ObjectArena_FinalFree2(KonohaContext *kctx, ObjectPageTable_t *oat, 
 	ObjectArena_FinalFree(2);
 }
 
-#define K_ARENASIZE  ((sizeof(kGCObject0) * K_PAGESIZE) * 16) /*4MB*/
+#define K_ARENASIZE  (1024 * 12)
+//#define K_ARENASIZE  ((sizeof(kGCObject0) * K_PAGESIZE) * 16) /*4MB*/
 
 #define gc_extendObjectArena(N) do {\
 	size_t i = 0;\

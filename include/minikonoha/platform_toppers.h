@@ -757,7 +757,7 @@ static int kprintf(const char *fmt, ...) __PRINTFMT(2, 3)
 static kunused void ToppersFactory(KonohaFactory *factory)
 {
 	factory->name            = "toppers";
-	factory->stacksize       = K_PAGESIZE * 4;
+	factory->stacksize       = 256;
 	factory->getenv_i        = (const char *(*)(const char *))kgetenv;
 	factory->malloc_i        = tiny_malloc;
 	factory->free_i          = tiny_free;
@@ -768,7 +768,7 @@ static kunused void ToppersFactory(KonohaFactory *factory)
 	//factory->vprintf_i       = vprintf;
 	//factory->snprintf_i      = snprintf;  // avoid to use Xsnprintf
 	//factory->vsnprintf_i     = vsnprintf; // retreating..
-	//factory->qsort_i         = qsort;
+	factory->qsort_i         = qsort;
 	//factory->exit_i          = exit_i;
 
 	// mutex

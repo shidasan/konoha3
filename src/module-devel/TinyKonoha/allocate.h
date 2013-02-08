@@ -22,7 +22,7 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***************************************************************************/
 
-#define MINIMUM_ALLOCATE_SIZE 0
+#define MINIMUM_ALLOCATE_SIZE 4
 
 typedef struct heap_free_area
 {
@@ -76,6 +76,7 @@ static heap_header *ptr_to_header(void *ptr)
 static void heap_init()
 {
 	header_global = (heap_header*)HEAP;
+	memset(header_global, 0, HEAP_SIZE);
 	header_global->size = HEAP_SIZE - sizeof(heap_header);
 	header_global->next = NULL;
 }
@@ -103,9 +104,24 @@ static void heap_free(heap_header *free_header, heap_header **header)
 
 	ptr0 = (char*)free_header; ptr1 = (char*)free_header->next;
 	if (ptr0 + sizeof(heap_header) + free_header->size == ptr1) {
-		free_header->next = free_header->next->next;
 		free_header->size += sizeof(heap_header) + free_header->next->size;
+		free_header->next = free_header->next->next;
 	}
+
+	//char *ptr0 = (char*)prev, *ptr1 = (char*)free_header;
+	//if (prev == NULL) {
+	//	free_header->next = *header;
+	//	*header = free_header;
+	//} else {
+	//	heap_header *tmp = prev->next;
+	//	prev->next = free_header;
+	//	free_header->next = tmp;
+	//}
+	//if (free_header + sizeof(heap_header) + free_header->size == free_header->next) {
+	//	free_header->size += free_header->next->size
+	//	free_header->next = free_header->next->next;
+	//}
+
 }
 
 static int total_malloced = 0;

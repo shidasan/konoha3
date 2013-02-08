@@ -95,11 +95,11 @@ static void SugarModule_Setup(KonohaContext *kctx, struct KRuntimeModule *def, i
 		base->h.free     = KParserContext_Free;
 
 		base->errorMessageCount = 0;
-		base->preparedTokenList = new_(TokenArray, K_PAGESIZE/sizeof(void *), OnContextConstList);
+		base->preparedTokenList = new_(TokenArray, 128, OnContextConstList);
 		base->errorMessageList  = new_(StringArray, 8, OnContextConstList);
 		base->definedMethodList = new_(MethodArray, 8, OnContextConstList);
 
-		KLIB KArray_Init(kctx, &base->errorMessageBuffer, K_PAGESIZE);
+		KLIB KArray_Init(kctx, &base->errorMessageBuffer, 256);
 		kctx->modlocal[MOD_sugar] = (KContextModule *)base;
 	}
 }

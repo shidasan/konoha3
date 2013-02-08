@@ -44,8 +44,6 @@
  *		サンプルプログラム(1)のヘッダファイル
  */
 
-extern char HEAP[];
-
 /*
  *  ターゲット依存の定義
  */
@@ -54,7 +52,8 @@ extern char HEAP[];
 #define _TINYKONOHA_H_
 #include "target_test.h"
 
-#define HEAP_SIZE (16 * 1024)/* 100KB */
+#define HEAP_SIZE (64 * 1024)/* 64KB */
+#define HEAP (0x10000000)
 
 /*
  *  各タスクの優先度の定義
@@ -76,7 +75,7 @@ extern char HEAP[];
 #endif /* TASK_PORTID */
 
 #ifndef STACK_SIZE
-#define	STACK_SIZE		4096		/* タスクのスタックサイズ */
+#define	STACK_SIZE		(4096*2)		/* タスクのスタックサイズ */
 #endif /* STACK_SIZE */
 
 #ifndef LOOP_REF

@@ -129,8 +129,6 @@
 #include "minikonoha/klib.h"
 #include "minikonoha/platform.h"
 
-char HEAP[HEAP_SIZE];
-
 /*
  *  サービスコールのエラーのログ出力
  */

@@ -35,8 +35,9 @@ extern "C" {
 
 #define NEWSYNTAX 1
 
-#define K_CLASSTABLE_INITSIZE 64
+#define K_CLASSTABLE_INITSIZE 24
 #define K_PAGESIZE        4096
+#define K_GCSTACK_SIZE    128
 
 #define K_VERSION   "0.3"
 #define K_MAJOR_VERSION 0
