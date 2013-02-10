@@ -307,7 +307,7 @@ static void kNameSpace_DefineSyntax(KonohaContext *kctx, kNameSpace *ns, KDEFINE
 			DBG_ASSERT(IS_Func(fo));
 			KFieldInit(ns, syn->TokenFuncNULL, fo);
 		}
-		KLIB ReportScriptMessage(kctx, trace, DebugTag, "@%s new syntax %s%s", KPackage_text(ns->packageId), KSymbol_Fmt2(syn->keyword));
+		//KLIB ReportScriptMessage(kctx, trace, DebugTag, "@%s new syntax %s%s", KPackage_text(ns->packageId), KSymbol_Fmt2(syn->keyword));
 		kNameSpace_AddSyntax(kctx, ns, syn, trace);
 		DBG_ASSERT(syn == kSyntax_(ns, syndef->keyword));
 		syndef++;

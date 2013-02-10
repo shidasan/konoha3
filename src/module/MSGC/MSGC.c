@@ -565,7 +565,7 @@ static void ObjectArena_FinalFree2(KonohaContext *kctx, ObjectPageTable_t *oat, 
 	ObjectArena_FinalFree(2);
 }
 
-#define K_ARENASIZE  (1024 * 12)
+#define K_ARENASIZE  (1024 * 128)
 //#define K_ARENASIZE  ((sizeof(kGCObject0) * K_PAGESIZE) * 16) /*4MB*/
 
 #define gc_extendObjectArena(N) do {\

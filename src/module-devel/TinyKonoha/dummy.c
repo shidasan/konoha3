@@ -9,17 +9,7 @@
 
 #include <tinykonoha.h>
 
-void _sbrk(int bytes)
-{
-	//static char HEAP[HEAP_SIZE];
-	//static char *break_block = HEAP;
-	//char *old_break_block = break_block;
-	//break_block += bytes;
-	//if (break_block < HEAP || break_block > HEAP + HEAP_SIZE) {
-	//	return -1;
-	//}
-	//return old_break_block;
-}
+void _sbrk(int bytes){}
 void abort() {}
 void _write() {}
 void _close() {}
@@ -28,5 +18,23 @@ void _isatty() {}
 void _lseek() {}
 void _read() {}
 void _stat() {}
-void __aeabi_uldivmod() {}
-void __aeabi_uidiv() {}
+lldiv_t __aeabi_uldivmod(unsigned long long n, unsigned long long d) 
+{
+	lldiv_t res;
+	if (d != 0) {
+		res.quot = n / d;
+		res.rem = n % d;
+	} else {
+		res.quot = 0;
+		res.rem = 0;
+	}
+	return res;
+}
+unsigned int __aeabi_uidiv(unsigned int n, unsigned int d)
+{
+	if (d != 0) {
+		return n / d;
+	} else {
+		return 0;
+	}
+}
