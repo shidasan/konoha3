@@ -260,9 +260,9 @@ static kbool_t Konoha_ParseCommandOption(KonohaContext* kctx, int argc, char **a
 	KBaseTrace(trace);
 	//scriptidx = optind;
 	//CommandLine_SetARGV(kctx, argc - scriptidx, argv + scriptidx, trace);
-	if(scriptidx < argc) {
-		//ret = Konoha_LoadScript(kctx, argv[scriptidx]);
-	}
+	//if(scriptidx < argc) {
+		ret = Konoha_LoadScript(kctx, argv[scriptidx]);
+	//}
 	return ret;
 }
 
@@ -397,7 +397,7 @@ int ExtSRAM_Initialize(void)
 void main_task(intptr_t exinf)
 {
 	int argc = 0;
-	char **argv = NULL;
+	char **argv = {"noname"};
 	struct KonohaFactory factory = {};
 	int sram = ExtSRAM_Initialize();
 	heap_init();

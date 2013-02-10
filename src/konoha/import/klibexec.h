@@ -793,14 +793,14 @@ static void DumpObject(KonohaContext *kctx, kObject *o, const char *file, const 
 	KonohaStack *lsfp = kctx->esp;
 	KLIB KBuffer_Init(&(kctx->stack->cwb), &wb);
 	KUnsafeFieldSet(lsfp[0].asObject, o);
-	kObject_class(o)->p(kctx, lsfp, 0, &wb);
-	const char *msg = KLIB KBuffer_text(kctx, &wb, EnsureZero);
-	if(file == NULL) {
-		PLATAPI printf_i("(%s)%s\n", KClass_text(kObject_class(o)), msg);
-	}
-	else {
-		PLATAPI ReportDebugMessage(file, func, line, "(%s)%s", KClass_text(kObject_class(o)), msg);
-	}
+	//kObject_class(o)->p(kctx, lsfp, 0, &wb);
+	//const char *msg = KLIB KBuffer_text(kctx, &wb, EnsureZero);
+	//if(file == NULL) {
+	//	PLATAPI printf_i("(%s)%s\n", KClass_text(kObject_class(o)), msg);
+	//}
+	//else {
+	//	PLATAPI ReportDebugMessage(file, func, line, "(%s)%s", KClass_text(kObject_class(o)), msg);
+	//}
 	KLIB KBuffer_Free(&wb);
 }
 
@@ -924,7 +924,7 @@ static void CheckSafePoint(KonohaContext *kctx, KonohaStack *sfp, kfileline_t ul
 {
 	PLATAPI ScheduleGC(kctx, NULL); // FIXME: NULL
 	if(kctx->modshare[MOD_EVENT] != NULL) {
-		KLIB KscheduleEvent(kctx);
+		//KLIB KscheduleEvent(kctx); /* TODO TODO_TINYKONOHA */
 	}
 //	if(PLATAPI ScheduleEvent != NULL) {
 //		PLATAPI ScheduleEvent(kctx, NULL); // FIXME: NULL

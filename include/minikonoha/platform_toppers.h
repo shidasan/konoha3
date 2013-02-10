@@ -508,7 +508,8 @@ static int loadScript(const char *filePath, long uline, void *thunk, int (*evalF
 	//	fclose(fp);
 	//}
 	//return isSuccessfullyLoading;
-	return false;
+	int isBreak = false;
+	return evalFunc("System.p(\"hello\")", 0, &isBreak, thunk);
 }
 
 static const char* shortFilePath(const char *path)
@@ -748,7 +749,37 @@ static void ksyslog_i(int priority, const char *message, ...) __PRINTFMT(2, 3)
 {
 
 }
-static int kprintf(const char *fmt, ...) __PRINTFMT(2, 3)
+static int xprintf(const char *fmt, ...) __PRINTFMT(2, 3)
+{
+	return 0;
+}
+
+static int xvprintf_i(const char *fmt, va_list args)
+{
+	return 0;
+}
+
+static int xsnprintf_i(char *str, size_t size, const char *fmt, ...)
+{
+	return 0;
+}
+
+static int xvsnprintf_i(char *str, size_t size, const char *fmt, va_list args)
+{
+	return 0;
+}
+
+static int xsetjmp(jmpbuf_i buf)
+{
+	return 0;
+}
+
+static void xlongjmp(jmpbuf_i buf, int i)
+{
+
+}
+
+static void xexit_i(int status, const char *file, int line)
 {
 
 }
@@ -761,15 +792,15 @@ static kunused void ToppersFactory(KonohaFactory *factory)
 	factory->getenv_i        = (const char *(*)(const char *))kgetenv;
 	factory->malloc_i        = tiny_malloc;
 	factory->free_i          = tiny_free;
-	//factory->setjmp_i        = ksetjmp;
-	//factory->longjmp_i       = klongjmp;
+	factory->setjmp_i        = xsetjmp;
+	factory->longjmp_i       = xlongjmp;
 
-	factory->printf_i        = kprintf;
-	//factory->vprintf_i       = vprintf;
-	//factory->snprintf_i      = snprintf;  // avoid to use Xsnprintf
-	//factory->vsnprintf_i     = vsnprintf; // retreating..
+	factory->printf_i        = xprintf;
+	factory->vprintf_i       = xvprintf_i;
+	factory->snprintf_i      = xsnprintf_i;  // avoid to use Xsnprintf
+	factory->vsnprintf_i     = xvsnprintf_i; // retreating..
 	factory->qsort_i         = qsort;
-	//factory->exit_i          = exit_i;
+	factory->exit_i          = xexit_i;
 
 	// mutex
 	factory->pthread_create_i        = kpthread_create;

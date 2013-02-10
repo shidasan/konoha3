@@ -77,7 +77,7 @@
 #endif /* TASK_PORTID */
 
 #ifndef STACK_SIZE
-#define	STACK_SIZE		(4096*3)		/* タスクのスタックサイズ */
+#define	STACK_SIZE		(4096*6)		/* タスクのスタックサイズ */
 #endif /* STACK_SIZE */
 
 #ifndef LOOP_REF

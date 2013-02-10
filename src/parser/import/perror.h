@@ -159,7 +159,7 @@ void TRACE_ReportScriptMessage(KonohaContext *kctx, KTraceInfo *trace, kinfotag_
 
 static kNode* ERROR_SyntaxErrorToken(KonohaContext *kctx, kNode *stmt, kToken *tk)
 {
-	return kNodeToken_Message(kctx, stmt, tk, ErrTag, "syntax error at %s", KToken_t(tk));
+	return kNodeToken_Message(kctx, stmt, tk, ErrTag, "syntax error at %s", kString_text(tk->text));
 }
 
 #define ERROR_UndefinedEscapeSequence(kctx, stmt, tk) ERROR_SyntaxErrorToken(kctx, stmt, tk)
