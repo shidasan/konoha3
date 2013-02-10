@@ -174,7 +174,7 @@ ALL_CFG_OBJS := $(CFG_OBJS) cfg1_out.o kernel_mem2.o kernel_mem3.o
 #
 #  共通コンパイルオプションの定義
 #
-COPTS := $(COPTS) -g -ffunction-sections -fdata-sections
+COPTS := $(COPTS) -g 
 ifndef OMIT_WARNING_ALL
   COPTS := $(COPTS) -Wall
 endif
